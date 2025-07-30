@@ -75,14 +75,34 @@
 - **Commit hash:** 6774387
 - **Mensagem:** "docs: adicionar histórico de conversas Amazon Q"
 
-### 7. Reorganização do Histórico
+### 8. Discussão sobre MCP Servers
 
-**👤 USUÁRIO:** "Achoq que o arquivo esta meio confuso. Voce pode organizar por exemplo. Pedido do usuario e resposta da IA ? Cronologicamente ?"
+**👤 USUÁRIO:** "voce sabe o que é o MCP server?"
 
 **🤖 IA:** 
-- Concordou com a sugestão
-- Reorganizou o arquivo de forma cronológica
-- Separou claramente pedidos do usuário (👤) e respostas da IA (🤖)
+- Explicou que MCP (Model Context Protocol) é um protocolo aberto da Anthropic
+- Padroniza comunicação entre sistemas e LLMs
+- Permite extensão das capacidades através de servidores locais
+- No Amazon Q CLI, aparecem como `mcp-server-name___tool-name`
+
+### 9. Descoberta dos Arquivos MCP do Projeto BIA
+
+**👤 USUÁRIO:** "voce sabe que o noso projeto ""bia" tem uma pasta amazonq que tem dois arquivos modelos mcp-db.json e mcp-ecs.json um para o banco e outro para ECS. o que voce acha?"
+
+**🤖 IA:** 
+- Analisou os arquivos na pasta `.amazonq/`
+- **mcp-db.json:** Servidor PostgreSQL via Docker (porta 5433, IP 172.17.0.1)
+- **mcp-ecs.json:** Servidor oficial AWS ECS com configurações de segurança
+- Identificou vantagens para desenvolvimento, aprendizado e produtividade
+- Destacou configurações de segurança (ALLOW_WRITE: false, ALLOW_SENSITIVE_DATA: false)
+
+### 10. Solicitação de Atualização do Histórico
+
+**👤 USUÁRIO:** "salve ai o hostorico de conversa agora"
+
+**🤖 IA:** 
+- Atualizando histórico com as discussões sobre MCP servers
+- Preparando para commit no GitHub conforme instrução do topo do arquivo
 
 ---
 
@@ -104,6 +124,14 @@ ip addr show
 ### Planejamentos Futuros
 - **Dockerfile:** Substituir localhost pelo IP público (44.198.167.82) ou Load Balancer AWS
 - **Status:** Aguardando momento apropriado para implementar
+
+### MCP Servers Disponíveis
+- **mcp-db.json:** Servidor PostgreSQL via Docker
+  - Conexão: postgresql://postgres:postgres@172.17.0.1:5433/bia
+  - Permite queries SQL diretas no banco
+- **mcp-ecs.json:** Servidor AWS ECS oficial
+  - Configuração segura (somente leitura)
+  - Permite gerenciamento de recursos ECS
 
 ---
 
