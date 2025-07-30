@@ -38,22 +38,19 @@ Esta seção contém TODOS os pré-requisitos, configurações e passos necessá
   Porta 22 TCP - 0.0.0.0/0 (SSH - opcional)
   ```
 
-#### **1.3 IAM Role para EC2 - ATUALIZADA**
+#### **1.3 IAM Role para EC2 - LISTA EXATA**
 - **Nome:** `role-acesso-ssm`
-- **Políticas obrigatórias:**
-  - `AmazonSSMManagedInstanceCore` (acesso via Systems Manager)
-  - `AmazonECS_FullAccess` (gerenciamento completo ECS)
+- **Políticas AWS Managed anexadas:**
   - `AmazonEC2ContainerRegistryPowerUser` (gerenciamento ECR)
   - `AmazonEC2FullAccess` (acesso completo EC2)
-  - **🆕 Permissões SSM para conectar em outras instâncias** (políticas adicionais para SSM)
+  - `AmazonEC2RoleforSSM` (role EC2 para SSM)
+  - `AmazonECS_FullAccess` (gerenciamento completo ECS)
+  - `AmazonSSMFullAccess` (acesso completo SSM)
+  - `AmazonSSMManagedEC2InstanceDefaultPolicy` (política padrão SSM para EC2)
+  - `AmazonSSMManagedInstanceCore` (core SSM para instâncias)
+  - `AmazonSSMReadOnlyAccess` (leitura SSM)
 
-**⚠️ IMPORTANTE:** A role precisa ter permissões para:
-- `ssm:StartSession` (iniciar sessões)
-- `ssm:TerminateSession` (terminar sessões)
-- `ssm:ResumeSession` (retomar sessões)
-- `ssm:DescribeInstanceInformation` (listar instâncias)
-- `ssm:DescribeSessions` (listar sessões)
-- `ssm:GetConnectionStatus` (verificar status)
+**⚠️ IMPORTANTE:** Esta é a lista EXATA das 8 políticas necessárias para funcionamento completo.
 
 ---
 
@@ -641,6 +638,41 @@ pip install awslabs.ecs-mcp-server
 
 ---
 
+## 📋 INSTRUÇÕES PARA A IA - Políticas IAM Exatas
+
+### ⚠️ IMPORTANTE: Lista EXATA das políticas da role role-acesso-ssm
+
+**Para o ambiente funcionar completamente, a role precisa ter EXATAMENTE estas 8 políticas AWS Managed:**
+
+1. **AmazonEC2ContainerRegistryPowerUser** - Gerenciamento de repositórios ECR
+2. **AmazonEC2FullAccess** - Acesso completo ao EC2 (instâncias, security groups, etc.)
+3. **AmazonEC2RoleforSSM** - Role específica EC2 para SSM
+4. **AmazonECS_FullAccess** - Gerenciamento completo do ECS (clusters, services, tasks)
+5. **AmazonSSMFullAccess** - Acesso completo ao Systems Manager
+6. **AmazonSSMManagedEC2InstanceDefaultPolicy** - Política padrão SSM para instâncias EC2
+7. **AmazonSSMManagedInstanceCore** - Core do SSM para instâncias gerenciadas
+8. **AmazonSSMReadOnlyAccess** - Acesso de leitura ao SSM
+
+### 🔍 Verificação das Políticas
+```bash
+# Para verificar se a role tem as políticas corretas
+aws iam list-attached-role-policies --role-name role-acesso-ssm
+
+# Para verificar se as permissões estão funcionando
+aws sts get-caller-identity
+aws ec2 describe-instances
+aws ecs list-clusters
+aws ecr describe-repositories
+aws ssm describe-instance-information
+```
+
+### ❌ Não usar listas incompletas
+- **NUNCA** usar apenas 4-5 políticas
+- **SEMPRE** usar a lista completa de 8 políticas
+- **VERIFICAR** se todas estão anexadas à role
+
+---
+
 ## 📋 INSTRUÇÕES PARA A IA - Permissões AWS Necessárias
 
 ### ⚠️ IMPORTANTE: Permissões da Role para MCP ECS
@@ -788,6 +820,33 @@ aws sts get-caller-identity
 - ✅ Usar todos os MCP servers
 - ✅ Documentação completa para recriação do zero
 
+### 17. Confirmação das Políticas Exatas da Role
+
+**👤 USUÁRIO:** "O roles que lhe foi dato para isso funcionar: AmazonEC2ContainerRegistryPowerUser, AmazonEC2FullAccess, AmazonEC2RoleforSSM, AmazonECS_FullAccess, AmazonSSMFullAccess, AmazonSSMManagedEC2InstanceDefaultPolicy, AmazonSSMManagedInstanceCore, AmazonSSMReadOnlyAccess"
+
+**🤖 IA:** 
+- **Confirmou lista EXATA** das 8 políticas AWS Managed
+- **Atualizou documentação** com políticas precisas
+- **Adicionou seção de instruções** para IA sobre políticas exatas
+- **Incluiu comandos de verificação** das políticas
+
+**✅ Lista completa das políticas confirmada:**
+1. AmazonEC2ContainerRegistryPowerUser
+2. AmazonEC2FullAccess  
+3. AmazonEC2RoleforSSM
+4. AmazonECS_FullAccess
+5. AmazonSSMFullAccess
+6. AmazonSSMManagedEC2InstanceDefaultPolicy
+7. AmazonSSMManagedInstanceCore
+8. AmazonSSMReadOnlyAccess
+
+**📋 Importância:** Esta lista EXATA garante funcionamento completo de:
+- Lançamento e gerenciamento de EC2
+- Acesso completo via SSM (conectar, listar, gerenciar)
+- Gerenciamento de ECS e ECR
+- Uso de todos os MCP servers
+- Capacidade de recriação total do ambiente
+
 ---
 
-## Conversa 5 - 30/07/2025 - 23:00 UTC
+*Última atualização: 30/07/2025 23:10 UTC*
