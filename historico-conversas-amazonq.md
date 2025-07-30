@@ -144,6 +144,103 @@ ip addr show
 
 ---
 
+---
+
+## 📋 INSTRUÇÕES PARA A IA - Instalação do UV e Dependências
+
+### ⚠️ IMPORTANTE: Leia antes de instalar UV em futuras conversas
+
+**Contexto:** Durante a instalação do `uv` e `awslabs-ecs-mcp-server`, encontramos vários problemas de dependências e permissões que precisam ser resolvidos em sequência específica.
+
+### 🔧 Processo Completo de Instalação (SEGUIR ESTA ORDEM)
+
+#### 1. Verificar se UV já está instalado
+```bash
+which uv
+uv --version
+```
+
+#### 2. Instalar UV (se não estiver instalado)
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source ~/.bashrc  # Recarregar PATH
+```
+
+#### 3. Verificar instalação do UV
+```bash
+uv --version
+uvx --version
+```
+
+#### 4. Instalar awslabs-ecs-mcp-server
+**❌ NÃO FUNCIONA:** `uv pip install awslabs.ecs-mcp-server`
+- **Erro:** "No virtual environment found"
+
+**❌ NÃO FUNCIONA:** `uv pip install --system awslabs.ecs-mcp-server`
+- **Erro:** "Permission denied" para `/usr/local/lib/python3.11/site-packages/`
+
+**✅ SOLUÇÃO CORRETA:**
+```bash
+sudo /home/ec2-user/.local/bin/uv pip install --system awslabs.ecs-mcp-server
+```
+- **Motivo:** UV foi instalado no diretório do usuário, sudo não encontra o comando
+- **Usar caminho completo:** `/home/ec2-user/.local/bin/uv`
+
+#### 5. Verificar AWS CLI (necessário para MCP ECS)
+```bash
+aws --version
+```
+
+**Se não estiver instalado:**
+```bash
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+rm -rf awscliv2.zip aws/  # Limpar arquivos
+```
+
+#### 6. Verificar credenciais AWS
+```bash
+aws sts get-caller-identity
+```
+
+#### 7. Corrigir arquivo mcp-ecs.json
+**Problema:** Caminho de log inválido `/path/to/ecs-mcp-server.log`
+**Solução:** Alterar para `/tmp/ecs-mcp-server.log`
+
+### 🚨 Problemas Comuns e Soluções
+
+| Problema | Erro | Solução |
+|----------|------|---------|
+| UV não encontrado | `no uv in PATH` | Instalar com curl e recarregar PATH |
+| Sem ambiente virtual | `No virtual environment found` | Usar flag `--system` |
+| Permissão negada | `Permission denied` | Usar `sudo` com caminho completo do uv |
+| Sudo não encontra uv | `sudo: uv: command not found` | Usar `/home/ec2-user/.local/bin/uv` |
+| AWS CLI ausente | `ModuleNotFoundError: awscli` | Instalar AWS CLI v2 |
+| Log path inválido | Arquivo não criado | Corrigir para `/tmp/ecs-mcp-server.log` |
+
+### 📦 Pacotes Instalados (72 total)
+- **Principal:** awslabs-ecs-mcp-server==0.1.5
+- **Dependências críticas:** boto3, botocore, fastmcp, mcp, pydantic
+- **Ferramentas:** ruff, pyright, pytest
+
+### ✅ Verificação Final
+Após instalação completa, verificar:
+```bash
+uv --version                    # uv 0.8.4
+uvx --version                   # uvx 0.8.4  
+aws --version                   # aws-cli/2.27.63
+aws sts get-caller-identity     # Credenciais funcionando
+```
+
+### 🎯 Resultado Esperado
+- UV e UVX funcionando
+- Servidor MCP ECS instalado com 72 dependências
+- AWS CLI configurado e credenciais válidas
+- Arquivo mcp-ecs.json com caminho de log correto
+
+---
+
 ## Conversa 2 - 30/07/2025 - 22:00 UTC
 
 ### 1. Leitura do Histórico de Conversas
