@@ -323,5 +323,76 @@ pip install awslabs.ecs-mcp-server
 - Integrar com Amazon Q CLI para uso dos MCP servers
 - Usar ferramentas MCP para gerenciar recursos ECS do projeto BIA
 
+### 8. Configuração de Permissões AWS para MCP ECS
+
+**👤 USUÁRIO:** "lhe dei as seguintes permissoes no ROLE: AmazonEC2ContainerRegistryPowerUser, AmazonEC2FullAccess, AmazonECS_FullAccess, AmazonSSMManagedInstanceCore"
+
+**🤖 IA:** 
+- **Testou permissões ECS:** `aws ecs list-clusters` - ✅ Funcionando
+- **Verificou ECR:** `aws ecr describe-repositories` - ✅ Funcionando
+- **Confirmou acesso completo** aos recursos AWS necessários
+
+**✅ Permissões da Role Configuradas:**
+- **AmazonECS_FullAccess:** Acesso completo ao ECS (clusters, services, tasks)
+- **AmazonEC2ContainerRegistryPowerUser:** Gerenciamento de repositórios ECR
+- **AmazonEC2FullAccess:** Acesso completo ao EC2 (instâncias, security groups)
+- **AmazonSSMManagedInstanceCore:** Acesso via Systems Manager (já ativo)
+
+**📋 Status dos Recursos ECS (us-east-1):**
+- **Clusters:** Nenhum criado ainda (pronto para criação)
+- **Task Definitions:** Nenhuma criada ainda
+- **Repositórios ECR:** Nenhum criado ainda
+
+### 9. Teste do Servidor MCP ECS
+
+**👤 USUÁRIO:** "vceo pode rodar o de ECS para voce ter acesso as coisas que vou lhe pedir?"
+
+**🤖 IA:** 
+- **Iniciou servidor MCP ECS:** `uvx --from awslabs-ecs-mcp-server ecs-mcp-server`
+- **Logs confirmaram inicialização:**
+  ```
+  2025-07-30 22:17:27,723 - ecs-mcp-server - INFO - Server started
+  2025-07-30 22:17:27,723 - ecs-mcp-server - INFO - Write operations enabled: False
+  2025-07-30 22:17:27,723 - ecs-mcp-server - INFO - Sensitive data access enabled: False
+  ```
+- **Testou APIs ECS:** Acesso confirmado com as novas permissões
+
+**🎯 Servidor MCP ECS Operacional:**
+- ✅ Servidor funcionando corretamente
+- ✅ Configurações de segurança ativas (somente leitura)
+- ✅ Acesso completo às APIs ECS/ECR
+- ✅ Pronto para operações de infraestrutura do projeto BIA
+
 ---
-*Última atualização: 30/07/2025 22:00 UTC*
+
+## 📋 INSTRUÇÕES PARA A IA - Permissões AWS Necessárias
+
+### ⚠️ IMPORTANTE: Permissões da Role para MCP ECS
+
+**Para o servidor MCP ECS funcionar completamente, a role precisa ter:**
+
+#### Permissões Obrigatórias:
+- **AmazonECS_FullAccess** - Gerenciamento completo do ECS
+- **AmazonEC2ContainerRegistryPowerUser** - Gerenciamento de repositórios ECR  
+- **AmazonEC2FullAccess** - Acesso ao EC2 (para clusters e instâncias)
+- **AmazonSSMManagedInstanceCore** - Acesso via Systems Manager
+
+#### Verificação das Permissões:
+```bash
+# Testar acesso ECS
+aws ecs list-clusters
+
+# Testar acesso ECR  
+aws ecr describe-repositories
+
+# Verificar credenciais
+aws sts get-caller-identity
+```
+
+#### Problemas Comuns:
+- **AccessDeniedException:** Role sem permissões ECS adequadas
+- **Região não configurada:** Usar `--region us-east-1` ou configurar região padrão
+
+---
+
+## Conversa 3 - 30/07/2025 - 22:20 UTC
