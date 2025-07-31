@@ -995,6 +995,37 @@ aws sts get-caller-identity
 - **EC2 Nova (13.220.46.216:3008):** ✅ Funcionando completo
 - **Guia criado:** ✅ Processo replicável documentado
 
+### 26. Teste dos MCP Servers Configurados
+
+**👤 USUÁRIO:** "o arquivo mcp mcp-db.json e mcp-ecs.json voce poderia testalo e coloca o MCP server para rodar?"
+
+**🤖 IA:** 
+- **Descobriu MCP servers configurados:** `mcp-db.json` e `mcp-ecs.json`
+- **Testou MCP PostgreSQL:**
+  - **Imagem:** `mcp/postgres:latest` (166MB) ✅ Disponível
+  - **Conexão:** `postgresql://postgres:postgres@172.17.0.1:5433/bia`
+  - **Ferramenta:** `query` (read-only SQL)
+  - **Teste realizado:** Listou tabelas e consultou dados com sucesso
+  - **Resultado:** 2 registros ("eee", "sss") retornados via MCP
+
+- **Testou MCP ECS:**
+  - **Comando:** `uvx --from awslabs-ecs-mcp-server ecs-mcp-server`
+  - **Instalação:** ✅ 72 packages instalados
+  - **Servidor:** ✅ Iniciado com logs
+  - **Limitações:** Write operations e sensitive data desabilitados por segurança
+
+**📋 Status dos MCP Servers:**
+- **MCP PostgreSQL:** ✅ 100% funcional via linha de comando
+- **MCP ECS:** ✅ Instalado e rodando (com limitações de segurança)
+- **Amazon Q CLI:** ❌ Não reconhece MCP servers automaticamente
+
+**🎯 Funcionalidades testadas:**
+- Consultas SQL diretas no PostgreSQL via MCP
+- Listagem de tabelas e dados
+- Servidor ECS MCP iniciado e pronto para uso
+
+**📝 Observação:** MCP servers funcionam via linha de comando mas não estão integrados ao Amazon Q CLI atual. Serão úteis para uso futuro.
+
 ---
 
-*Última atualização: 31/07/2025 00:45 UTC*
+*Última atualização: 31/07/2025 01:15 UTC*
