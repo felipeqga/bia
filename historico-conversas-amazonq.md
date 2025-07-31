@@ -2355,3 +2355,209 @@ cd /home/ec2-user/bia/mcp-teste-db/
 - **Estratégia atual:** Ambientes isolados continuam sendo a melhor prática
 - **Documentação:** Atualizar com causa real do problema
 - **Troubleshooting:** Focar em limpeza/recriação da pasta `.amazonq`
+
+---
+
+## Conversa 10 - 31/07/2025 - 22:40 UTC - DEPLOY VERSIONADO E ROLLBACK
+
+### 1. Solicitação de Mudança no Botão
+
+**👤 USUÁRIO:** "na minha tela principal da aplicacao bia eu tenho um botao com o nome "Adicionar Tarefa" queria mudar o nome dele para "Add Tarefa: AmazonQ", pode fazer?"
+
+**🤖 IA:** 
+- **Localizou arquivo:** `client/src/components/AddTask.jsx`
+- **Encontrou botão:** Linha 62 com texto "Adicionar Tarefa"
+- **Alteração realizada:** Mudou para "Add Tarefa: AmazonQ"
+- **Arquivo modificado:** ✅ Pronto para deploy
+
+### 2. Solicitação de Sistema de Versionamento
+
+**👤 USUÁRIO:** "nao ainda. vamos fazer um novo script de deploy pois agora precisamos de versionamento. Nos modificamos agora o botao e por algum motivo nao quero mais entao esses script tem que ter ROLL BACK e tambem tem que submeter esssas novas mudanças que seria um novo deploy, como voce sabe o ECR vai guardar essas varias imagens com HASH, que poderia ser data/hora/segundo"
+
+**🤖 IA:** 
+- **Criou script avançado:** `deploy-versioned.sh`
+- **Funcionalidades implementadas:**
+  - Deploy com tag automática (timestamp)
+  - Rollback automático (versão anterior)
+  - Rollback manual (tag específica)
+  - Listagem de versões
+  - Status da aplicação
+  - Backup automático antes de mudanças
+
+### 3. Características do Script Criado
+
+#### **📋 Funcionalidades Principais:**
+
+**Deploy Versionado:**
+```bash
+./deploy-versioned.sh deploy
+```
+- **Tag automática:** `v20250731-224437` (YYYYMMDD-HHMMSS)
+- **Backup:** Salva versão atual antes do deploy
+- **Build e Push:** ECR com versionamento
+- **Deploy:** ECS com aguardo de estabilização
+
+**Rollback Inteligente:**
+```bash
+# Rollback automático (1 versão anterior)
+./deploy-versioned.sh rollback
+
+# Rollback manual (tag específica)
+./deploy-versioned.sh rollback v20250731-120000
+```
+
+**Monitoramento:**
+```bash
+# Status atual
+./deploy-versioned.sh status
+
+# Últimas 10 versões
+./deploy-versioned.sh list
+
+# Ajuda
+./deploy-versioned.sh help
+```
+
+#### **🎯 Características Técnicas:**
+
+**Versionamento:**
+- **Formato:** `v20250731-224437` (data-hora-minuto-segundo)
+- **Armazenamento:** ECR com múltiplas tags
+- **Backup:** Arquivo `.last-deployed-image` com versão anterior
+- **Hash SHA256:** Identificação única de cada imagem
+
+**Segurança:**
+- **Verificação:** Confirma se tag existe antes do rollback
+- **Backup automático:** Sempre salva versão atual
+- **Validação:** Aguarda estabilização antes de confirmar
+- **Logs coloridos:** Feedback visual claro
+
+**Simplicidade (seguindo filosofia BIA):**
+- **Comandos diretos:** Um comando por ação
+- **Feedback claro:** Logs coloridos e informativos
+- **Processo automatizado:** Mínima intervenção manual
+- **Recuperação fácil:** Rollback com um comando
+
+### 4. Deploy da Mudança no Botão
+
+**🤖 IA:** 
+- **Executou deploy:** `./deploy-versioned.sh deploy`
+- **Tag gerada:** `v20250731-224437`
+- **Build realizado:** Imagem com mudança no botão
+- **Push para ECR:** ✅ Sucesso
+- **Deploy ECS:** ✅ Estabilizado
+- **Aplicação atualizada:** http://44.203.21.88
+
+#### **📊 Resultado do Deploy:**
+
+**Versão deployada:**
+- **Tag:** `v20250731-224437`
+- **Hash:** `sha256:e05218101388583d57d3c6b6bac30f87e627696706c1840170904fef1e7eefd1`
+- **Data:** `2025-07-31T22:44:51.192000+00:00`
+- **Mudança:** Botão "Adicionar Tarefa" → "Add Tarefa: AmazonQ"
+
+**Status da aplicação:**
+- **URL:** http://44.203.21.88 ✅
+- **API:** http://44.203.21.88/api/versao → "Bia 4.2.0" ✅
+- **Service:** ACTIVE com 1 task rodando ✅
+- **Rollback:** ✅ Disponível
+
+### 5. Documentação Criada
+
+**🤖 IA:** 
+- **Arquivo criado:** `GUIA-DEPLOY-VERSIONADO.md`
+- **Conteúdo:** Guia completo com exemplos práticos
+- **Seções:** Comandos, troubleshooting, boas práticas
+- **Exemplo real:** Mudança do botão documentada
+
+#### **📋 Estrutura da Documentação:**
+
+**Seções principais:**
+1. **Visão Geral** - Funcionalidades do sistema
+2. **Comandos Disponíveis** - Todos os comandos com exemplos
+3. **Exemplo Prático** - Caso real da mudança do botão
+4. **Arquivos de Controle** - Como funciona internamente
+5. **Versionamento no ECR** - Estrutura das tags
+6. **Boas Práticas** - Recomendações de uso
+7. **Troubleshooting** - Solução de problemas comuns
+
+### 6. Solicitação de Commit
+
+**👤 USUÁRIO:** "muito bom, agora salva tudo, contexto/historico e cria um arquivo "md" so para esse script de deploy explicando como fazer deploy e como dar o rollback entre as variadas versoes. ah nao esquece de fzer o commit no GitHub"
+
+**🤖 IA:** 
+- **Atualizando histórico:** Conversa completa sobre deploy versionado
+- **Criando arquivo específico:** Guia dedicado ao script
+- **Preparando commit:** Todos os arquivos para GitHub
+
+---
+
+## 📋 SISTEMA DE DEPLOY VERSIONADO - RESUMO TÉCNICO
+
+### **✅ Arquivos Criados:**
+- **`deploy-versioned.sh`** - Script principal com versionamento
+- **`GUIA-DEPLOY-VERSIONADO.md`** - Documentação completa
+- **`.last-deployed-image`** - Backup automático da versão anterior
+
+### **🎯 Funcionalidades Implementadas:**
+1. **Deploy com tag automática** baseada em timestamp
+2. **Rollback automático** para versão imediatamente anterior
+3. **Rollback manual** para qualquer tag específica
+4. **Listagem de versões** no ECR
+5. **Status em tempo real** da aplicação
+6. **Backup automático** antes de qualquer mudança
+7. **Verificação de estabilidade** após deploy/rollback
+8. **Logs coloridos** para feedback visual
+
+### **🚀 Caso de Uso Validado:**
+- **Mudança:** Botão "Adicionar Tarefa" → "Add Tarefa: AmazonQ"
+- **Deploy:** Versão `v20250731-224437` ✅
+- **Aplicação:** http://44.203.21.88 funcionando ✅
+- **Rollback:** Disponível para desfazer mudança
+
+### **📊 Versionamento no ECR:**
+```
+v20250731-224437  # Versão atual (botão alterado)
+latest            # Backup da versão anterior
+sha256:e05218...  # Hash único da imagem
+```
+
+### **🔄 Comandos Principais:**
+```bash
+# Deploy nova versão
+./deploy-versioned.sh deploy
+
+# Rollback automático
+./deploy-versioned.sh rollback
+
+# Rollback manual
+./deploy-versioned.sh rollback v20250731-120000
+
+# Ver status
+./deploy-versioned.sh status
+
+# Listar versões
+./deploy-versioned.sh list
+```
+
+### **⚠️ Filosofia BIA Mantida:**
+- ✅ **Simplicidade:** Comandos diretos e claros
+- ✅ **Segurança:** Backup automático e verificações
+- ✅ **Educacional:** Logs explicativos e documentação
+- ✅ **Prático:** Solução real para problema real
+
+---
+
+## 🎉 **RESULTADO FINAL**
+
+**✅ Sistema completo implementado:**
+- Deploy versionado funcionando
+- Rollback automático e manual
+- Mudança no botão deployada com sucesso
+- Documentação completa criada
+- Aplicação funcionando: http://44.203.21.88
+
+**📋 Próximos passos:**
+- Commit no GitHub com todos os arquivos
+- Teste do rollback (se necessário)
+- Uso do sistema para futuras mudanças
