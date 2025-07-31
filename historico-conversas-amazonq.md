@@ -2070,3 +2070,153 @@ DB_PORT=5432
 **🚀 Pronto para troubleshooting avançado com MCP Server ECS!**
 
 ---
+### 4. Verificação da Localização do MCP Server
+
+**👤 USUÁRIO:** "onde esta isso: .amazonq/mcp.json ? dentro da pasta bia? qual o caminho completo ?"
+
+**🤖 IA:** 
+- **Confirmou localização:** `/home/ec2-user/bia/.amazonq/mcp.json` ✅
+- **Estrutura verificada:** Arquivo ativo dentro do projeto BIA
+- **Status:** MCP Server ECS configurado e pronto para uso
+
+**📁 Estrutura completa:**
+```
+/home/ec2-user/bia/
+├── .amazonq/
+│   ├── mcp.json          ← ARQUIVO ATIVO (MCP Server ECS)
+│   ├── mcp-ecs.json      ← Configuração ECS (backup)
+│   ├── mcp-db.json       ← Configuração Database
+│   └── rules/            ← Regras de configuração
+└── (outros arquivos do projeto)
+```
+
+### 5. Criação do MCP Server Combinado
+
+**👤 USUÁRIO:** "tenho dois arquivos de MCP, um para ECS e outro para DB. nao tem como tem 1 arquivo so com as duasfuncionabilidades?"
+
+**🤖 IA:** 
+- **Identificou necessidade:** Arquivo único com ambas as funcionalidades
+- **Criou arquivo combinado:** `mcp-combined.json` com ECS + Database
+- **Ativou configuração:** Copiou para `mcp.json` ativo
+- **Resultado:** Ambos os MCP servers disponíveis simultaneamente
+
+**🔧 Configuração combinada criada:**
+```json
+{
+  "mcpServers": {
+    "awslabs.ecs-mcp-server": {
+      "command": "uvx",
+      "args": ["--from", "awslabs-ecs-mcp-server", "ecs-mcp-server"],
+      "env": {        
+        "FASTMCP_LOG_LEVEL": "ERROR",
+        "FASTMCP_LOG_FILE": "/tmp/ecs-mcp-server.log",
+        "ALLOW_WRITE": "false",
+        "ALLOW_SENSITIVE_DATA": "false"
+      }
+    },
+    "postgres": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm", "mcp/postgres",
+        "postgresql://postgres:Kgegwlaj6mAIxzHaEqgo@bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com:5432/bia"
+      ]
+    }
+  }
+}
+```
+
+**✅ Vantagens do MCP combinado:**
+- **Conveniência:** Um único arquivo para gerenciar
+- **Funcionalidade completa:** ECS + Database juntos
+- **Sem alternância:** Ambas as ferramentas sempre disponíveis
+- **Backup preservado:** Arquivos individuais mantidos
+
+### 6. Atualização do Contexto Histórico
+
+**👤 USUÁRIO:** "Agora volte a atulizar o contexto/historico com tudo isso que discutismos."
+
+**🤖 IA:** 
+- **Atualizando histórico** com discussão completa sobre MCP combinado
+- **Documentando localização** e estrutura dos arquivos
+- **Preservando contexto** para próximas sessões
+
+---
+
+## 📋 ESTADO FINAL DOS MCP SERVERS - ATUALIZAÇÃO
+
+### 🛠️ **MCP SERVERS - CONFIGURAÇÃO FINAL**
+
+#### **MCP Server Combinado - ATIVO**
+- **Arquivo:** `/home/ec2-user/bia/.amazonq/mcp.json` ✅
+- **Configuração:** ECS + PostgreSQL combinados
+- **Status:** Pronto para uso após reiniciar Amazon Q CLI
+
+**🎯 Ferramentas disponíveis simultaneamente:**
+
+**ECS MCP Server:**
+- `awslabs.ecs-mcp-server___troubleshoot_service`
+- `awslabs.ecs-mcp-server___get_service_logs`
+- `awslabs.ecs-mcp-server___analyze_task_health`
+- `awslabs.ecs-mcp-server___describe_cluster`
+- `awslabs.ecs-mcp-server___list_services`
+- `awslabs.ecs-mcp-server___get_task_definition`
+
+**PostgreSQL MCP Server:**
+- `postgres___query` (consultas SQL no RDS)
+
+#### **Arquivos de Backup Mantidos:**
+- **`mcp-combined.json`:** Backup da configuração combinada
+- **`mcp-ecs.json`:** Configuração só ECS
+- **`mcp-db.json`:** Configuração só Database
+
+### 📁 **Estrutura Final dos Arquivos MCP:**
+```
+/home/ec2-user/bia/.amazonq/
+├── mcp.json              ← ATIVO (ECS + Database combinados) ✅
+├── mcp-combined.json     ← Backup da configuração combinada
+├── mcp-ecs.json          ← Backup só ECS
+├── mcp-db.json           ← Backup só Database
+└── rules/                ← Regras de configuração
+    ├── dockerfile.md
+    ├── infraestrutura.md
+    └── pipeline.md
+```
+
+### 🚀 **Como Usar o MCP Combinado:**
+1. **Navegar:** `cd /home/ec2-user/bia`
+2. **Executar:** `q`
+3. **Ambos os MCP servers** inicializados automaticamente
+4. **Acesso simultâneo** a ferramentas ECS e Database
+
+### 📝 **Próximos Passos com MCP Combinado:**
+1. **Reiniciar Amazon Q CLI** no diretório `/home/ec2-user/bia`
+2. **Verificar ferramentas disponíveis** (ECS + Database)
+3. **Usar troubleshooting ECS** com ferramentas especializadas
+4. **Executar consultas SQL** no RDS quando necessário
+5. **Análise completa** da infraestrutura com ambas as ferramentas
+
+---
+
+## 🎯 **RESUMO FINAL PARA REINÍCIO**
+
+**✅ Infraestrutura 100% funcional:**
+- ECS Cluster `cluster-bia` com `service-bia` rodando
+- RDS PostgreSQL `bia` acessível e com dados
+- Security Groups configurados corretamente
+- Aplicação respondendo em http://44.203.21.88
+
+**🔧 MCP Server Combinado ativado:**
+- **Arquivo único:** `/home/ec2-user/bia/.amazonq/mcp.json`
+- **Funcionalidades:** ECS + PostgreSQL Database
+- **Ferramentas especializadas:** Troubleshooting ECS + Consultas SQL
+- **Backup preservado:** Configurações individuais mantidas
+
+**📋 Contexto completamente preservado:**
+- Análise detalhada da infraestrutura ECS
+- Configuração de todos os componentes AWS
+- Problemas identificados (logs, health check)
+- Solução MCP combinada implementada
+
+**🚀 Pronto para troubleshooting completo com MCP Server ECS + Database!**
+
+---
