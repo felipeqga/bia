@@ -8,7 +8,27 @@
 - ✅ Security Group `bia-dev` com regras:
   - Inbound: SSH (22), HTTP (80), portas customizadas (3001, 3008)
   - Outbound: All traffic
+- ✅ Security Group `bia-db` configurado para RDS
 - ✅ Role IAM `role-acesso-ssm` com 8 políticas obrigatórias
+- ✅ **RDS PostgreSQL configurado e disponível**
+- ✅ **ECR repository configurado**
+
+### **RDS PostgreSQL - Configuração Existente:**
+- **Identifier:** `bia`
+- **Endpoint:** `bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com:5432`
+- **Engine:** PostgreSQL 17.4
+- **Instance Class:** db.t3.micro
+- **Storage:** 20GB GP2
+- **Availability Zone:** us-east-1a
+- **Database:** `bia` (criado)
+- **Credenciais:** postgres / Kgegwlaj6mAIxzHaEqgo
+- **Security Group:** bia-db (permite acesso de bia-dev e bia-web)
+
+### **ECR - Configuração Existente:**
+- **Repository:** `bia`
+- **URI:** `387678648422.dkr.ecr.us-east-1.amazonaws.com/bia`
+- **Mutability:** MUTABLE
+- **Encryption:** AES256
 
 ### **Role IAM - Configuração Crítica:**
 **Nome:** `role-acesso-ssm`
@@ -166,7 +186,43 @@ volumes:
   postgres_data:
 ```
 
-### **8. Subir Aplicação**
+### **8. Configurar Aplicação com RDS (Alternativa)**
+
+**Para usar RDS ao invés de PostgreSQL local:**
+
+```yaml
+# compose-rds.yml
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.PORTA
+    container_name: bia-PORTA
+    ports:
+      - "PORTA:8080"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PWD=Kgegwlaj6mAIxzHaEqgo
+      - DB_NAME=bia
+
+# Sem container database - usa RDS
+```
+
+### **9. Scripts ECS Disponíveis**
+
+**Scripts configurados na raiz do projeto:**
+
+```bash
+# build.sh - Build e push para ECR
+ECR_REGISTRY="387678648422.dkr.ecr.us-east-1.amazonaws.com/bia"
+./build.sh
+
+# deploy.sh - Deploy para ECS (precisa configurar cluster/service)
+./deploy.sh
+```
 ```bash
 cd /home/ec2-user/bia
 docker compose -f compose-PORTA.yml up -d --build
@@ -221,13 +277,18 @@ http://IP-PUBLICO:PORTA
 ### **✅ Antes de criar EC2:**
 - [ ] Role `role-acesso-ssm` existe com 8 políticas
 - [ ] Security Group `bia-dev` configurado
+- [ ] Security Group `bia-db` permite acesso de `bia-dev`
 - [ ] VPC e Subnet disponíveis
+- [ ] **RDS `bia` disponível e acessível**
+- [ ] **ECR repository `bia` configurado**
+- [ ] **Scripts build.sh e deploy.sh na raiz do projeto**
 
 ### **✅ Após criar EC2:**
 - [ ] EC2 está running
 - [ ] IP público atribuído
 - [ ] SSM funcionando
 - [ ] User data executado (Docker, Node.js instalados)
+- [ ] **Conectividade com RDS testada**
 
 ### **✅ Após configurar aplicação:**
 - [ ] Containers rodando (`docker ps`)
@@ -235,6 +296,7 @@ http://IP-PUBLICO:PORTA
 - [ ] Migration executada (tabelas criadas)
 - [ ] Frontend carregando no navegador
 - [ ] Dados persistindo no banco
+- [ ] **Scripts ECS prontos para uso**
 
 ---
 
@@ -250,11 +312,23 @@ docker logs CONTAINER-NAME
 # Verificar rede
 docker network ls
 
-# Testar conectividade do banco
+# Testar conectividade do banco local
 docker exec CONTAINER-NAME psql -U postgres -d bia -c "\dt"
+
+# Testar conectividade RDS
+docker run --rm postgres:16.1 psql "postgresql://postgres:Kgegwlaj6mAIxzHaEqgo@bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com:5432/bia" -c "SELECT version();"
 
 # Verificar migration
 docker exec CONTAINER-NAME psql -U postgres -d bia -c "SELECT * FROM \"SequelizeMeta\";"
+
+# Verificar RDS status
+aws rds describe-db-instances --db-instance-identifier bia
+
+# Verificar ECR repository
+aws ecr describe-repositories --repository-names bia
+
+# Testar build script
+./build.sh
 
 # Reconectar via SSM
 aws ssm start-session --target INSTANCE-ID
@@ -266,15 +340,22 @@ aws ssm start-session --target INSTANCE-ID
 
 **Com este processo você terá:**
 - ✅ EC2 funcionando com aplicação BIA
-- ✅ PostgreSQL com dados persistentes
+- ✅ PostgreSQL local OU RDS com dados persistentes
 - ✅ Frontend configurado corretamente
 - ✅ API funcionando
 - ✅ Migrations aplicadas
 - ✅ Acesso via SSM
+- ✅ **RDS PostgreSQL configurado e acessível**
+- ✅ **ECR repository pronto para imagens**
+- ✅ **Scripts de build/deploy configurados**
 
 **URLs de acesso:**
 - **Aplicação:** `http://IP-PUBLICO:PORTA`
 - **API:** `http://IP-PUBLICO:PORTA/api/versao`
+
+**Recursos AWS configurados:**
+- **RDS:** `bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com:5432`
+- **ECR:** `387678648422.dkr.ecr.us-east-1.amazonaws.com/bia`
 
 ---
 
