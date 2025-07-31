@@ -1353,6 +1353,93 @@ docker push $ECR_REGISTRY/bia:latest
 
 ---
 
+## Conversa 6 - 31/07/2025 - 19:30 UTC - DESCOBERTA MCP SERVERS
+
+### 🔍 **Análise de Comunicação de Rede ECS**
+
+**👤 USUÁRIO:** Solicitou análise da comunicação de rede da aplicação no cluster-bia, verificação do service e conectividade com RDS.
+
+**🤖 IA:** 
+- **Service identificado:** `service-bia` ✅
+- **Status:** ACTIVE, 1 task rodando
+- **Task Definition:** `task-def-bia:1` com network mode bridge
+- **Environment Variables:** Configuradas para RDS
+- **RDS verificado:** Identificador `bia` confirmado ✅
+- **Conectividade:** ECS ↔ RDS funcionando perfeitamente
+- **Security Groups:** bia-web e bia-db configurados corretamente
+- **Testes:** API respondendo, banco acessível, tabelas existem
+
+### 🛠️ **Descoberta dos MCP Servers**
+
+**👤 USUÁRIO:** Informou que amigo usa MCP server `ecs_resouce_management` e mostrou estrutura de arquivos `.amazonq/`
+
+**🤖 IA:** 
+- **Descobriu estrutura:** `/home/ec2-user/bia/.amazonq/`
+- **Arquivos encontrados:**
+  - `mcp-ecs.json` - ECS MCP Server (awslabs.ecs-mcp-server)
+  - `mcp-db.json` - PostgreSQL MCP Server
+- **Sistema identificado:** Configuração dinâmica por renomeação para `mcp.json`
+- **Correção aplicada:** mcp-db.json atualizado para RDS endpoint
+
+### 📋 **MCP Servers Configurados**
+
+#### **ECS MCP Server (`mcp-ecs.json`):**
+```json
+{
+  "mcpServers": {
+    "awslabs.ecs-mcp-server": {
+      "command": "uvx",
+      "args": ["--from", "awslabs-ecs-mcp-server", "ecs-mcp-server"],
+      "env": {        
+        "FASTMCP_LOG_LEVEL": "ERROR",
+        "FASTMCP_LOG_FILE": "/tmp/ecs-mcp-server.log",
+        "ALLOW_WRITE": "false",
+        "ALLOW_SENSITIVE_DATA": "false"
+      }
+    }
+  }
+}
+```
+
+#### **Database MCP Server (`mcp-db.json`):**
+```json
+{
+  "mcpServers": {
+    "postgres": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm", "mcp/postgres",
+        "postgresql://postgres:Kgegwlaj6mAIxzHaEqgo@bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com:5432/bia"
+      ]
+    }
+  }
+}
+```
+
+### 🎯 **Como Usar MCP Servers**
+
+#### **Para ECS Analysis:**
+```bash
+cd /home/ec2-user/bia/.amazonq
+cp mcp-ecs.json mcp.json
+# Reiniciar Amazon Q
+```
+
+#### **Para Database Analysis:**
+```bash
+cd /home/ec2-user/bia/.amazonq
+cp mcp-db.json mcp.json
+# Reiniciar Amazon Q
+```
+
+#### **Para Voltar ao Padrão:**
+```bash
+rm /home/ec2-user/bia/.amazonq/mcp.json
+# Reiniciar Amazon Q
+```
+
+---
+
 ## RESUMO ESTRUTURADO DO USUÁRIO - DESAFIO-2
 
 ### 🎯 **Checklist Completo de Implementação**

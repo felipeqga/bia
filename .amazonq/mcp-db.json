@@ -7,7 +7,7 @@
         "-i",
         "--rm",
         "mcp/postgres",
-        "postgresql://postgres:postgres@172.17.0.1:5433/bia"]
+        "postgresql://postgres:Kgegwlaj6mAIxzHaEqgo@bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com:5432/bia"]
     }
   }
 }

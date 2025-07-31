@@ -121,19 +121,24 @@ cd /home/ec2-user/bia
 
 ### **Guias Disponíveis:**
 1. **`DESAFIO-2-RESUMO-USUARIO.md`** - Resumo estruturado original do usuário
-2. **`historico-conversas-amazonq.md`** - Histórico completo das configurações
-3. **`guia-completo-ecs-bia.md`** - Passo a passo para recriar infraestrutura
-4. **`guia-criacao-ec2-bia.md`** - Guia para EC2 de desenvolvimento
-5. **`RESUMO-INFRAESTRUTURA-BIA.md`** - Este arquivo (resumo executivo)
+2. **`guia-mcp-servers-bia.md`** - Guia completo dos MCP servers
+3. **`historico-conversas-amazonq.md`** - Histórico completo das configurações
+4. **`guia-completo-ecs-bia.md`** - Passo a passo para recriar infraestrutura
+5. **`guia-criacao-ec2-bia.md`** - Guia para EC2 de desenvolvimento
+6. **`RESUMO-INFRAESTRUTURA-BIA.md`** - Este arquivo (resumo executivo)
 
 ### **Localização:**
 ```
 /home/ec2-user/bia/
 ├── DESAFIO-2-RESUMO-USUARIO.md      # Resumo original estruturado
+├── guia-mcp-servers-bia.md          # Guia MCP servers
 ├── historico-conversas-amazonq.md    # Histórico completo
 ├── guia-completo-ecs-bia.md         # Passo a passo ECS
 ├── guia-criacao-ec2-bia.md          # Guia EC2 dev
 ├── RESUMO-INFRAESTRUTURA-BIA.md     # Status executivo
+├── .amazonq/                        # MCP servers config
+│   ├── mcp-ecs.json                 # ECS MCP server
+│   └── mcp-db.json                  # Database MCP server
 ├── build.sh (executável)            # Script de build
 ├── deploy.sh (executável)           # Script de deploy
 └── Dockerfile (configurado)         # Com IP correto
@@ -182,9 +187,38 @@ cd /home/ec2-user/bia
 - **Health Check:** `/api/versao` endpoint
 - **Logs:** Disponíveis via CloudWatch Logs
 
----
+## 🛠️ **MCP Servers Disponíveis**
 
-## 📞 **Suporte e Troubleshooting**
+### **Sistema de Configuração Dinâmica:**
+A aplicação possui MCP servers especializados que podem ser ativados dinamicamente:
+
+#### **ECS MCP Server:**
+- **Arquivo:** `/home/ec2-user/bia/.amazonq/mcp-ecs.json`
+- **Server:** `awslabs.ecs-mcp-server`
+- **Tools:** `ecs_resouce_management`
+- **Função:** Análise especializada de recursos ECS
+
+#### **Database MCP Server:**
+- **Arquivo:** `/home/ec2-user/bia/.amazonq/mcp-db.json`
+- **Server:** `postgres`
+- **Função:** Conexão direta com RDS PostgreSQL
+- **Endpoint:** `bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com:5432`
+
+### **Como Ativar:**
+```bash
+# Para ECS
+cd /home/ec2-user/bia/.amazonq && cp mcp-ecs.json mcp.json
+
+# Para Database  
+cd /home/ec2-user/bia/.amazonq && cp mcp-db.json mcp.json
+
+# Voltar ao padrão
+rm /home/ec2-user/bia/.amazonq/mcp.json
+```
+
+**Após ativação:** Reiniciar Amazon Q para carregar MCP server.
+
+---
 
 ### **Comandos Úteis:**
 ```bash
