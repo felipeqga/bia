@@ -27,6 +27,7 @@
 ### **ECR - Configuração Existente:**
 - **Repository:** `bia`
 - **URI:** `387678648422.dkr.ecr.us-east-1.amazonaws.com/bia`
+- **Registry:** `387678648422.dkr.ecr.us-east-1.amazonaws.com`
 - **Mutability:** MUTABLE
 - **Encryption:** AES256
 
@@ -217,7 +218,7 @@ services:
 
 ```bash
 # build.sh - Build e push para ECR
-ECR_REGISTRY="387678648422.dkr.ecr.us-east-1.amazonaws.com/bia"
+ECR_REGISTRY="387678648422.dkr.ecr.us-east-1.amazonaws.com"
 ./build.sh
 
 # deploy.sh - Deploy para ECS (precisa configurar cluster/service)
@@ -355,7 +356,8 @@ aws ssm start-session --target INSTANCE-ID
 
 **Recursos AWS configurados:**
 - **RDS:** `bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com:5432`
-- **ECR:** `387678648422.dkr.ecr.us-east-1.amazonaws.com/bia`
+- **ECR Registry:** `387678648422.dkr.ecr.us-east-1.amazonaws.com`
+- **ECR Repository:** `387678648422.dkr.ecr.us-east-1.amazonaws.com/bia`
 
 ---
 

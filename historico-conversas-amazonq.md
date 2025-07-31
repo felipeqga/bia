@@ -1262,7 +1262,7 @@ echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "qu
 - **Copiou para raiz:** Ambos scripts movidos para `/home/ec2-user/bia/`
 - **Configurou build.sh:**
   - ❌ **ANTES:** `ECR_REGISTRY="SEU_REGISTRY"`
-  - ✅ **DEPOIS:** `ECR_REGISTRY="387678648422.dkr.ecr.us-east-1.amazonaws.com/bia"`
+  - ✅ **DEPOIS:** `ECR_REGISTRY="387678648422.dkr.ecr.us-east-1.amazonaws.com"`
 - **Permissões:** Adicionou `chmod +x` nos scripts
 - **deploy.sh:** Copiado sem alterações (precisa configurar cluster/service)
 
@@ -1281,7 +1281,7 @@ echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "qu
 **🤖 IA:** 
 - **Mostrou conteúdo do build.sh configurado:**
 ```bash
-ECR_REGISTRY="387678648422.dkr.ecr.us-east-1.amazonaws.com/bia"
+ECR_REGISTRY="387678648422.dkr.ecr.us-east-1.amazonaws.com"
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ECR_REGISTRY
 docker build -t bia .
 docker tag bia:latest $ECR_REGISTRY/bia:latest
@@ -1319,15 +1319,25 @@ docker push $ECR_REGISTRY/bia:latest
 ### 🐳 **ECR - CONFIGURADO**
 - **Repository:** `bia` ✅
 - **URI:** `387678648422.dkr.ecr.us-east-1.amazonaws.com/bia`
+- **Registry:** `387678648422.dkr.ecr.us-east-1.amazonaws.com`
 - **Mutability:** MUTABLE ✅
 - **Encryption:** AES256 ✅
 - **Status:** Pronto para receber imagens
 
-### 📜 **Scripts ECS - CONFIGURADOS**
+### ✅ **Scripts ECS - CONFIGURADOS**
 - **Localização:** `/home/ec2-user/bia/` (raiz do projeto)
-- **build.sh:** ✅ Configurado com URI real do ECR
+- **build.sh:** ✅ Configurado com registry correto
 - **deploy.sh:** ✅ Copiado (precisa configurar cluster/service)
 - **Permissões:** ✅ Executáveis (`chmod +x`)
+
+**build.sh configurado:**
+```bash
+ECR_REGISTRY="387678648422.dkr.ecr.us-east-1.amazonaws.com"
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ECR_REGISTRY
+docker build -t bia .
+docker tag bia:latest $ECR_REGISTRY/bia:latest
+docker push $ECR_REGISTRY/bia:latest
+```
 
 ### 🔒 **Security Groups - ATUALIZADOS**
 - **bia-db (sg-0d954919e73c1af79):**
