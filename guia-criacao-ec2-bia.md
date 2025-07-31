@@ -279,6 +279,7 @@ http://IP-PUBLICO:PORTA
 - [ ] Role `role-acesso-ssm` existe com 8 políticas
 - [ ] Security Group `bia-dev` configurado
 - [ ] Security Group `bia-db` permite acesso de `bia-dev`
+- [ ] Security Group `bia-web` configurado para ECS
 - [ ] VPC e Subnet disponíveis
 - [ ] **RDS `bia` disponível e acessível**
 - [ ] **ECR repository `bia` configurado**
@@ -298,6 +299,14 @@ http://IP-PUBLICO:PORTA
 - [ ] Frontend carregando no navegador
 - [ ] Dados persistindo no banco
 - [ ] **Scripts ECS prontos para uso**
+
+### **✅ Para infraestrutura ECS:**
+- [ ] **Cluster ECS `cluster-bia` criado**
+- [ ] **Task Definition `task-def-bia` configurada**
+- [ ] **Service `service-bia` rodando**
+- [ ] **Deployment configuration corrigida (0%/100%)**
+- [ ] **Dockerfile com IP correto da instância ECS**
+- [ ] **Aplicação acessível via IP público ECS**
 
 ---
 
@@ -358,6 +367,19 @@ aws ssm start-session --target INSTANCE-ID
 - **RDS:** `bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com:5432`
 - **ECR Registry:** `387678648422.dkr.ecr.us-east-1.amazonaws.com`
 - **ECR Repository:** `387678648422.dkr.ecr.us-east-1.amazonaws.com/bia`
+
+## 🚀 **Evolução para ECS**
+
+**Para evoluir para infraestrutura ECS completa, consulte:**
+- **Guia Completo ECS:** `/home/ec2-user/bia/guia-completo-ecs-bia.md`
+- **Histórico de Conversas:** `/home/ec2-user/bia/historico-conversas-amazonq.md`
+
+**Infraestrutura ECS atual:**
+- **Cluster:** `cluster-bia` (t3.micro, us-east-1a/1b)
+- **Task Definition:** `task-def-bia:1` (1 vCPU, 3GB RAM)
+- **Service:** `service-bia` (deployment 0%/100%)
+- **Instância ECS:** `44.203.21.88` (IP público atual)
+- **Status:** ✅ Funcionando com RDS PostgreSQL
 
 ---
 

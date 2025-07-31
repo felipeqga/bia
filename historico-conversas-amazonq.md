@@ -1353,4 +1353,215 @@ docker push $ECR_REGISTRY/bia:latest
 
 ---
 
-*Última atualização: 31/07/2025 16:30 UTC*
+## Conversa 5 - 31/07/2025 - 18:00 UTC - CONFIGURAÇÃO COMPLETA ECS
+
+### 1. Verificação e Criação do Cluster ECS
+
+**👤 USUÁRIO:** Solicitou verificação/criação do cluster ECS:
+- Cluster name: cluster-bia
+- Infrastructure: Amazon EC2 instances, On-demand, t3.micro
+- Desired capacity: Minimum=1, Maximum=1
+- Subnets: us-east-1a, us-east-1b
+- Security group: bia-web
+
+**🤖 IA:** 
+- **Verificou cluster:** ❌ `cluster-bia` não existia
+- **Verificou recursos:** ✅ Security group `bia-web` (sg-001cbdec26830c553) existe
+- **Verificou subnets:** ✅ us-east-1a (subnet-068e3484d05611445) e us-east-1b (subnet-0c665b052ff5c528d) disponíveis
+- **Status:** Cluster foi criado via console (não via CLI devido à complexidade do capacity provider)
+
+### 2. Criação da Task Definition
+
+**👤 USUÁRIO:** Solicitou criação da task definition:
+- Family name: task-def-bia
+- Infrastructure: Amazon EC2 instances
+- Network mode: bridge
+- Container name: bia
+- Image URI: 387678648422.dkr.ecr.us-east-1.amazonaws.com/bia:latest
+- Port mapping: Host 80 → Container 8080 (TCP, HTTP, porta-80)
+- CPU: 1 vCPU, Memory: 3GB hard / 0.4GB soft
+- Environment variables: DB_USER, DB_PWD, DB_HOST, DB_PORT (configuradas para RDS)
+
+**🤖 IA:** 
+- **Verificou ECR:** ✅ Imagem `387678648422.dkr.ecr.us-east-1.amazonaws.com/bia:latest` disponível
+- **Coletou variáveis:** Do compose.yml, adaptadas para RDS
+- **Criou task definition:** `task-def-bia:1` com sucesso
+- **ARN:** `arn:aws:ecs:us-east-1:387678648422:task-definition/task-def-bia:1`
+
+### 3. Criação do Service ECS
+
+**👤 USUÁRIO:** Solicitou criação do service:
+- Service name: service-bia
+- Cluster: cluster-bia
+- Launch type: EC2
+- Scheduling strategy: Replica
+- Desired tasks: 1
+- Deployment failure detection: Desabilitado
+
+**🤖 IA:** 
+- **Verificou cluster:** ✅ `cluster-bia` ativo com 1 instância registrada
+- **Criou service:** `service-bia` com sucesso
+- **Status:** Deployment iniciado, task rodando
+- **ARN:** `arn:aws:ecs:us-east-1:387678648422:service/cluster-bia/service-bia`
+
+### 4. Verificação da Aplicação
+
+**👤 USUÁRIO:** Solicitou verificação do IP público e acesso HTTP
+
+**🤖 IA:** 
+- **Instância ECS:** `i-08cf2555cc1c26089`
+- **IP Público:** `44.203.21.88`
+- **Teste API:** ✅ `http://44.203.21.88/api/versao` → "Bia 4.2.0"
+- **Task status:** RUNNING com port mapping correto
+
+### 5. Execução das Migrations no RDS
+
+**👤 USUÁRIO:** Perguntou sobre migrations no RDS
+
+**🤖 IA:** 
+- **Verificou RDS:** ❌ Migrations não executadas (sem tabelas)
+- **Executou migrations:** `npx sequelize db:migrate` localmente apontando para RDS
+- **Resultado:** ✅ Tabelas criadas (`SequelizeMeta`, `Tarefas`)
+- **Conectividade:** ✅ Aplicação ECS conectada ao RDS
+
+### 6. Correção do Dockerfile e Deploy
+
+**👤 USUÁRIO:** Identificou problema no Dockerfile - IP incorreto no VITE_API_URL
+
+**🤖 IA:** 
+- **Problema identificado:** Dockerfile com `VITE_API_URL=http://3.238.148.112:3001`
+- **Correção aplicada:** `VITE_API_URL=http://44.203.21.88` (IP da instância ECS)
+- **Deploy executado:** `./deploy.sh` com build e push para ECR
+- **Problema encontrado:** Conflito de porta durante deployment
+
+### 7. Correção da Configuração de Deployment
+
+**👤 USUÁRIO:** Identificou problema na configuração de deployment (100%/200%)
+
+**🤖 IA:** 
+- **Problema confirmado:** `minimumHealthyPercent: 100`, `maximumPercent: 200`
+- **Causa:** Tasks simultâneas competindo pela porta 80
+- **Correção aplicada:** `minimumHealthyPercent: 0`, `maximumPercent: 100`
+- **Resultado:** ✅ Deployments sem conflito de porta
+
+### 8. Correção do Script deploy.sh
+
+**🤖 IA:** 
+- **Problema:** Placeholders `[SEU_CLUSTER]` e `[SEU_SERVICE]`
+- **Correção:** `--cluster cluster-bia --service service-bia`
+- **Status:** ✅ Script funcional para próximos deployments
+
+---
+
+## 📋 RECURSOS AWS CONFIGURADOS - ATUALIZAÇÃO COMPLETA
+
+### 🗄️ **RDS PostgreSQL - CONFIGURADO**
+- **Identifier:** `bia`
+- **Status:** `available` ✅
+- **Engine:** PostgreSQL 17.4
+- **Instance Class:** `db.t3.micro` ✅
+- **Storage:** 20GB GP2 ✅
+- **Availability Zone:** `us-east-1a` ✅
+- **Public Access:** NO ✅
+- **Backup Retention:** 0 (disabled) ✅
+- **Performance Insights:** disabled ✅
+- **Endpoint:** `bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com:5432`
+- **Database:** `bia` ✅ (criado)
+- **Credenciais:** postgres / Kgegwlaj6mAIxzHaEqgo
+- **Security Group:** `bia-db` (sg-0d954919e73c1af79)
+- **Migrations:** ✅ Executadas (tabelas `SequelizeMeta`, `Tarefas` criadas)
+
+### 🐳 **ECR - CONFIGURADO**
+- **Repository:** `bia` ✅
+- **URI:** `387678648422.dkr.ecr.us-east-1.amazonaws.com/bia`
+- **Registry:** `387678648422.dkr.ecr.us-east-1.amazonaws.com`
+- **Mutability:** MUTABLE ✅
+- **Encryption:** AES256 ✅
+- **Status:** Pronto para receber imagens
+- **Última imagem:** `sha256:f77344c7b2a5ca96cfbf1f3eff3a25cad4a3de7b4463d31c55c070b7aa58cebb`
+
+### 🚀 **ECS CLUSTER - CONFIGURADO**
+- **Nome:** `cluster-bia` ✅
+- **Status:** `ACTIVE`
+- **Infrastructure:** Amazon EC2 instances
+- **Instance Type:** t3.micro
+- **Capacity:** Min=1, Max=1
+- **Container Instances:** 1 registrada
+- **Instância EC2:** `i-08cf2555cc1c26089`
+- **IP Público:** `44.203.21.88`
+- **Security Group:** `bia-web` (sg-001cbdec26830c553)
+- **Subnets:** us-east-1a, us-east-1b
+
+### 📋 **TASK DEFINITION - CONFIGURADA**
+- **Family:** `task-def-bia` ✅
+- **Revision:** `1`
+- **ARN:** `arn:aws:ecs:us-east-1:387678648422:task-definition/task-def-bia:1`
+- **Network Mode:** `bridge` ✅
+- **Compatibility:** `EC2` ✅
+- **Container:** `bia`
+- **Image:** `387678648422.dkr.ecr.us-east-1.amazonaws.com/bia:latest`
+- **CPU:** 1024 (1 vCPU) ✅
+- **Memory:** 3072 MB hard / 409 MB soft ✅
+- **Port Mapping:** Host 80 → Container 8080 (TCP, HTTP, porta-80) ✅
+- **Environment Variables:**
+  - `DB_USER=postgres`
+  - `DB_PWD=Kgegwlaj6mAIxzHaEqgo`
+  - `DB_HOST=bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com`
+  - `DB_PORT=5432`
+
+### 🔄 **ECS SERVICE - CONFIGURADO**
+- **Nome:** `service-bia` ✅
+- **ARN:** `arn:aws:ecs:us-east-1:387678648422:service/cluster-bia/service-bia`
+- **Cluster:** `cluster-bia` ✅
+- **Task Definition:** `task-def-bia:1` ✅
+- **Launch Type:** `EC2` ✅
+- **Scheduling Strategy:** `REPLICA` ✅
+- **Desired Count:** `1` ✅
+- **Status:** `ACTIVE`
+- **Deployment Configuration:**
+  - **Strategy:** `ROLLING` ✅
+  - **Minimum Healthy Percent:** `0` ✅ (corrigido)
+  - **Maximum Percent:** `100` ✅ (corrigido)
+  - **Circuit Breaker:** `disabled` ✅
+- **Running Tasks:** 1
+
+### 📜 **Scripts ECS - CONFIGURADOS**
+- **Localização:** `/home/ec2-user/bia/` (raiz do projeto)
+- **build.sh:** ✅ Configurado com registry correto
+- **deploy.sh:** ✅ Configurado com cluster e service corretos
+- **Permissões:** ✅ Executáveis (`chmod +x`)
+
+**build.sh configurado:**
+```bash
+ECR_REGISTRY="387678648422.dkr.ecr.us-east-1.amazonaws.com"
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ECR_REGISTRY
+docker build -t bia .
+docker tag bia:latest $ECR_REGISTRY/bia:latest
+docker push $ECR_REGISTRY/bia:latest
+```
+
+**deploy.sh configurado:**
+```bash
+./build.sh
+aws ecs update-service --cluster cluster-bia --service service-bia --force-new-deployment
+```
+
+### 🔒 **Security Groups - ATUALIZADOS**
+- **bia-db (sg-0d954919e73c1af79):**
+  - Inbound: PostgreSQL (5432) ← `bia-web` (original)
+  - Inbound: PostgreSQL (5432) ← `bia-dev` (adicionado)
+- **bia-web (sg-001cbdec26830c553):**
+  - Inbound: HTTP (80) ← 0.0.0.0/0 (público)
+- **bia-dev (sg-0ba2485fb94124c9f):** Nossa EC2 atual
+
+### 🌐 **APLICAÇÃO FUNCIONANDO**
+- **URL Principal:** `http://44.203.21.88`
+- **API:** `http://44.203.21.88/api/versao` → "Bia 4.2.0" ✅
+- **Frontend:** ✅ Configurado para apontar para backend correto
+- **Backend:** ✅ Conectado ao RDS PostgreSQL
+- **Database:** ✅ Migrations aplicadas, tabelas criadas
+- **Deployment:** ✅ Configurado para deployments sem conflito
+
+---
+
+*Última atualização: 31/07/2025 19:00 UTC*
