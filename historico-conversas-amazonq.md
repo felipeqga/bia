@@ -943,6 +943,58 @@ aws sts get-caller-identity
 
 **📋 Próximos passos:** Resolver conectividade do banco na EC2 nova para executar migrations
 
+### 23. Resolução Final da Migration na EC2 Nova
+
+**👤 USUÁRIO:** "entao pare o container na segunda Ec2 e refaca tudo."
+
+**🤖 IA:** 
+- **Limpeza completa:** Parou e removeu todos containers
+- **Reconfiguração com docker compose:**
+  - Criou `compose-3008.yml` personalizado
+  - Configurou variáveis de ambiente corretas:
+    - `DB_HOST=database`
+    - `DB_PORT=5432`
+    - `DB_USER=postgres`
+    - `DB_PWD=postgres`
+- **Migration executada com sucesso:** `20210924000838-criar-tarefas: migrated (0.021s)`
+- **Resultado:** ✅ Ambas EC2s funcionando perfeitamente
+
+### 24. Validação Final dos Dados
+
+**👤 USUÁRIO:** "inseri algumas coisas no banco de dados nas duas ec2 pode checar e listar o que inseri ?"
+
+**🤖 IA:** 
+- **Consultou bancos das duas EC2s:**
+  - **EC2 Atual (44.198.167.82:3001):** 2 registros ("eee", "sss")
+  - **EC2 Nova (13.220.46.216:3008):** 1 registro ("TESTE2")
+- **Confirmou persistência:** ✅ Dados salvos corretamente
+- **Estrutura validada:** Tabelas com UUID, títulos, datas
+
+### 25. Criação do Guia Completo
+
+**👤 USUÁRIO:** "deu tudo certo. Atualiza ai no historico de conversa o procesimento completo para criar uma EC2 do zero..."
+
+**🤖 IA:** 
+- **Criou guia completo:** `guia-criacao-ec2-bia.md`
+- **Documentou processo completo:**
+  - Pré-requisitos e dependências
+  - Role IAM com 8 políticas obrigatórias
+  - Processo passo-a-passo
+  - Principais dificuldades e soluções
+  - Checklist de validação
+  - Comandos de troubleshooting
+
+**📋 Principais dificuldades documentadas:**
+1. **Permissão iam:PassRole:** Necessária policy customizada específica
+2. **Migration não executava:** Erro de conectividade entre containers
+3. **Frontend não carregava:** VITE_API_URL com localhost ao invés de IP público
+4. **Conectividade containers:** Resolvido com docker compose e variáveis de ambiente
+
+**✅ Resultado final:**
+- **EC2 Atual (44.198.167.82:3001):** ✅ Funcionando completo
+- **EC2 Nova (13.220.46.216:3008):** ✅ Funcionando completo
+- **Guia criado:** ✅ Processo replicável documentado
+
 ---
 
-*Última atualização: 31/07/2025 00:30 UTC*
+*Última atualização: 31/07/2025 00:45 UTC*
