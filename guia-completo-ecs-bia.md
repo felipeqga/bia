@@ -2,13 +2,30 @@
 
 ## 📋 **Visão Geral**
 
-Este guia permite recriar completamente a infraestrutura ECS do projeto BIA, incluindo:
-- RDS PostgreSQL
-- ECR Repository
-- ECS Cluster com instâncias EC2
-- Task Definition
-- ECS Service
-- Scripts de deploy
+Este guia permite recriar completamente a infraestrutura ECS do projeto BIA conforme especificações do **DESAFIO-2**.
+
+**Baseado no resumo estruturado:**
+- Security Groups (bia-web, bia-db)
+- RDS PostgreSQL (Free Tier, t3.micro)
+- ECR Repository (bia, MUTABLE)
+- ECS Cluster (cluster-bia, EC2 t3.micro)
+- Task Definition (task-def-bia, bridge network)
+- ECS Service (service-bia, deployment 0%/100%)
+
+---
+
+## 🎯 **Checklist de Implementação (DESAFIO-2)**
+
+### **✅ Recursos a serem criados:**
+- [ ] Security Groups: bia-web, bia-db
+- [ ] RDS PostgreSQL: bia (Free Tier, t3.micro, 20GB)
+- [ ] ECR Repository: bia (MUTABLE, AES-256)
+- [ ] ECS Cluster: cluster-bia (EC2, t3.micro, Min=1/Max=1)
+- [ ] Task Definition: task-def-bia (bridge, 1 vCPU, 3GB RAM)
+- [ ] ECS Service: service-bia (Replica, 1 task)
+- [ ] Scripts: build.sh e deploy.sh configurados
+- [ ] Migrations: Executadas no RDS
+- [ ] Deployment Config: 0%/100% (crítico para evitar conflito de porta)
 
 ---
 
@@ -30,9 +47,43 @@ Este guia permite recriar completamente a infraestrutura ECS do projeto BIA, inc
 - Node.js 22+ instalado
 - Git configurado
 
----
+## 🚨 **OBSERVAÇÕES CRÍTICAS (DESAFIO-2)**
 
-## 🗄️ **PASSO 1: Configurar RDS PostgreSQL**
+### **⚠️ OBS-1: Deployment Configuration**
+**PROBLEMA:** Configuração padrão (100%/200%) causa conflito de porta 80.
+**SOLUÇÃO:** Configurar para 0%/100%:
+```bash
+aws ecs update-service \
+  --cluster cluster-bia \
+  --service service-bia \
+  --deployment-configuration '{
+    "minimumHealthyPercent": 0,
+    "maximumPercent": 100
+  }' \
+  --region us-east-1
+```
+
+### **⚠️ OBS-2: Script deploy.sh**
+**PROBLEMA:** Placeholders [SEU_CLUSTER] e [SEU_SERVICE].
+**SOLUÇÃO:** Substituir por valores reais:
+```bash
+# ANTES
+aws ecs update-service --cluster [SEU_CLUSTER] --service [SEU_SERVICE] --force-new-deployment
+
+# DEPOIS
+aws ecs update-service --cluster cluster-bia --service service-bia --force-new-deployment
+```
+
+### **⚠️ OBS-3: Permissão bia-dev**
+**PROBLEMA:** RDS só permite acesso de bia-web.
+**SOLUÇÃO:** Adicionar regra para bia-dev:
+```bash
+aws ec2 authorize-security-group-ingress \
+  --group-id sg-0d954919e73c1af79 \
+  --ip-permissions IpProtocol=tcp,FromPort=5432,ToPort=5432,UserIdGroupPairs=[{Description="acesso vindo de bia-dev",GroupId="sg-0ba2485fb94124c9f"}]
+```
+
+---
 
 ### **1.1 Criar RDS Instance**
 ```bash

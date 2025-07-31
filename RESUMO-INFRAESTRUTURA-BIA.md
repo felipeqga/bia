@@ -117,22 +117,26 @@ cd /home/ec2-user/bia
 
 ## 📋 **Arquivos de Documentação**
 
+## 📋 **Arquivos de Documentação**
+
 ### **Guias Disponíveis:**
-1. **`historico-conversas-amazonq.md`** - Histórico completo das configurações
-2. **`guia-completo-ecs-bia.md`** - Passo a passo para recriar infraestrutura
-3. **`guia-criacao-ec2-bia.md`** - Guia para EC2 de desenvolvimento
-4. **`RESUMO-INFRAESTRUTURA-BIA.md`** - Este arquivo (resumo executivo)
+1. **`DESAFIO-2-RESUMO-USUARIO.md`** - Resumo estruturado original do usuário
+2. **`historico-conversas-amazonq.md`** - Histórico completo das configurações
+3. **`guia-completo-ecs-bia.md`** - Passo a passo para recriar infraestrutura
+4. **`guia-criacao-ec2-bia.md`** - Guia para EC2 de desenvolvimento
+5. **`RESUMO-INFRAESTRUTURA-BIA.md`** - Este arquivo (resumo executivo)
 
 ### **Localização:**
 ```
 /home/ec2-user/bia/
-├── historico-conversas-amazonq.md
-├── guia-completo-ecs-bia.md
-├── guia-criacao-ec2-bia.md
-├── RESUMO-INFRAESTRUTURA-BIA.md
-├── build.sh (executável)
-├── deploy.sh (executável)
-└── Dockerfile (configurado com IP correto)
+├── DESAFIO-2-RESUMO-USUARIO.md      # Resumo original estruturado
+├── historico-conversas-amazonq.md    # Histórico completo
+├── guia-completo-ecs-bia.md         # Passo a passo ECS
+├── guia-criacao-ec2-bia.md          # Guia EC2 dev
+├── RESUMO-INFRAESTRUTURA-BIA.md     # Status executivo
+├── build.sh (executável)            # Script de build
+├── deploy.sh (executável)           # Script de deploy
+└── Dockerfile (configurado)         # Com IP correto
 ```
 
 ---

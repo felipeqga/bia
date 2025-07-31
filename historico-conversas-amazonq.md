@@ -1353,6 +1353,82 @@ docker push $ECR_REGISTRY/bia:latest
 
 ---
 
+## RESUMO ESTRUTURADO DO USUÁRIO - DESAFIO-2
+
+### 🎯 **Checklist Completo de Implementação**
+
+#### **🔒 Security Groups**
+- **bia-web:** Inbound HTTP (80) ← 0.0.0.0/0, Outbound All Traffic
+- **bia-db:** Inbound PostgreSQL (5432) ← bia-web, Outbound All Traffic
+- **Permissão adicional:** bia-db deve permitir acesso de bia-dev
+
+#### **🗄️ RDS PostgreSQL**
+- **Specs:** Free Tier, db.t3.micro, GP2 20GB, us-east-1a
+- **Security:** bia-db, NO Public Access, NO Performance Insights, NO Automated Backups
+- **Database:** bia (identifier e database name)
+- **Credenciais:** postgres / Kgegwlaj6mAIxzHaEqgo
+- **Endpoint:** bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com
+
+#### **🐳 ECR Repository**
+- **Nome:** bia, MUTABLE, AES-256
+- **URI:** 387678648422.dkr.ecr.us-east-1.amazonaws.com/bia
+- **Scripts:** Copiar build.sh e deploy.sh de scripts/ecs/unix/ para raiz
+- **Correção build.sh:** ECR_REGISTRY="387678648422.dkr.ecr.us-east-1.amazonaws.com"
+
+#### **🚀 ECS Cluster**
+- **Nome:** cluster-bia
+- **Infrastructure:** Amazon EC2, On-demand, t3.micro
+- **Capacity:** Min=1, Max=1
+- **Subnets:** us-east-1a, us-east-1b
+- **Security Group:** bia-web
+- **Obs:** Sem capacity provider inicial
+
+#### **📋 Task Definition**
+- **Family:** task-def-bia
+- **Infrastructure:** Amazon EC2, Network Mode: bridge
+- **Container:** bia
+- **Image:** 387678648422.dkr.ecr.us-east-1.amazonaws.com/bia:latest
+- **Ports:** Host 80 → Container 8080, TCP, porta-80, HTTP
+- **Resources:** CPU 1, Memory Hard 3GB, Memory Soft 0.4GB
+- **Environment Variables:**
+  ```
+  DB_USER=postgres
+  DB_PWD=Kgegwlaj6mAIxzHaEqgo
+  DB_HOST=bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com
+  DB_PORT=5432
+  ```
+
+#### **🔄 ECS Service**
+- **Nome:** service-bia
+- **Cluster:** cluster-bia, Launch Type: EC2
+- **Strategy:** Replica, Desired Tasks: 1
+- **Deployment Failure Detection:** Desabilitado
+
+#### **🔧 Configurações Críticas**
+- **OBS-1:** Deployment Configuration
+  - Minimum running tasks: 0% (não 100%)
+  - Maximum running tasks: 100% (não 200%)
+- **OBS-2:** Corrigir deploy.sh
+  - `--cluster cluster-bia --service service-bia`
+
+#### **🗄️ Migrations e Compose**
+- **Atualizar compose.yml** com dados do RDS
+- **Executar migrations:** `docker compose exec server bash -c 'npx sequelize db:migrate'`
+
+### ✅ **Status de Implementação**
+- [x] **Security Groups:** bia-web, bia-db configurados
+- [x] **RDS:** Criado e acessível
+- [x] **ECR:** Repository configurado
+- [x] **Scripts:** build.sh e deploy.sh corrigidos
+- [x] **ECS Cluster:** cluster-bia ativo
+- [x] **Task Definition:** task-def-bia:1 configurada
+- [x] **ECS Service:** service-bia rodando
+- [x] **Deployment Config:** 0%/100% corrigido
+- [x] **Migrations:** Executadas no RDS
+- [x] **Aplicação:** Funcionando em http://44.203.21.88
+
+---
+
 ## Conversa 5 - 31/07/2025 - 18:00 UTC - CONFIGURAÇÃO COMPLETA ECS
 
 ### 1. Verificação e Criação do Cluster ECS
