@@ -1,191 +1,157 @@
 # RESUMO EXECUTIVO - Infraestrutura BIA
 
-## 🎯 **Status Atual - 31/07/2025 19:00 UTC**
+## 🎯 **Status Atual - 31/07/2025 23:30 UTC**
 
-### ✅ **INFRAESTRUTURA COMPLETA FUNCIONANDO**
+### 🛑 **MODO ECONOMIA ATIVADO**
 
-A aplicação BIA está rodando em uma infraestrutura ECS completa na AWS com todos os componentes configurados e funcionais.
+A infraestrutura BIA está em **modo economia** para reduzir custos. Todos os recursos estão preservados e podem ser reativados rapidamente.
 
 ---
 
-## 📊 **Recursos AWS Ativos**
+## 📊 **Recursos AWS - Status Economia**
 
 ### 🗄️ **Database (RDS PostgreSQL)**
 - **Identifier:** `bia`
 - **Endpoint:** `bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com:5432`
 - **Instance:** db.t3.micro (Free Tier)
 - **Storage:** 20GB GP2
-- **Status:** ✅ AVAILABLE
-- **Migrations:** ✅ Aplicadas (tabelas criadas)
+- **Status:** ✅ AVAILABLE (continua rodando)
+- **Migrations:** ✅ Dados preservados
+- **Custo:** $0 (Free Tier)
 
 ### 🐳 **Container Registry (ECR)**
 - **Repository:** `bia`
 - **URI:** `387678648422.dkr.ecr.us-east-1.amazonaws.com/bia`
 - **Status:** ✅ ACTIVE
-- **Última imagem:** `sha256:f77344c7b2a5ca96cfbf1f3eff3a25cad4a3de7b4463d31c55c070b7aa58cebb`
+- **Última imagem:** `v20250731-224437` (preservada)
+- **Custo:** ~$0 (storage mínimo)
 
-### 🚀 **Container Orchestration (ECS)**
-- **Cluster:** `cluster-bia` (✅ ACTIVE)
-- **Task Definition:** `task-def-bia:1` (✅ ACTIVE)
-- **Service:** `service-bia` (✅ RUNNING)
-- **Instância EC2:** `i-08cf2555cc1c26089` (t3.micro)
-- **IP Público:** `44.203.21.88`
-
----
-
-## 🌐 **Acesso à Aplicação**
-
-### **URLs Funcionais:**
-- **Aplicação Web:** `http://44.203.21.88`
-- **API Health Check:** `http://44.203.21.88/api/versao` → "Bia 4.2.0"
-
-### **Funcionalidades Disponíveis:**
-- ✅ Frontend React funcionando
-- ✅ Backend Node.js/Express funcionando
-- ✅ Conexão com RDS PostgreSQL
-- ✅ CRUD de tarefas
-- ✅ Persistência de dados
+### 🛑 **Container Orchestration (ECS) - PARADO**
+- **Cluster:** `cluster-bia` (✅ ACTIVE mas sem instâncias)
+- **Task Definition:** `task-def-bia:1` (✅ PRESERVADA)
+- **Service:** `service-bia` (🛑 PARADO - desired-count: 0)
+- **Auto Scaling Group:** `Infra-ECS-Cluster-cluster-bia-581e3f53-ECSAutoScalingGroup-bFQW9Kb1APvu`
+  - **DesiredCapacity:** 0
+  - **MinSize:** 0
+  - **MaxSize:** 1
+- **Instância EC2:** TERMINATED (economia ativada)
+- **Custo:** $0
 
 ---
 
-## 🔧 **Configurações Técnicas**
+## 💰 **Economia Ativada**
 
-### **Task Definition:**
-- **CPU:** 1 vCPU (1024 units)
-- **Memory:** 3GB hard limit / 0.4GB soft limit
-- **Port Mapping:** Host 80 → Container 8080
-- **Network Mode:** bridge
-- **Launch Type:** EC2
+### **💸 Custos Antes (Modo Ativo):**
+- **EC2 cluster-bia:** ~$8.50/mês (t3.micro)
+- **EC2 bia-dev:** ~$8.50/mês (onde Amazon Q roda)
+- **RDS:** $0 (Free Tier)
+- **Total:** ~$17/mês
 
-### **Service Configuration:**
-- **Desired Count:** 1
-- **Deployment Strategy:** ROLLING
-- **Min Healthy:** 0% (permite downtime para evitar conflito de porta)
-- **Max Percent:** 100% (máximo 1 task por vez)
-- **Circuit Breaker:** Desabilitado
+### **💰 Custos Agora (Modo Economia):**
+- **EC2 cluster-bia:** $0 (terminada)
+- **EC2 bia-dev:** ~$8.50/mês (continua rodando)
+- **RDS:** $0 (Free Tier)
+- **Total:** ~$8.50/mês
 
-### **Environment Variables:**
-```
-DB_HOST=bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com
-DB_PORT=5432
-DB_USER=postgres
-DB_PWD=Kgegwlaj6mAIxzHaEqgo
-```
+### **🎉 Economia:** ~$8.50/mês (50% de redução)
 
 ---
 
-## 📜 **Scripts de Deploy**
+## 🚀 **Como Reativar a Aplicação**
 
-### **build.sh** (Configurado)
-```bash
-ECR_REGISTRY="387678648422.dkr.ecr.us-east-1.amazonaws.com"
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ECR_REGISTRY
-docker build -t bia .
-docker tag bia:latest $ECR_REGISTRY/bia:latest
-docker push $ECR_REGISTRY/bia:latest
-```
-
-### **deploy.sh** (Configurado)
-```bash
-./build.sh
-aws ecs update-service --cluster cluster-bia --service service-bia --force-new-deployment --region us-east-1
-```
-
-### **Como usar:**
+### **🔧 Opção 1: Script Automático (Recomendado)**
 ```bash
 cd /home/ec2-user/bia
-./deploy.sh  # Build + Deploy automático
+./iniciar-cluster-completo.sh
+```
+**Tempo:** ~5-6 minutos para ficar totalmente funcional
+
+### **🔧 Opção 2: Comandos Manuais**
+```bash
+# 1. Reativar Auto Scaling Group
+aws autoscaling update-auto-scaling-group \
+  --auto-scaling-group-name "Infra-ECS-Cluster-cluster-bia-581e3f53-ECSAutoScalingGroup-bFQW9Kb1APvu" \
+  --min-size 1 --desired-capacity 1 --region us-east-1
+
+# 2. Aguardar 3 minutos para nova EC2
+
+# 3. Reativar ECS Service
+aws ecs update-service --cluster cluster-bia --service service-bia --desired-count 1 --region us-east-1
+
+# 4. Aguardar estabilização
+aws ecs wait services-stable --cluster cluster-bia --services service-bia --region us-east-1
+```
+
+### **🛑 Para Parar Novamente:**
+```bash
+./parar-cluster-completo.sh
 ```
 
 ---
 
-## 🔒 **Security Groups**
+## ⚠️ **Observações Importantes**
 
-### **bia-web (sg-001cbdec26830c553)**
-- **Função:** Instância ECS
-- **Inbound:** HTTP (80) ← 0.0.0.0/0 (público)
+### **🔄 Após Reativação:**
+- **Novo IP público:** Será gerado automaticamente
+- **Dockerfile:** Precisará ser atualizado com novo IP para deploys
+- **URL da aplicação:** http://NOVO_IP_PUBLICO
+- **Dados:** Todos preservados no RDS
+- **Configurações:** Todas mantidas intactas
 
-### **bia-db (sg-0d954919e73c1af79)**
-- **Função:** RDS PostgreSQL
-- **Inbound:** PostgreSQL (5432) ← bia-web, bia-dev
+### **📋 Scripts Disponíveis:**
+- **`iniciar-cluster-completo.sh`** - Reativa tudo automaticamente
+- **`parar-cluster-completo.sh`** - Para tudo para economia
+- **`deploy-versioned.sh`** - Deploy com versionamento (após reativar)
 
-### **bia-dev (sg-0ba2485fb94124c9f)**
-- **Função:** EC2 de desenvolvimento
-- **Inbound:** SSH (22), HTTP (80), portas customizadas
+### **🔧 Recursos Preservados:**
+- ✅ **RDS PostgreSQL:** Dados e estrutura
+- ✅ **ECR Repository:** Todas as imagens versionadas
+- ✅ **Task Definition:** Configuração completa
+- ✅ **Service Definition:** Configuração preservada
+- ✅ **Security Groups:** Todas as regras
+- ✅ **Scripts de deploy:** Funcionais após reativação
 
 ---
-
-## 📋 **Arquivos de Documentação**
 
 ## 📋 **Arquivos de Documentação**
 
 ### **Guias Disponíveis:**
-1. **`DESAFIO-2-RESUMO-USUARIO.md`** - Resumo estruturado original do usuário
+1. **`DESAFIO-2-RESUMO-USUARIO.md`** - Resumo estruturado original
 2. **`guia-mcp-servers-bia.md`** - Guia completo dos MCP servers
-3. **`historico-conversas-amazonq.md`** - Histórico completo das configurações
+3. **`historico-conversas-amazonq.md`** - Histórico completo (ATUALIZADO)
 4. **`guia-completo-ecs-bia.md`** - Passo a passo para recriar infraestrutura
 5. **`guia-criacao-ec2-bia.md`** - Guia para EC2 de desenvolvimento
-6. **`RESUMO-INFRAESTRUTURA-BIA.md`** - Este arquivo (resumo executivo)
+6. **`RESUMO-INFRAESTRUTURA-BIA.md`** - Este arquivo (status atual)
+7. **`GUIA-DEPLOY-VERSIONADO.md`** - Sistema de deploy com rollback
+8. **`VERIFICACAO-DESAFIO-2.md`** - Verificação completa de implementação
 
-### **Localização:**
-```
-/home/ec2-user/bia/
-├── DESAFIO-2-RESUMO-USUARIO.md      # Resumo original estruturado
-├── guia-mcp-servers-bia.md          # Guia MCP servers
-├── historico-conversas-amazonq.md    # Histórico completo
-├── guia-completo-ecs-bia.md         # Passo a passo ECS
-├── guia-criacao-ec2-bia.md          # Guia EC2 dev
-├── RESUMO-INFRAESTRUTURA-BIA.md     # Status executivo
-├── .amazonq/                        # MCP servers config
-│   ├── mcp-ecs.json                 # ECS MCP server
-│   └── mcp-db.json                  # Database MCP server
-├── build.sh (executável)            # Script de build
-├── deploy.sh (executável)           # Script de deploy
-└── Dockerfile (configurado)         # Com IP correto
-```
+### **Scripts Funcionais:**
+- **`iniciar-cluster-completo.sh`** ✅ Reativação automática
+- **`parar-cluster-completo.sh`** ✅ Parada automática
+- **`deploy-versioned.sh`** ✅ Deploy versionado
+- **`build.sh`** ✅ Build para ECR
+- **`deploy.sh`** ✅ Deploy simples
 
 ---
 
-## 🎯 **Próximos Passos Possíveis**
+## 🎯 **Próximos Passos**
 
-### **Melhorias de Infraestrutura:**
-- [ ] Adicionar Application Load Balancer (ALB)
-- [ ] Configurar Auto Scaling
-- [ ] Implementar health checks customizados
-- [ ] Configurar CloudWatch Logs
-- [ ] Adicionar SSL/TLS (HTTPS)
+### **Para Usar a Aplicação:**
+1. **Executar:** `./iniciar-cluster-completo.sh`
+2. **Aguardar:** ~5-6 minutos
+3. **Acessar:** http://NOVO_IP_PUBLICO
+4. **Testar:** Funcionalidades da aplicação
 
-### **Melhorias de Deploy:**
-- [ ] Pipeline CI/CD com CodePipeline
-- [ ] Ambientes múltiplos (dev/staging/prod)
-- [ ] Blue/Green deployments
-- [ ] Rollback automático
+### **Para Fazer Deploy:**
+1. **Reativar cluster** (se parado)
+2. **Atualizar Dockerfile** com novo IP
+3. **Executar:** `./deploy-versioned.sh deploy`
 
-### **Melhorias de Segurança:**
-- [ ] Secrets Manager para credenciais
-- [ ] IAM roles mais específicas
-- [ ] VPC endpoints para ECR
-- [ ] WAF para proteção web
+### **Para Economizar:**
+1. **Executar:** `./parar-cluster-completo.sh`
+2. **Economia:** ~$8.50/mês ativada
 
 ---
-
-## 🚨 **Informações Importantes**
-
-### **Custos:**
-- **RDS t3.micro:** Free Tier (12 meses)
-- **EC2 t3.micro:** Free Tier (750h/mês)
-- **ECR:** 500MB grátis/mês
-- **ECS:** Sem custo adicional (paga apenas EC2)
-
-### **Backup/Recovery:**
-- **RDS:** Backup desabilitado (desenvolvimento)
-- **Código:** Versionado no Git
-- **Imagens:** Armazenadas no ECR
-
-### **Monitoramento:**
-- **CloudWatch:** Métricas básicas habilitadas
-- **Health Check:** `/api/versao` endpoint
-- **Logs:** Disponíveis via CloudWatch Logs
 
 ## 🛠️ **MCP Servers Disponíveis**
 
@@ -195,53 +161,46 @@ A aplicação possui MCP servers especializados que podem ser ativados dinamicam
 #### **ECS MCP Server:**
 - **Arquivo:** `/home/ec2-user/bia/.amazonq/mcp-ecs.json`
 - **Server:** `awslabs.ecs-mcp-server`
-- **Tools:** `ecs_resouce_management`
 - **Função:** Análise especializada de recursos ECS
 
 #### **Database MCP Server:**
 - **Arquivo:** `/home/ec2-user/bia/.amazonq/mcp-db.json`
 - **Server:** `postgres`
 - **Função:** Conexão direta com RDS PostgreSQL
-- **Endpoint:** `bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com:5432`
 
 ### **Como Ativar:**
 ```bash
 # Para ECS
-cd /home/ec2-user/bia/.amazonq && cp mcp-ecs.json mcp.json
+cd /home/ec2-user/bia && cp .amazonq/mcp-ecs.json mcp.json && q
 
 # Para Database  
-cd /home/ec2-user/bia/.amazonq && cp mcp-db.json mcp.json
+cd /home/ec2-user/bia && cp .amazonq/mcp-db.json mcp.json && q
 
 # Voltar ao padrão
-rm /home/ec2-user/bia/.amazonq/mcp.json
+rm /home/ec2-user/bia/mcp.json && q
 ```
-
-**Após ativação:** Reiniciar Amazon Q para carregar MCP server.
 
 ---
 
-### **Comandos Úteis:**
-```bash
-# Status dos recursos
-aws ecs describe-services --cluster cluster-bia --services service-bia --region us-east-1
-aws rds describe-db-instances --db-instance-identifier bia --region us-east-1
+## 🎉 **Status de Implementação**
 
-# Logs da aplicação
-aws logs describe-log-groups --log-group-name-prefix /ecs/task-def-bia --region us-east-1
+### **✅ DESAFIO-2 COMPLETAMENTE IMPLEMENTADO**
+- **Cluster ECS:** Configurado e funcional (modo economia)
+- **Agente de IA:** MCP servers implementados
+- **Sistema de versionamento:** Deploy com rollback
+- **Economia inteligente:** Scripts automáticos
+- **Documentação completa:** Todos os processos documentados
 
-# Redeploy manual
-aws ecs update-service --cluster cluster-bia --service service-bia --force-new-deployment --region us-east-1
-```
-
-### **Problemas Comuns:**
-1. **Task não inicia:** Verificar logs no CloudWatch
-2. **Conflito de porta:** Configuração de deployment corrigida (0%/100%)
-3. **Erro de conexão DB:** Verificar security groups
-4. **Frontend não carrega:** Verificar VITE_API_URL no Dockerfile
+### **🔄 MODO ATUAL: ECONOMIA**
+- **Aplicação:** PARADA (economia ativada)
+- **Dados:** PRESERVADOS (RDS ativo)
+- **Configuração:** INTACTA (reativação rápida)
+- **Economia:** ~$8.50/mês
 
 ---
 
-**✅ INFRAESTRUTURA PRONTA PARA PRODUÇÃO**
+**✅ INFRAESTRUTURA PRONTA PARA USO OU ECONOMIA**
 
-*Última atualização: 31/07/2025 19:00 UTC*
+*Última atualização: 31/07/2025 23:30 UTC*
 *Responsável: Amazon Q Assistant*
+*Status: MODO ECONOMIA ATIVO - Economia de ~$8.50/mês*

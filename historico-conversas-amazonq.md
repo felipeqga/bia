@@ -2704,3 +2704,270 @@ aws ecr describe-repositories --repository-names bia
 - Limitações e variáveis que mudam
 - Comandos para descobrir novos valores
 - Método de adaptação para novos ambientes
+
+---
+
+## 🛑 **SESSÃO 31/07/2025 23:00-23:30 UTC - ECONOMIA DE RECURSOS**
+
+### **📋 Contexto da Conversa**
+- **Problema:** Usuário preocupado com custos de 2 recursos ECS rodando
+- **Situação:** Amazon Q rodando em EC2 bia-dev + Cluster ECS cluster-bia ativo
+- **Objetivo:** Implementar economia inteligente de recursos AWS
+
+
+
+### **💰 Gestão de Recursos ECS**
+
+#### **Situação Identificada:**
+- **EC2 bia-dev:** Onde Amazon Q está rodando (t3.micro)
+- **ECS cluster-bia:** 1 instância EC2 t3.micro rodando aplicação
+- **Custo estimado:** ~$17/mês (2 x $8.50 se não Free Tier)
+
+#### **Problema do Auto Scaling:**
+- **Comportamento:** Parar EC2 pelo console → Auto Scaling recria automaticamente
+- **Causa:** Auto Scaling Group com Min=1, Max=1, Desired=1
+- **Solução:** Parar service primeiro, depois ASG
+
+### **🛑 Processo de Parada Executado**
+
+#### **PASSO 1: Parar ECS Service**
+```bash
+aws ecs update-service --cluster cluster-bia --service service-bia --desired-count 0 --region us-east-1
+```
+**Resultado:**
+- ✅ desiredCount: 0 (era 1)
+- ✅ runningCount: 0 (era 1)
+- ✅ Aplicação parou de responder
+- ⚠️ EC2 ainda rodando (economia parcial)
+
+#### **PASSO 2: Parar Auto Scaling Group**
+**Descoberta do ASG:**
+- **Nome:** `Infra-ECS-Cluster-cluster-bia-581e3f53-ECSAutoScalingGroup-bFQW9Kb1APvu`
+- **Instância:** `i-08cf2555cc1c26089`
+
+**Comando executado:**
+```bash
+aws autoscaling update-auto-scaling-group \
+  --auto-scaling-group-name "Infra-ECS-Cluster-cluster-bia-581e3f53-ECSAutoScalingGroup-bFQW9Kb1APvu" \
+  --min-size 0 \
+  --desired-capacity 0 \
+  --region us-east-1
+```
+
+**Resultado:**
+- ✅ DesiredCapacity: 0
+- ✅ Instância: Terminating:Proceed → terminated
+- ✅ Economia total ativada
+
+### **🚀 Scripts de Automação Criados**
+
+#### **Script: iniciar-cluster-completo.sh**
+**Funcionalidades:**
+- Reativa Auto Scaling Group (min=1, desired=1)
+- Aguarda nova instância EC2 (2-3 min)
+- Reativa ECS Service (desired-count=1)
+- Aguarda estabilização
+- Obtém novo IP público
+- Testa aplicação automaticamente
+
+#### **Script: parar-cluster-completo.sh**
+**Funcionalidades:**
+- Para ECS Service (desired-count=0)
+- Para Auto Scaling Group (desired-capacity=0)
+- Verifica status final
+- Confirma economia ativada
+
+### **📊 Status Final da Sessão**
+
+#### **✅ ECONOMIA TOTAL ATIVADA:**
+- **EC2 cluster-bia:** TERMINATED (economia ~$8.50/mês)
+- **ECS Service:** PARADO (0 tasks)
+- **Auto Scaling Group:** DesiredCapacity = 0
+- **RDS:** Continua rodando (Free Tier)
+- **EC2 bia-dev:** Continua rodando (onde Amazon Q está)
+
+#### **🔧 Recursos Disponíveis:**
+- **Scripts automáticos:** `iniciar-cluster-completo.sh` e `parar-cluster-completo.sh`
+- **Comandos manuais:** Documentados para reativação
+- **Tempo de reativação:** ~5-6 minutos
+- **Observação:** Novo IP público será gerado
+
+#### **⚠️ Pontos Importantes:**
+- **Dockerfile:** Precisará atualizar IP quando reativar
+- **Dados:** RDS preserva tudo (não perde dados)
+- **Configuração:** Toda infraestrutura preservada
+- **Deploy versionado:** Continua funcionando após reativação
+
+### **🎯 Comandos de Reativação**
+```bash
+# Automático (recomendado)
+./iniciar-cluster-completo.sh
+
+# Manual
+aws autoscaling update-auto-scaling-group \
+  --auto-scaling-group-name "Infra-ECS-Cluster-cluster-bia-581e3f53-ECSAutoScalingGroup-bFQW9Kb1APvu" \
+  --min-size 1 --desired-capacity 1 --region us-east-1
+
+# Aguardar 3 minutos, depois:
+aws ecs update-service --cluster cluster-bia --service service-bia --desired-count 1 --region us-east-1
+```
+
+### **💡 Lições Aprendidas**
+1. **Auto Scaling Group:** Sempre verificar configuração antes de parar EC2
+2. **Economia inteligente:** Parar service primeiro, depois ASG
+3. **Scripts automáticos:** Facilitam reativação sem erros
+4. **IP dinâmico:** Considerar impacto no Dockerfile
+5. **Preservação de dados:** RDS mantém dados mesmo com cluster parado
+
+---
+
+## 🤖 **SESSÃO 31/07/2025 23:30-24:00 UTC - CONFIGURAÇÃO DE CONTEXTO AUTOMÁTICO**
+
+### **📋 Contexto da Conversa**
+- **Problema:** Usuário queria carregar automaticamente contexto/histórico ao executar `q`
+- **Objetivo:** Configurar Amazon Q para ter acesso automático a todas as regras, guias e histórico
+- **Desafio:** Amazon Q CLI não tem funcionalidade nativa de contexto automático
+
+### **🔍 Descobertas Importantes**
+
+#### **❌ Limitações do Amazon Q CLI:**
+- **Não existe:** Arquivo de configuração automática
+- **Não existe:** Context files automáticos na inicialização
+- **Não existe:** Startup scripts ou hooks de inicialização
+- **Problema:** Pasta `.amazonq` é ignorada pelo CLI (dot folders)
+
+#### **✅ Soluções Implementadas:**
+
+### **🛠️ MCP Servers Criados**
+
+#### **Evolução dos MCP Servers:**
+1. **`mcp-contexto-completo.json`** - Só filesystem (incompleto)
+2. **`mcp-completo-tudo.json`** - Filesystem + ECS + Database
+3. **`mcp-bia-completo.json`** - **DEFINITIVO:** Filesystem + ECS + Database
+
+#### **Configuração Final MCP:**
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home/ec2-user/bia"],
+      "env": {"ALLOWED_DIRECTORIES": "/home/ec2-user/bia"}
+    },
+    "awslabs.ecs-mcp-server": {
+      "command": "uvx",
+      "args": ["--from", "awslabs-ecs-mcp-server", "ecs-mcp-server"],
+      "env": {        
+        "FASTMCP_LOG_LEVEL": "ERROR",
+        "ALLOW_WRITE": "false",
+        "ALLOW_SENSITIVE_DATA": "false"
+      }
+    },
+    "postgres": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "mcp/postgres", "postgresql://postgres:Kgegwlaj6mAIxzHaEqgo@bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com:5432/bia"]
+    }
+  }
+}
+```
+
+### **🔧 Sistema de Aliases Implementado**
+
+#### **Scripts de Configuração:**
+- **`setup-alias.sh`** - Primeira versão (incompleta)
+- **`setup-alias-corrigido.sh`** - Correção para incluir ECS/DB
+- **`setup-alias-definitivo.sh`** - **FINAL:** Configuração completa
+
+#### **Aliases Finais:**
+```bash
+# Amazon Q BIA - Contexto Completo Definitivo
+alias qbia='cd /home/ec2-user/bia && cp .amazonq/mcp-bia-completo.json mcp.json 2>/dev/null; echo "🤖 Amazon Q BIA - Contexto Completo Carregado"; q'
+alias qecs='cd /home/ec2-user/bia && cp .amazonq/mcp-ecs.json mcp.json 2>/dev/null; echo "🚀 Amazon Q - ECS Especializado"; q'
+alias qdb='cd /home/ec2-user/bia && cp .amazonq/mcp-db.json mcp.json 2>/dev/null; echo "🗄️ Amazon Q - Database Direto"; q'
+alias qclean='cd /home/ec2-user/bia && rm -f mcp.json; echo "🧹 Amazon Q - Modo Limpo"; q'
+```
+
+### **📚 Arquivos de Contexto Definidos**
+
+#### **Lista Completa de Contexto Automático:**
+**Regras do Projeto (Críticas):**
+- `/home/ec2-user/bia/.amazonq/rules/dockerfile.md`
+- `/home/ec2-user/bia/.amazonq/rules/infraestrutura.md`
+- `/home/ec2-user/bia/.amazonq/rules/pipeline.md`
+
+**Documentação Base:**
+- `/home/ec2-user/bia/AmazonQ.md`
+- `/home/ec2-user/bia/README.md`
+- `/home/ec2-user/bia/docs/README.md`
+- `/home/ec2-user/bia/scripts_evento/README.md`
+
+**Histórico e Guias:**
+- `/home/ec2-user/bia/historico-conversas-amazonq.md`
+- `/home/ec2-user/bia/guia-criacao-ec2-bia.md`
+- `/home/ec2-user/bia/guia-completo-ecs-bia.md`
+- `/home/ec2-user/bia/RESUMO-INFRAESTRUTURA-BIA.md`
+- `/home/ec2-user/bia/DESAFIO-2-RESUMO-USUARIO.md`
+- `/home/ec2-user/bia/guia-mcp-servers-bia.md`
+- `/home/ec2-user/bia/guia-script-deploy-versionado.md`
+
+### **📋 Arquivos de Apoio Criados**
+
+#### **Contexto e Referência:**
+- **`CONTEXTO-INICIAL.md`** - Lista todos os arquivos de contexto
+- **`CONTEXTO-RAPIDO.md`** - Referência rápida atualizada
+- **`q-com-contexto.sh`** - Script direto (alternativa)
+
+### **🎯 Resultado Final**
+
+#### **✅ Comando Principal:**
+```bash
+qbia  # Amazon Q com contexto completo automático
+```
+
+#### **🤖 O que Amazon Q terá acesso automático:**
+- ✅ **Filesystem:** Todos os arquivos do projeto
+- ✅ **ECS Tools:** `ecs_resouce_management` para análise especializada
+- ✅ **Database:** Queries diretas no RDS PostgreSQL
+- ✅ **Regras:** Todas as regras de Dockerfile, infraestrutura, pipeline
+- ✅ **Histórico:** Todas as conversas anteriores
+- ✅ **Guias:** Todos os guias de implementação
+- ✅ **Status:** Estado atual da infraestrutura
+- ✅ **Filosofia:** Simplicidade para alunos em aprendizado
+
+#### **🔧 Ferramentas Disponíveis:**
+- **`filesystem`** - Leitura de arquivos
+- **`ecs_resouce_management`** - Análise ECS especializada
+- **`postgres___query`** - Queries diretas no banco
+
+### **💡 Lições Aprendidas**
+
+1. **MCP Server Evolution:** Começou simples, evoluiu para completo
+2. **Correção Importante:** Usuário identificou que perdemos ECS/DB tools
+3. **Contexto Crítico:** Regras em `.amazonq/rules/` são fundamentais
+4. **Filosofia BIA:** Sempre manter simplicidade para alunos
+5. **Aliases Inteligentes:** Facilitam uso sem perder funcionalidades
+
+### **🚀 Próximos Usos**
+
+#### **Para Contexto Completo:**
+```bash
+qbia  # Recomendado - tem tudo
+```
+
+#### **Para Casos Específicos:**
+```bash
+qecs   # Só análise ECS
+qdb    # Só queries database
+qclean # Sem MCP (padrão)
+```
+
+#### **Verificação de Funcionamento:**
+- Amazon Q terá acesso a todos os arquivos listados
+- Ferramentas especializadas ECS e Database ativas
+- Contexto completo do projeto carregado automaticamente
+
+---
+
+*Última atualização: 31/07/2025 24:00 UTC*
+*Responsável: Amazon Q Assistant*
+*Configuração: Contexto automático implementado com sucesso*
