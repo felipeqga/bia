@@ -847,6 +847,102 @@ aws sts get-caller-identity
 - Uso de todos os MCP servers
 - Capacidade de recriação total do ambiente
 
+### 18. Criação de Nova EC2 com Permissão iam:PassRole
+
+**👤 USUÁRIO:** "veja este exemplo, acho que se usar o * seria uma permisao muito ampla, acho que nao permite. veja o exemplo: {...}"
+
+**🤖 IA:** 
+- **Identificou política correta** para `iam:PassRole` específica
+- **Adaptou exemplo** para account ID e role específica
+- **Política aplicada:**
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": [
+      "ec2:RunInstances",
+      "iam:PassRole"
+    ],
+    "Resource": [
+      "arn:aws:ec2:*:*:instance/*",
+      "arn:aws:iam::387678648422:role/role-acesso-ssm"
+    ],
+    "Condition": {
+      "StringEquals": {
+        "iam:PassedToService": "ec2.amazonaws.com"
+      }
+    }
+  }]
+}
+```
+
+### 19. Correção de Localização da Política
+
+**👤 USUÁRIO:** "o erro que deu no que voce deu sem ser este agora foi : Missing Principal: Add a Principal element..."
+
+**🤖 IA:** 
+- **Identificou erro:** Usuário tentando adicionar na Trust Policy
+- **Explicou diferença:** Trust Policy vs Permission Policy
+- **Orientou localização correta:** Aba "Permissions", não "Trust relationships"
+- **Trust Policy deve permanecer:** Apenas EC2 assumir a role
+
+### 20. Teste e Sucesso da Nova EC2
+
+**👤 USUÁRIO:** "faça o teste"
+
+**🤖 IA:** 
+- **Testou script:** `./lancar_ec2_zona_a.sh` funcionou!
+- **EC2 criada com sucesso:**
+  - **Instance ID:** `i-077d90a889574d015`
+  - **IP Público:** `13.220.46.216`
+  - **Role IAM:** ✅ `role-acesso-ssm` anexada
+  - **User Data:** ✅ Executado (Docker, Node.js, UV)
+- **Configurou aplicação:**
+  - PostgreSQL na porta 5433
+  - Aplicação BIA na porta 3008
+  - Frontend configurado para IP público
+- **Liberou porta 3008** no security group
+- **Testou funcionamento:** API respondendo "Bia 4.2.0"
+
+### 21. Atualização de Dockerfiles e Migrations
+
+**👤 USUÁRIO:** "Primeiro: Atualizar o Dockerfile com o IPV4 publico no lugar no local host... Segundo: Rodar a Migrate do banco..."
+
+**🤖 IA:** 
+- **Analisou Dockerfiles:**
+  - EC2 Atual: `VITE_API_URL=http://localhost:3002` ❌
+  - EC2 Nova: `VITE_API_URL=http://13.220.46.216:3008` ✅
+
+- **Atualizou EC2 atual:**
+  - Dockerfile: `VITE_API_URL=http://44.198.167.82:3001`
+  - `docker compose down`
+  - `docker compose build server`
+  - `docker compose up -d`
+  - `docker compose exec server bash -c 'npx sequelize db:migrate'` ✅
+
+- **Atualizou EC2 nova:**
+  - Containers parados e removidos
+  - PostgreSQL e aplicação reiniciados
+  - Imagem rebuilded
+  - **Migration com problema:** Erro de conexão com banco
+
+### 22. Problema de Conectividade do Banco na EC2 Nova
+
+**👤 USUÁRIO:** "vc rodou a migrate 'docker compose exec server bash -c 'npx sequelize db:migrate'' nas duas EC2?"
+
+**🤖 IA:** 
+- **Confirmou EC2 atual:** ✅ Migration executada corretamente
+- **Identificou problema EC2 nova:** ❌ Erro de conexão `ECONNREFUSED 127.0.0.1:5433`
+- **Tentou correção:** Criação de rede Docker para comunicação entre containers
+- **Status:** Em processo de correção da conectividade
+
+**✅ Resultados finais:**
+- **EC2 Atual (44.198.167.82:3001):** ✅ Funcionando com migrations
+- **EC2 Nova (13.220.46.216:3008):** ✅ API funcionando, ❌ Migration pendente
+
+**📋 Próximos passos:** Resolver conectividade do banco na EC2 nova para executar migrations
+
 ---
 
-*Última atualização: 30/07/2025 23:10 UTC*
+*Última atualização: 31/07/2025 00:30 UTC*
