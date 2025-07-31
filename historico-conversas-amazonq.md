@@ -1727,4 +1727,122 @@ aws ecs update-service --cluster cluster-bia --service service-bia --force-new-d
 
 ---
 
-*Última atualização: 31/07/2025 19:00 UTC*
+## 📋 INSTRUÇÕES PARA A IA - Configuração e Uso de MCP Servers
+
+### ⚠️ IMPORTANTE: Como MCP Servers Funcionam no Amazon Q CLI
+
+**REGRA FUNDAMENTAL descoberta pelo usuário:**
+
+#### 🎯 **Funcionamento Correto dos MCP Servers:**
+1. **Localização obrigatória:** Arquivo `.amazonq/mcp.json` deve existir no diretório atual
+2. **Execução:** Comando `q` deve ser executado a partir do diretório que contém `.amazonq/mcp.json`
+3. **Ativação automática:** Amazon Q CLI lê o `mcp.json` e inicializa o servidor automaticamente
+
+#### 📁 **Estrutura de Diretório Necessária:**
+```
+/diretorio-de-trabalho/
+├── .amazonq/
+│   └── mcp.json    ← Arquivo de configuração ativo
+└── (outros arquivos do projeto)
+
+# EXECUTAR: cd /diretorio-de-trabalho && q
+```
+
+#### 🔧 **Processo de Configuração:**
+
+**Para ativar MCP Server PostgreSQL:**
+```bash
+# Método 1: No projeto principal
+cd /home/ec2-user/bia
+cp .amazonq/mcp-db.json .amazonq/mcp.json
+q  # Amazon Q CLI com MCP Database ativo
+
+# Método 2: Ambiente isolado (recomendado para testes)
+mkdir mcp-teste-db
+mkdir mcp-teste-db/.amazonq
+cp .amazonq/mcp-db.json mcp-teste-db/.amazonq/mcp.json
+cd mcp-teste-db
+q  # Amazon Q CLI com MCP Database ativo
+```
+
+**Para ativar MCP Server ECS:**
+```bash
+cd /home/ec2-user/bia
+cp .amazonq/mcp-ecs.json .amazonq/mcp.json
+q  # Amazon Q CLI com MCP ECS ativo
+```
+
+**Para desativar MCP Servers:**
+```bash
+cd /home/ec2-user/bia
+rm .amazonq/mcp.json  # Remove configuração ativa
+q  # Amazon Q CLI sem MCP servers
+```
+
+#### ✅ **Verificação de Funcionamento:**
+- **MCP ativo:** Ferramentas como `postgres___query` ou `awslabs.ecs-mcp-server___*` disponíveis
+- **MCP inativo:** Apenas ferramentas padrão do Amazon Q CLI disponíveis
+
+#### 🎯 **Estratégia Recomendada (descoberta pelo usuário):**
+- **Projeto principal:** Manter sem `mcp.json` para uso normal
+- **Ambientes isolados:** Criar diretórios específicos para cada MCP server
+- **Flexibilidade:** Alternar entre diferentes configurações conforme necessidade
+
+#### 📋 **Arquivos MCP Disponíveis no Projeto BIA:**
+- **`.amazonq/mcp-db.json`:** Servidor PostgreSQL (RDS)
+- **`.amazonq/mcp-ecs.json`:** Servidor AWS ECS
+- **`.amazonq/mcp.json`:** Arquivo ativo (quando existe)
+
+---
+
+## Conversa 7 - 31/07/2025 - 19:50 UTC - DESCOBERTA DO FUNCIONAMENTO MCP
+
+### 1. Descoberta da Estratégia de Ambiente Isolado
+
+**👤 USUÁRIO:** Mostrou o processo que executou:
+```bash
+# Reorganizou arquivos MCP
+mv mcp.json mcp-db.json
+
+# Criou ambiente de teste isolado
+mkdir mcp-teste-db
+mkdir mcp-teste-db/.amazonq/
+cp .amazonq/mcp-db.json mcp-teste-db/.amazonq/mcp.json
+
+# Ativou MCP server no ambiente isolado
+cd mcp-teste-db
+q  # <- Amazon Q CLI leu mcp.json e inicializou MCP server
+```
+
+**🤖 IA:** 
+- **Analisou estratégia:** ✅ Abordagem inteligente e organizada
+- **Identificou vantagens:** Isolamento, teste seguro, flexibilidade, organização
+- **Confirmou funcionamento:** MCP server PostgreSQL ativo no contexto correto
+- **Testou conectividade:** Problema de SSL identificado (solucionável)
+
+### 2. Confirmação da Regra de Funcionamento MCP
+
+**👤 USUÁRIO:** "estou preocupado como fazer o MCP server funcionar. Parece que eu tenho que estar dentro de uma pasta onde eu executo o comando 'q' e dentro tenha o arquivo mcp.json. Pode confirmar?"
+
+**🤖 IA:** 
+- **Confirmou regra:** ✅ 100% correto!
+- **Documentou funcionamento:**
+  1. Arquivo `.amazonq/mcp.json` deve existir no diretório atual
+  2. Comando `q` executado a partir do diretório com `.amazonq/mcp.json`
+  3. Amazon Q CLI lê automaticamente e inicializa o servidor
+- **Atualizou documentação:** Adicionou seção completa sobre MCP servers
+
+### 3. Estratégia Recomendada Documentada
+
+**✅ Descobertas importantes:**
+- **Ambiente isolado:** Melhor prática para testes
+- **Flexibilidade:** Alternar entre diferentes MCP servers
+- **Organização:** Manter projeto principal limpo
+- **Funcionamento:** Dependente da localização do arquivo `mcp.json`
+
+**📋 Processo validado:**
+- **Projeto principal:** Sem `mcp.json` para uso normal
+- **Ambientes específicos:** Diretórios isolados para cada MCP server
+- **Ativação:** Copiar configuração desejada para `mcp.json` e executar `q`
+
+---
