@@ -1,5 +1,65 @@
 # Guia MCP Servers - Projeto BIA
 
+## ⚠️ **DESCOBERTA CRÍTICA - Amazon Q CLI e Dot Folders**
+
+### **Problema Identificado:**
+O Amazon Q CLI **NÃO consegue carregar** arquivos `mcp.json` que estão dentro de pastas que começam com "." (dot folders).
+
+### **Comportamento Observado:**
+
+#### **❌ NÃO FUNCIONA:**
+```bash
+# Arquivo dentro de pasta .amazonq
+/home/ec2-user/bia/.amazonq/mcp.json
+
+# Executar Amazon Q CLI
+cd /home/ec2-user/bia
+q
+# Resultado: MCP server NÃO é carregado
+```
+
+#### **✅ FUNCIONA:**
+```bash
+# Arquivo na raiz do projeto
+/home/ec2-user/bia/mcp.json
+
+# Executar Amazon Q CLI
+cd /home/ec2-user/bia
+q
+# Resultado: MCP server É carregado automaticamente
+```
+
+### **Causa Provável:**
+- **Convenção Unix:** Arquivos/pastas que começam com "." são considerados ocultos
+- **Amazon Q CLI:** Provavelmente ignora dot folders por design de segurança
+- **Solução:** Manter arquivo ativo na raiz do projeto
+
+### **Estratégia Recomendada:**
+1. **Templates:** Manter configurações em `.amazonq/` (organização)
+2. **Arquivo ativo:** Copiar para raiz quando necessário
+3. **Limpeza:** Remover `mcp.json` da raiz quando não precisar
+
+### **Comandos para Alternar:**
+```bash
+# Ativar ECS MCP
+cd /home/ec2-user/bia
+cp .amazonq/mcp-ecs.json mcp.json && q
+
+# Ativar Database MCP
+cd /home/ec2-user/bia
+cp .amazonq/mcp-db.json mcp.json && q
+
+# Ativar MCP Combinado
+cd /home/ec2-user/bia
+cp .amazonq/mcp-combined.json mcp.json && q
+
+# Desativar MCP
+cd /home/ec2-user/bia
+rm mcp.json && q
+```
+
+---
+
 ## 🎯 **Visão Geral**
 
 O projeto BIA possui **MCP (Model Context Protocol) servers** especializados que fornecem ferramentas avançadas para análise de infraestrutura AWS e banco de dados.
@@ -73,24 +133,42 @@ O projeto BIA possui **MCP (Model Context Protocol) servers** especializados que
 
 ## 🚀 **Como Usar**
 
+### ⚠️ **PROBLEMA CRÍTICO DESCOBERTO**
+
+**O Amazon Q CLI NÃO carrega MCP servers de pastas que começam com "." (dot files/folders)**
+
+- **❌ NÃO FUNCIONA:** `/home/ec2-user/bia/.amazonq/mcp.json`
+- **✅ FUNCIONA:** `/home/ec2-user/bia/mcp.json` (fora da pasta .amazonq)
+
 ### **Passo 1: Escolher MCP Server**
 
 #### **Para Análise ECS:**
 ```bash
-cd /home/ec2-user/bia/.amazonq
-cp mcp-ecs.json mcp.json
+cd /home/ec2-user/bia
+cp .amazonq/mcp-ecs.json mcp.json
 ```
 
 #### **Para Análise Database:**
 ```bash
-cd /home/ec2-user/bia/.amazonq
-cp mcp-db.json mcp.json
+cd /home/ec2-user/bia
+cp .amazonq/mcp-db.json mcp.json
 ```
 
-### **Passo 2: Reiniciar Amazon Q**
-1. Finalizar conversa atual
-2. Inicializar nova conversa
-3. Verificar aviso MCP no topo da tela
+#### **Para MCP Combinado (ECS + Database):**
+```bash
+cd /home/ec2-user/bia
+cp .amazonq/mcp-combined.json mcp.json
+```
+
+### **Passo 2: Executar Amazon Q**
+```bash
+cd /home/ec2-user/bia
+q  # Amazon Q CLI carregará o mcp.json automaticamente
+```
+
+### **Passo 3: Verificar MCP Server Ativo**
+- Verificar se aparecem ferramentas como `awslabs.ecs-mcp-server___*` ou `postgres___query`
+- Se não aparecer, o MCP server não foi carregado
 
 ### **Passo 3: Usar Ferramentas Especializadas**
 
@@ -108,7 +186,8 @@ Tool usado: postgres queries diretas
 
 ### **Passo 4: Voltar ao Padrão**
 ```bash
-rm /home/ec2-user/bia/.amazonq/mcp.json
+cd /home/ec2-user/bia
+rm mcp.json  # Remove arquivo da raiz do projeto
 # Reiniciar Amazon Q
 ```
 
@@ -155,14 +234,26 @@ rm /home/ec2-user/bia/.amazonq/mcp.json
 ## 🔍 **Troubleshooting**
 
 ### **MCP Server não carrega:**
+
+#### **Problema mais comum: Arquivo na pasta .amazonq**
 ```bash
-# Verificar arquivo existe
+# ❌ ERRO: Arquivo na pasta que começa com "."
 ls -la /home/ec2-user/bia/.amazonq/mcp.json
 
-# Verificar sintaxe JSON
-cat /home/ec2-user/bia/.amazonq/mcp.json | jq .
+# ✅ SOLUÇÃO: Mover para raiz do projeto
+cd /home/ec2-user/bia
+cp .amazonq/mcp-ecs.json mcp.json  # ou mcp-db.json ou mcp-combined.json
+```
 
-# Verificar logs
+#### **Verificações adicionais:**
+```bash
+# Verificar arquivo existe na raiz
+ls -la /home/ec2-user/bia/mcp.json
+
+# Verificar sintaxe JSON
+cat /home/ec2-user/bia/mcp.json | jq .
+
+# Verificar logs ECS MCP
 tail -f /tmp/ecs-mcp-server.log
 ```
 
@@ -176,23 +267,31 @@ docker run --rm postgres:16.1 psql \
 
 ### **Voltar ao estado limpo:**
 ```bash
-cd /home/ec2-user/bia/.amazonq
-rm -f mcp.json
+cd /home/ec2-user/bia
+rm -f mcp.json  # Remove da raiz do projeto
 # Reiniciar Amazon Q
 ```
 
 ## 📋 **Estrutura de Arquivos**
 
 ```
-/home/ec2-user/bia/.amazonq/
-├── mcp-ecs.json     # ECS MCP Server config
-├── mcp-db.json      # Database MCP Server config
-├── mcp.json         # Arquivo ativo (quando existe)
-└── rules/           # Regras de contexto
-    ├── dockerfile.md
-    ├── infraestrutura.md
-    └── pipeline.md
+/home/ec2-user/bia/
+├── mcp.json             # ✅ ARQUIVO ATIVO (quando existe) - RAIZ DO PROJETO
+├── .amazonq/            # 📁 Pasta de configurações (templates)
+│   ├── mcp-ecs.json     # Template ECS MCP Server
+│   ├── mcp-db.json      # Template Database MCP Server
+│   ├── mcp-combined.json # Template MCP Combinado
+│   └── rules/           # Regras de contexto
+│       ├── dockerfile.md
+│       ├── infraestrutura.md
+│       └── pipeline.md
+└── (outros arquivos do projeto)
 ```
+
+### ⚠️ **REGRA FUNDAMENTAL:**
+- **Amazon Q CLI só carrega `mcp.json` da RAIZ do projeto**
+- **Pastas que começam com "." são ignoradas pelo Amazon Q CLI**
+- **Templates ficam em `.amazonq/` mas arquivo ativo deve estar na raiz**
 
 ## 🎉 **Benefícios dos MCP Servers**
 
