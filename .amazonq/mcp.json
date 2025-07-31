@@ -1,5 +1,12 @@
 {
   "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home/ec2-user/bia"],
+      "env": {
+        "ALLOWED_DIRECTORIES": "/home/ec2-user/bia"
+      }
+    },
     "awslabs.ecs-mcp-server": {
       "command": "uvx",
       "args": ["--from", "awslabs-ecs-mcp-server", "ecs-mcp-server"],
@@ -13,10 +20,7 @@
     "postgres": {
       "command": "docker",
       "args": [
-        "run",
-        "-i",
-        "--rm",
-        "mcp/postgres",
+        "run", "-i", "--rm", "mcp/postgres",
         "postgresql://postgres:Kgegwlaj6mAIxzHaEqgo@bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com:5432/bia"
       ]
     }

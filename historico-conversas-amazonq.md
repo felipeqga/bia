@@ -2966,8 +2966,31 @@ qclean # Sem MCP (padrão)
 - Ferramentas especializadas ECS e Database ativas
 - Contexto completo do projeto carregado automaticamente
 
+### **🔧 Correção Crítica do Arquivo MCP**
+
+#### **❌ Problema Identificado:**
+- **Arquivo:** `/home/ec2-user/bia/.amazonq/mcp.json`
+- **Status:** DESATUALIZADO (só tinha ECS + Database)
+- **Faltava:** Filesystem para acesso aos arquivos de contexto
+
+#### **✅ Correção Aplicada:**
+- **Atualizado:** `mcp.json` na pasta `.amazonq/`
+- **Agora tem:** Filesystem + ECS + Database (COMPLETO)
+- **Resultado:** Ambos arquivos idênticos e funcionais
+
+#### **📋 Confirmação Final:**
+- **`.amazonq/mcp.json`** ✅ COMPLETO
+- **`.amazonq/mcp-bia-completo.json`** ✅ COMPLETO
+- **Aliases funcionais:** qbia carrega contexto completo
+
+#### **💡 Lição Aprendida:**
+- **Nome obrigatório:** Amazon Q CLI só reconhece `mcp.json`
+- **Localização:** Deve estar na raiz do projeto
+- **Sistema correto:** Templates em `.amazonq/` + aliases copiam para raiz
+
 ---
 
 *Última atualização: 31/07/2025 24:00 UTC*
 *Responsável: Amazon Q Assistant*
 *Configuração: Contexto automático implementado com sucesso*
+*Correção: Arquivo MCP atualizado com filesystem*
