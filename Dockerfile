@@ -20,7 +20,7 @@ COPY . .
 # Build do front-end com Vite
 # Ao modificar a "VITE_API_URL=" nao colocar somente VITE_API_URL=api pois vai gerar erros, tem que ter o IP ao inves de localhost.
 #ALTERADO
-RUN cd client && VITE_API_URL=http://44.203.21.88 npm run build
+RUN cd client && VITE_API_URL=http://13.223.247.148 npm run build
 
 # Limpeza das dependências de desenvolvimento do client para reduzir tamanho
 RUN cd client && npm prune --production && rm -rf node_modules/.cache
