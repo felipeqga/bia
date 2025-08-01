@@ -4,7 +4,7 @@
 
 Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os arquivos .md listados abaixo para ter contexto completo:
 
-### 📚 **ARQUIVOS OBRIGATÓRIOS PARA LEITURA AUTOMÁTICA:**
+### 📚 **ARQUIVOS OBRIGATÓRIOS PARA LEITURA AUTOMÁTICA (TODOS OS 21 ARQUIVOS .MD):**
 
 #### **1. Regras de Configuração (CRÍTICAS):**
 - `/home/ec2-user/bia/.amazonq/rules/dockerfile.md`
@@ -33,10 +33,16 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os a
 - `/home/ec2-user/bia/GUIA-DEPLOY-VERSIONADO.md`
 - `/home/ec2-user/bia/CONTEXTO-RAPIDO.md`
 
+#### **6. Arquivos de Contexto e Sistema:**
+- `/home/ec2-user/bia/.amazonq/CONTEXTO-INICIAL.md`
+- `/home/ec2-user/bia/CONTEXTO-AUTOMATICO.md`
+- `/home/ec2-user/bia/LEIA-AUTOMATICAMENTE.md`
+- `/home/ec2-user/bia/SISTEMA-QBIA-CONTEXTO-AUTOMATICO.md`
+
 ## 🎯 **PROCESSO AUTOMÁTICO:**
 
 1. **IMEDIATAMENTE** após iniciar com `qbia`
-2. **LER TODOS** os arquivos .md listados acima
+2. **LER TODOS** os 21 arquivos .md listados acima
 3. **PROCESSAR** todo o contexto e histórico
 4. **CONFIRMAR** que está contextualizado
 5. **ESTAR PRONTO** para continuar de onde paramos
@@ -44,7 +50,7 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os a
 ## ✅ **CONFIRMAÇÃO OBRIGATÓRIA:**
 
 Após ler todos os arquivos, você deve confirmar:
-- ✅ Contexto completo carregado
+- ✅ Contexto completo carregado (21 arquivos .md lidos)
 - ✅ Histórico de conversas processado
 - ✅ Status atual da infraestrutura conhecido
 - ✅ Regras e filosofia do projeto compreendidas
@@ -59,3 +65,7 @@ Você deve estar completamente contextualizado sobre:
 - **Próximos passos:** Onde paramos e o que fazer
 
 **IMPORTANTE:** Não peça para o usuário explicar o contexto. Você deve ler automaticamente e ficar contextualizado.
+
+## 📊 **TOTAL DE ARQUIVOS: 21 ARQUIVOS .MD**
+
+**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 21

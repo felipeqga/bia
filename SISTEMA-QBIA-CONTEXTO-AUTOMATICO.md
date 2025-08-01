@@ -48,6 +48,12 @@ qbia  # Executa contexto automático completo
 - `GUIA-DEPLOY-VERSIONADO.md` - Sistema de deploy
 - `CONTEXTO-RAPIDO.md` - Referência rápida
 
+### **Arquivos de Contexto e Sistema:**
+- `.amazonq/CONTEXTO-INICIAL.md` - Lista de contexto inicial
+- `CONTEXTO-AUTOMATICO.md` - Instrução de contexto automático
+- `LEIA-AUTOMATICAMENTE.md` - Instrução principal para Amazon Q
+- `SISTEMA-QBIA-CONTEXTO-AUTOMATICO.md` - Esta documentação
+
 ## 🔧 **MCP Servers Ativados**
 
 ### **Filesystem MCP:**
@@ -72,7 +78,7 @@ Após executar `qbia`, Amazon Q deve:
 ### **Conhecer completamente:**
 - ✅ **Projeto BIA:** Versão 3.2.0, bootcamp 28/07-03/08/2025
 - ✅ **Infraestrutura atual:** Status (economia/ativo), recursos AWS
-- ✅ **Histórico completo:** Todas as 11 conversas anteriores
+- ✅ **Histórico completo:** Todas as 12 conversas anteriores
 - ✅ **Implementações:** Deploy versionado, MCP servers, scripts
 - ✅ **Regras:** Dockerfile, infraestrutura, pipeline
 - ✅ **Onde paramos:** Última conversa e próximos passos
@@ -115,8 +121,8 @@ qbia
 ```
 🤖 Contexto completo carregado! 
 
-✅ Li todos os arquivos .md do projeto BIA
-✅ Histórico de 11 conversas processado
+✅ Li todos os arquivos .md do projeto BIA (21 arquivos)
+✅ Histórico de 12 conversas processado
 ✅ Status atual: [MODO ECONOMIA/ATIVO]
 ✅ Última implementação: [Deploy versionado/MCP servers/etc]
 ✅ Pronto para continuar de onde paramos
