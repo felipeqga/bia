@@ -1,0 +1,75 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "codepipeline:CreatePipeline",
+                "codepipeline:GetPipeline",
+                "codepipeline:UpdatePipeline",
+                "codepipeline:DeletePipeline",
+                "codepipeline:StartPipelineExecution",
+                "codepipeline:StopPipelineExecution",
+                "codepipeline:GetPipelineState",
+                "codepipeline:GetPipelineExecution",
+                "iam:ListRoles",
+                "iam:PassRole",
+                "s3:PutObject",
+                "s3:GetBucketPolicy",
+                "s3:GetObject",
+                "s3:ListBucket",
+                "s3:GetBucketLocation",
+                "codebuild:BatchGetBuilds",
+                "codebuild:StartBuild",
+                "codebuild:BatchGetProjects"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ecs:UpdateService",
+                "ecs:DescribeServices",
+                "ecs:DescribeTaskDefinition",
+                "ecs:RegisterTaskDefinition",
+                "ecs:ListServices",
+                "ecs:ListClusters",
+                "ecs:DescribeClusters"
+            ],
+            "Resource": [
+                "arn:aws:ecs:us-east-1:387678648422:cluster/cluster-bia-alb",
+                "arn:aws:ecs:us-east-1:387678648422:service/cluster-bia-alb/service-bia-alb",
+                "arn:aws:ecs:us-east-1:387678648422:task-definition/task-def-bia-alb:*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ecr:GetAuthorizationToken",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:DescribeRepositories",
+                "ecr:DescribeImages"
+            ],
+            "Resource": [
+                "arn:aws:ecr:us-east-1:387678648422:repository/bia",
+                "*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+                "logs:DescribeLogGroups",
+                "logs:DescribeLogStreams"
+            ],
+            "Resource": [
+                "arn:aws:logs:us-east-1:387678648422:log-group:/aws/codebuild/bia-build-pipeline:*",
+                "arn:aws:logs:us-east-1:387678648422:log-group:/ecs/task-def-bia-alb:*"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,28 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ecs:DescribeServices",
+                "ecs:DescribeTaskDefinition",
+                "ecs:DescribeClusters",
+                "ecs:UpdateService",
+                "ecs:RegisterTaskDefinition",
+                "ecs:ListServices",
+                "ecs:ListClusters",
+                "ecs:ListTaskDefinitions"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Resource": [
+                "arn:aws:iam::387678648422:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS"
+            ]
+        }
+    ]
+}

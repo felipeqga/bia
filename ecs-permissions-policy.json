@@ -1,0 +1,34 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ecs:UpdateService",
+                "ecs:DescribeServices",
+                "ecs:DescribeTaskDefinition",
+                "ecs:RegisterTaskDefinition",
+                "ecs:ListServices",
+                "ecs:ListClusters",
+                "ecs:DescribeClusters",
+                "ecs:ListTaskDefinitions",
+                "ecs:DescribeTaskDefinition"
+            ],
+            "Resource": [
+                "arn:aws:ecs:us-east-1:387678648422:cluster/cluster-bia-alb",
+                "arn:aws:ecs:us-east-1:387678648422:service/cluster-bia-alb/service-bia-alb",
+                "arn:aws:ecs:us-east-1:387678648422:task-definition/task-def-bia-alb:*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Resource": [
+                "arn:aws:iam::387678648422:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS",
+                "arn:aws:iam::387678648422:role/*"
+            ]
+        }
+    ]
+}
