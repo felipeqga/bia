@@ -155,42 +155,64 @@ artifacts:
 
 **Instâncias EC2:**
 1. **bia-dev** - Instância de desenvolvimento (onde Amazon Q roda)
-2. **bia-ecs-instance-1a-v2** - Criada pelo ECS Cluster (us-east-1a, t3.micro)
-3. **bia-ecs-instance-1b-v2** - Criada pelo ECS Cluster (us-east-1b, t3.micro)
+2. **bia-ecs-instance-1a-v2** - Criada manualmente para ECS Cluster (us-east-1a, t3.micro) - **TERMINADA**
+3. **bia-ecs-instance-1b-v2** - Criada manualmente para ECS Cluster (us-east-1b, t3.micro) - **TERMINADA**
 
 **Fluxo de Tráfego:**
 ```
-Internet → ALB → Target Group → 2 ECS Instances → ECS Tasks (containers)
+Internet → ALB → Target Group → ECS Instances → ECS Tasks (containers)
 ```
 
-**Capacidade das Instâncias:**
+**Capacidade das Instâncias (quando ativas):**
 - Cada t3.micro: 2048 CPU units, 944 MB RAM
 - Cada task: 1024 CPU units, ~409 MB RAM
 - **Capacidade:** Cada instância pode rodar 2 tasks simultaneamente
+
+#### Problema Crítico Identificado: Instâncias EC2 Órfãs
+
+**Descoberta Importante:**
+- As instâncias `bia-ecs-instance-1a-v2` e `bia-ecs-instance-1b-v2` foram criadas **manualmente**
+- **NÃO fazem parte de Auto Scaling Group** (verificado: nenhum ASG configurado)
+- Comportavam-se como EC2 independentes em vez de recursos gerenciados do cluster
+- **Solução aplicada:** Instâncias terminadas corretamente
+
+**Implicações:**
+- Para retomar o cluster, será necessário **recriar instâncias** ou configurar **Auto Scaling Group**
+- Recomendação: Migrar para **ECS Fargate** para eliminar gerenciamento de instâncias
+- Alternativa: Configurar ASG adequado para gerenciamento automático
 
 #### Alterações Realizadas
 - Modificado botão da aplicação: "Add Tarefa: AmazonQ" → "Add Tarefa: CodePipeLine" → "Add Tarefa: Teste Original"
 - Arquivo alterado: `/client/src/components/AddTask.jsx`
 
-#### Cluster Pausado para Economia de Recursos
-- **Ação:** Definido desired count = 0 no serviço ECS
-- **Objetivo:** Parar consumo de recursos durante período inativo
-- **Status:** Cluster pausado às 05:11:05 UTC
+#### Recursos Pausados/Terminados para Economia
+
+**Status Final dos Recursos:**
+- ✅ **ECS Service:** desired count = 0 (sem tasks rodando)
+- ✅ **EC2 Instances:** **TERMINADAS** (i-0ce079b5c267180bd, i-0778fcd843cd3ef5f)
+- ✅ **EBS Volumes:** Deletados automaticamente (DeleteOnTermination: true)
+- ✅ **ALB:** Ativo (custo fixo mínimo, sem targets)
+- ✅ **RDS:** Ativo (preservação de dados)
+
+**Economia Máxima Alcançada:**
+- **2 × t3.micro:** ~$16/mês → **$0** (terminadas)
+- **ECS Tasks:** Sem consumo de CPU/Memory
+- **Volumes EBS:** Sem cobrança adicional
 
 #### Status Final
-- **Infraestrutura**: ✅ Funcionando (ECS, ALB, RDS, Security Groups)
+- **Infraestrutura**: ✅ Funcionando (ALB, RDS, Security Groups)
 - **CodePipeline**: ✅ Funcionando (com permissões ECR corrigidas)
 - **Deploy**: ✅ Otimizado para alta performance (31% melhoria comprovada)
 - **Otimizações**: ✅ Aplicadas e testadas com sucesso
-- **Cluster**: ⏸️ Pausado para economia de recursos
+- **Cluster**: ⏸️ **COMPLETAMENTE PAUSADO** (instâncias terminadas)
 - **Conectividade DB**: ❌ Perdida após CodePipeline (variáveis de ambiente não configuradas)
-- **Próximo passo**: Configurar variáveis de ambiente no CodeBuild
+- **Próximo passo**: Recriar infraestrutura ECS e configurar variáveis de ambiente no CodeBuild
 
 #### Informações Técnicas
-- **Cluster ECS**: cluster-bia-alb (pausado)
+- **Cluster ECS**: cluster-bia-alb (sem instâncias)
 - **Service**: service-bia-alb (desired count = 0)
 - **Task Definition**: task-def-bia-alb:12
-- **Load Balancer**: bia-1433396588.us-east-1.elb.amazonaws.com
+- **Load Balancer**: bia-1433396588.us-east-1.elb.amazonaws.com (sem targets)
 - **ECR Repository**: 387678648422.dkr.ecr.us-east-1.amazonaws.com/bia
 - **RDS Instance**: bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com
 
@@ -217,6 +239,32 @@ Internet → ALB → Target Group → 2 ECS Instances → ECS Tasks (containers)
 - Paralelização de stages
 - **Impacto esperado:** 1-2 minutos economizados
 
+#### Para Retomar Amanhã
+
+**Opções de Infraestrutura:**
+
+**Opção 1: Recriar Instâncias Manualmente (Como Estava)**
+```bash
+# Criar instâncias EC2 para ECS
+# Registrar no cluster
+# Reativar serviço ECS
+aws ecs update-service --cluster cluster-bia-alb --service service-bia-alb --desired-count 2
+```
+
+**Opção 2: Configurar Auto Scaling Group (Recomendado)**
+```bash
+# Criar Launch Template
+# Configurar Auto Scaling Group
+# Associar ao cluster ECS
+```
+
+**Opção 3: Migrar para ECS Fargate (Ideal)**
+```bash
+# Modificar task definition para Fargate
+# Eliminar gerenciamento de instâncias EC2
+# Deploy serverless
+```
+
 #### Lições Aprendidas
 1. CodePipeline pode sobrescrever configurações manuais se não estiver adequadamente configurado
 2. Variáveis de ambiente devem ser configuradas no CodeBuild ou na task definition template
@@ -226,26 +274,9 @@ Internet → ALB → Target Group → 2 ECS Instances → ECS Tasks (containers)
 6. maximumPercent: 200% melhora disponibilidade E velocidade
 7. Maior gargalo está no Docker build (70% do tempo), não no ECS deploy
 8. Dados oficiais do CodePipeline são mais precisos que cronômetros manuais
-9. Otimizações de 31% são significativas e valiosas para produção
-
-#### Para Retomar Amanhã
-**Comandos para reativar o cluster:**
-```bash
-# Reativar serviço ECS
-aws ecs update-service --cluster cluster-bia-alb --service service-bia-alb --desired-count 2
-
-# Verificar status
-aws ecs describe-services --cluster cluster-bia-alb --services service-bia-alb
-
-# Testar aplicação
-curl http://bia-1433396588.us-east-1.elb.amazonaws.com/api/versao
-```
-
-**Próximas ações recomendadas:**
-1. Configurar variáveis de ambiente no CodeBuild
-2. Implementar otimizações de Docker build
-3. Considerar Parameter Store para credenciais
-4. Implementar monitoramento com CloudWatch
+9. **Instâncias ECS devem ser gerenciadas por Auto Scaling Group, não criadas manualmente**
+10. **Terminar instâncias órfãs é correto para economia de recursos**
+11. **Verificar sempre se há ASG configurado antes de assumir gerenciamento automático**
 
 ---
 
@@ -261,6 +292,9 @@ aws ecs describe-task-definition --task-definition task-def-bia-alb
 
 # Verificar Target Group
 aws elbv2 describe-target-groups --target-group-arns arn:aws:elasticloadbalancing:us-east-1:387678648422:targetgroup/tg-bia/9e999191b3d60e38
+
+# Verificar Auto Scaling Groups
+aws autoscaling describe-auto-scaling-groups
 
 # Testar conectividade
 curl http://bia-1433396588.us-east-1.elb.amazonaws.com/api/versao
@@ -282,9 +316,15 @@ aws elbv2 modify-target-group-attributes \
 # Otimizar ECS Deployment
 aws ecs update-service --cluster cluster-bia-alb --service service-bia-alb \
   --deployment-configuration maximumPercent=200,minimumHealthyPercent=50
+```
 
-# Pausar cluster
+### AWS CLI - Gerenciamento de Recursos
+```bash
+# Pausar serviço ECS
 aws ecs update-service --cluster cluster-bia-alb --service service-bia-alb --desired-count 0
+
+# Terminar instâncias órfãs (CORRETO)
+aws ec2 terminate-instances --instance-ids i-0ce079b5c267180bd i-0778fcd843cd3ef5f
 ```
 
 ### Deploy Script
@@ -294,6 +334,7 @@ aws ecs update-service --cluster cluster-bia-alb --service service-bia-alb --des
 
 ---
 
-*Histórico salvo em: 02/08/2025 05:11 UTC*
-*Cluster pausado para economia de recursos*
+*Histórico salvo em: 02/08/2025 05:16 UTC*
+*Cluster completamente pausado - instâncias EC2 terminadas corretamente*
 *Otimizações de performance comprovadas: 31% melhoria*
+*Problema de instâncias órfãs identificado e corrigido*
