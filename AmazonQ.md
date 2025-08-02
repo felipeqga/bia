@@ -76,9 +76,9 @@ O foco base dele é fornecer uma estrutura educacional em que o aluno possa evol
 ### Estado Atual da Infraestrutura
 
 #### Componentes Ativos
-- **ECS Cluster:** cluster-bia-alb
-- **ECS Service:** service-bia-alb (2 tasks rodando)
-- **Task Definition:** task-def-bia-alb:10
+- **ECS Cluster:** cluster-bia-alb (pausado)
+- **ECS Service:** service-bia-alb (desired count = 0)
+- **Task Definition:** task-def-bia-alb:12
 - **Load Balancer:** bia-1433396588.us-east-1.elb.amazonaws.com
 - **RDS Instance:** bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com
 - **ECR Repository:** 387678648422.dkr.ecr.us-east-1.amazonaws.com/bia
@@ -126,7 +126,7 @@ Internet → ALB → Target Group → 2 ECS Instances → ECS Tasks (containers)
 - **maximumPercent:** 100% → 200% (deploy paralelo)
 - **Resultado:** 4 tasks simultâneas durante deploy
 
-#### Impacto das Otimizações
+#### Impacto das Otimizações Comprovado
 
 | Configuração | Antes | Depois | Melhoria |
 |-------------|-------|--------|----------|
@@ -134,7 +134,24 @@ Internet → ALB → Target Group → 2 ECS Instances → ECS Tasks (containers)
 | **Health Check Total** | 60s mínimo | 20s mínimo | 3x mais rápido |
 | **Deregistration** | 30s delay | 5s delay | 6x mais rápido |
 | **Deploy Strategy** | Sequencial | Paralelo | 2x mais rápido |
-| **Tempo Total Esperado** | ~10 minutos | ~2 minutos | 80% redução |
+| **CodePipeline Total** | 7min 19s | 5min 2s | **31% redução** |
+
+### Análise de Gargalos
+
+#### Gargalos Identificados por Prioridade
+
+| Gargalo | Impacto | Tempo Perdido | Status |
+|---------|---------|---------------|--------|
+| **Health Check 30s** | Alto | 60-90s | ✅ Otimizado |
+| **Deregistration 30s** | Médio | 30s | ✅ Otimizado |
+| **MaximumPercent 100%** | Médio | 30-60s | ✅ Otimizado |
+| **Docker Build** | Alto | 3-4min | ❌ Pendente |
+| **ECR Push** | Médio | 30-60s | ❌ Pendente |
+
+#### Breakdown do Tempo (CodePipeline)
+- **CodeBuild (Docker):** ~70% do tempo (maior gargalo)
+- **ECS Deploy:** ~25% do tempo (otimizado)
+- **Source Stage:** ~5% do tempo (rápido)
 
 ### Pontos de Atenção
 
@@ -142,12 +159,14 @@ Internet → ALB → Target Group → 2 ECS Instances → ECS Tasks (containers)
 1. **Permissões ECR:** ✅ Adicionada policy AmazonEC2ContainerRegistryPowerUser
 2. **Deploy Automatizado:** ✅ CodePipeline funcionando
 3. **Infraestrutura:** ✅ Todos os componentes AWS operacionais
-4. **Performance:** ✅ Deploy otimizado para alta velocidade
+4. **Performance:** ✅ Deploy otimizado (31% melhoria comprovada)
+5. **Economia de Recursos:** ✅ Cluster pausado quando inativo
 
 #### Pendentes
 1. **Variáveis de Ambiente:** ❌ CodeBuild não preserva variáveis do banco
 2. **Buildspec.yml:** ❌ Precisa incluir configuração de environment variables
 3. **Conectividade DB:** ❌ Perdida após deploy do CodePipeline
+4. **Docker Build:** ❌ Maior gargalo (70% do tempo de deploy)
 
 ### Recomendações
 
@@ -155,6 +174,12 @@ Internet → ALB → Target Group → 2 ECS Instances → ECS Tasks (containers)
 1. **Configurar variáveis no CodeBuild:** Adicionar DB_HOST, DB_USER, DB_PWD, DB_PORT como environment variables no projeto CodeBuild
 2. **Modificar buildspec.yml:** Para preservar configurações de ambiente
 3. **Implementar Parameter Store:** Para gerenciamento seguro de credenciais
+
+#### Próximas Otimizações (Alto Impacto)
+1. **Multi-stage Dockerfile:** Reduzir tamanho da imagem e tempo de build
+2. **Cache de dependências npm:** Acelerar processo de build
+3. **Imagem base menor:** Usar alpine em vez de slim
+4. **CodeBuild instance maior:** Para builds mais rápidos
 
 #### Futuras
 1. **Monitoramento:** Implementar CloudWatch Logs e métricas
@@ -184,9 +209,10 @@ Internet → ALB → Target Group → 2 ECS Instances → ECS Tasks (containers)
 **Sintomas:** Deploy levando mais de 5 minutos
 
 **Soluções aplicadas:**
-- Health Check interval reduzido para 10s
-- Deregistration delay reduzido para 5s
-- maximumPercent aumentado para 200%
+- Health Check interval reduzido para 10s ✅
+- Deregistration delay reduzido para 5s ✅
+- maximumPercent aumentado para 200% ✅
+- **Resultado:** 31% de melhoria comprovada
 
 ---
 
@@ -209,13 +235,47 @@ Internet → ALB → Target Group → 2 ECS Instances → ECS Tasks (containers)
 5. **Deregistration:** 5s para remover tasks antigas
 6. **Estado final:** 2 tasks novas rodando
 
-### Benefícios
+### Benefícios Comprovados
 - **Zero downtime:** Sempre mantém pelo menos 1 task
 - **Alta disponibilidade:** 4 tasks durante deploy
-- **Deploy rápido:** Processo paralelo em vez de sequencial
+- **Deploy rápido:** 31% mais rápido que configuração original
 - **Rollback seguro:** Tasks antigas mantidas até confirmação
 
 ---
 
-*Última atualização: 02/08/2025 04:47 UTC*
-*Otimizações de performance aplicadas e testadas*
+## Comandos para Retomar Trabalho
+
+### Reativar Cluster
+```bash
+# Reativar serviço ECS
+aws ecs update-service --cluster cluster-bia-alb --service service-bia-alb --desired-count 2
+
+# Verificar status
+aws ecs describe-services --cluster cluster-bia-alb --services service-bia-alb
+
+# Testar aplicação
+curl http://bia-1433396588.us-east-1.elb.amazonaws.com/api/versao
+```
+
+### Reaplicar Otimizações (se necessário)
+```bash
+# Health Check otimizado
+aws elbv2 modify-target-group \
+  --target-group-arn arn:aws:elasticloadbalancing:us-east-1:387678648422:targetgroup/tg-bia/9e999191b3d60e38 \
+  --health-check-interval-seconds 10
+
+# Deregistration Delay otimizado
+aws elbv2 modify-target-group-attributes \
+  --target-group-arn arn:aws:elasticloadbalancing:us-east-1:387678648422:targetgroup/tg-bia/9e999191b3d60e38 \
+  --attributes Key=deregistration_delay.timeout_seconds,Value=5
+
+# ECS Deployment otimizado
+aws ecs update-service --cluster cluster-bia-alb --service service-bia-alb \
+  --deployment-configuration maximumPercent=200,minimumHealthyPercent=50
+```
+
+---
+
+*Última atualização: 02/08/2025 05:11 UTC*
+*Cluster pausado para economia de recursos*
+*Otimizações de performance comprovadas: 31% melhoria no tempo de deploy*

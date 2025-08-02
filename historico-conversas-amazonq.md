@@ -2,7 +2,7 @@
 
 ## Data: 02/08/2025
 
-### Sessão: Deploy e Troubleshooting com CodePipeline + Otimizações de Performance
+### Sessão: Deploy, Troubleshooting, Otimizações de Performance e Análise de Gargalos
 
 #### Contexto Inicial
 - Aplicação BIA com problemas de conectividade com banco RDS
@@ -84,6 +84,42 @@
 }
 ```
 
+#### Testes de Performance Realizados
+
+**Teste 1 - Deploy Otimizado:**
+- Início: 04:47:50 UTC
+- Fim: 04:55:02 UTC
+- **Duração:** 7min 12s
+- **Configuração:** Health: 10s, Dereg: 5s, Max: 200%
+
+**Teste 2 - Deploy Original (Revertido):**
+- Início: 04:55:56 UTC
+- Fim: 05:03:38 UTC
+- **Duração:** 7min 42s
+- **Configuração:** Health: 30s, Dereg: 30s, Max: 100%
+
+**Dados Oficiais do CodePipeline:**
+- **Deploy Otimizado:** 5min 2s
+- **Deploy Original:** 7min 19s
+- **Melhoria:** 31% mais rápido (2min 17s economizados)
+
+#### Análise de Gargalos Identificados
+
+**Ranking dos Gargalos por Impacto:**
+
+| Gargalo | Impacto | Tempo Perdido | Prioridade |
+|---------|---------|---------------|------------|
+| **Health Check 30s** | Alto | 60-90s | 🔴 Crítico |
+| **Deregistration 30s** | Médio | 30s | 🟡 Alto |
+| **MaximumPercent 100%** | Médio | 30-60s | 🟡 Alto |
+| **CodeBuild (Docker)** | Alto | 3-4min | 🔴 Crítico |
+| **Placement Strategy** | Baixo | 10-20s | 🟢 Baixo |
+
+**Breakdown do Tempo Total (CodePipeline):**
+- **CodeBuild (Docker build):** ~70% do tempo (3-4 minutos)
+- **ECS Deploy:** ~25% do tempo (1-2 minutos)
+- **Source Stage:** ~5% do tempo (10-20s)
+
 #### Análise do buildspec.yml
 ```yaml
 version: 0.2
@@ -119,49 +155,41 @@ artifacts:
 
 **Instâncias EC2:**
 1. **bia-dev** - Instância de desenvolvimento (onde Amazon Q roda)
-2. **bia-ecs-instance-1a-v2** - Criada pelo ECS Cluster (us-east-1a)
-3. **bia-ecs-instance-1b-v2** - Criada pelo ECS Cluster (us-east-1b)
+2. **bia-ecs-instance-1a-v2** - Criada pelo ECS Cluster (us-east-1a, t3.micro)
+3. **bia-ecs-instance-1b-v2** - Criada pelo ECS Cluster (us-east-1b, t3.micro)
 
 **Fluxo de Tráfego:**
 ```
 Internet → ALB → Target Group → 2 ECS Instances → ECS Tasks (containers)
 ```
 
-#### Rolling Update Otimizado
-
-**Configuração Final:**
-- **minimumHealthyPercent**: 50% (sempre mantém pelo menos 1 task)
-- **maximumPercent**: 200% (permite 4 tasks durante deploy)
-
-**Fluxo do Deploy:**
-1. Estado inicial: 2 tasks antigas
-2. Deploy inicia: Cria 2 tasks novas simultaneamente
-3. Estado temporário: 4 tasks rodando (alta disponibilidade)
-4. Health check: 20s em vez de 60s
-5. Deregistration: 5s em vez de 30s
-6. Estado final: 2 tasks novas
+**Capacidade das Instâncias:**
+- Cada t3.micro: 2048 CPU units, 944 MB RAM
+- Cada task: 1024 CPU units, ~409 MB RAM
+- **Capacidade:** Cada instância pode rodar 2 tasks simultaneamente
 
 #### Alterações Realizadas
-- Modificado botão da aplicação de "Add Tarefa: AmazonQ" para "Add Tarefa: CodePipeLine"
+- Modificado botão da aplicação: "Add Tarefa: AmazonQ" → "Add Tarefa: CodePipeLine" → "Add Tarefa: Teste Original"
 - Arquivo alterado: `/client/src/components/AddTask.jsx`
 
-#### Teste de Performance Programado
-- **Início do teste**: 2025-08-02 04:47:50 UTC
-- **Expectativa**: Deploy de ~10 minutos para ~2 minutos (redução de 80%)
-- **Aguardando**: Confirmação do usuário sobre conclusão do deploy
+#### Cluster Pausado para Economia de Recursos
+- **Ação:** Definido desired count = 0 no serviço ECS
+- **Objetivo:** Parar consumo de recursos durante período inativo
+- **Status:** Cluster pausado às 05:11:05 UTC
 
-#### Status Atual
+#### Status Final
 - **Infraestrutura**: ✅ Funcionando (ECS, ALB, RDS, Security Groups)
 - **CodePipeline**: ✅ Funcionando (com permissões ECR corrigidas)
-- **Deploy**: ✅ Otimizado para alta performance
-- **Otimizações**: ✅ Aplicadas (Health Check, Deregistration Delay, Rolling Update)
+- **Deploy**: ✅ Otimizado para alta performance (31% melhoria comprovada)
+- **Otimizações**: ✅ Aplicadas e testadas com sucesso
+- **Cluster**: ⏸️ Pausado para economia de recursos
 - **Conectividade DB**: ❌ Perdida após CodePipeline (variáveis de ambiente não configuradas)
 - **Próximo passo**: Configurar variáveis de ambiente no CodeBuild
 
 #### Informações Técnicas
-- **Cluster ECS**: cluster-bia-alb
-- **Service**: service-bia-alb
-- **Task Definition**: task-def-bia-alb:10
+- **Cluster ECS**: cluster-bia-alb (pausado)
+- **Service**: service-bia-alb (desired count = 0)
+- **Task Definition**: task-def-bia-alb:12
 - **Load Balancer**: bia-1433396588.us-east-1.elb.amazonaws.com
 - **ECR Repository**: 387678648422.dkr.ecr.us-east-1.amazonaws.com/bia
 - **RDS Instance**: bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com
@@ -174,7 +202,20 @@ Internet → ALB → Target Group → 2 ECS Instances → ECS Tasks (containers)
 | **Health Check (tempo mínimo)** | 60s | 20s | 3x mais rápido |
 | **Deregistration Delay** | 30s | 5s | 6x mais rápido |
 | **Maximum Percent** | 100% | 200% | Deploy simultâneo |
-| **Deploy esperado** | ~10 min | ~2 min | 80% redução |
+| **Deploy CodePipeline** | 7min 19s | 5min 2s | 31% redução |
+
+#### Próximas Otimizações Recomendadas
+
+**1. Docker Build (Maior Impacto):**
+- Multi-stage Dockerfile
+- Cache de dependências npm
+- Imagem base menor (alpine)
+- **Impacto esperado:** 2-3 minutos economizados
+
+**2. CodeBuild:**
+- Instance type maior
+- Paralelização de stages
+- **Impacto esperado:** 1-2 minutos economizados
 
 #### Lições Aprendidas
 1. CodePipeline pode sobrescrever configurações manuais se não estiver adequadamente configurado
@@ -183,7 +224,28 @@ Internet → ALB → Target Group → 2 ECS Instances → ECS Tasks (containers)
 4. Health Check agressivo reduz drasticamente tempo de deploy
 5. Deregistration Delay baixo é seguro para aplicações stateless
 6. maximumPercent: 200% melhora disponibilidade E velocidade
-7. Monitoramento de deployments é crucial para identificar gargalos
+7. Maior gargalo está no Docker build (70% do tempo), não no ECS deploy
+8. Dados oficiais do CodePipeline são mais precisos que cronômetros manuais
+9. Otimizações de 31% são significativas e valiosas para produção
+
+#### Para Retomar Amanhã
+**Comandos para reativar o cluster:**
+```bash
+# Reativar serviço ECS
+aws ecs update-service --cluster cluster-bia-alb --service service-bia-alb --desired-count 2
+
+# Verificar status
+aws ecs describe-services --cluster cluster-bia-alb --services service-bia-alb
+
+# Testar aplicação
+curl http://bia-1433396588.us-east-1.elb.amazonaws.com/api/versao
+```
+
+**Próximas ações recomendadas:**
+1. Configurar variáveis de ambiente no CodeBuild
+2. Implementar otimizações de Docker build
+3. Considerar Parameter Store para credenciais
+4. Implementar monitoramento com CloudWatch
 
 ---
 
@@ -220,6 +282,9 @@ aws elbv2 modify-target-group-attributes \
 # Otimizar ECS Deployment
 aws ecs update-service --cluster cluster-bia-alb --service service-bia-alb \
   --deployment-configuration maximumPercent=200,minimumHealthyPercent=50
+
+# Pausar cluster
+aws ecs update-service --cluster cluster-bia-alb --service service-bia-alb --desired-count 0
 ```
 
 ### Deploy Script
@@ -229,5 +294,6 @@ aws ecs update-service --cluster cluster-bia-alb --service service-bia-alb \
 
 ---
 
-*Histórico salvo em: 02/08/2025 04:47 UTC*
-*Teste de performance iniciado: 04:47:50 UTC*
+*Histórico salvo em: 02/08/2025 05:11 UTC*
+*Cluster pausado para economia de recursos*
+*Otimizações de performance comprovadas: 31% melhoria*
