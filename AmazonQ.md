@@ -78,10 +78,21 @@ O foco base dele é fornecer uma estrutura educacional em que o aluno possa evol
 #### Componentes Ativos
 - **ECS Cluster:** cluster-bia-alb
 - **ECS Service:** service-bia-alb (2 tasks rodando)
-- **Task Definition:** task-def-bia-alb:9
+- **Task Definition:** task-def-bia-alb:10
 - **Load Balancer:** bia-1433396588.us-east-1.elb.amazonaws.com
 - **RDS Instance:** bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com
 - **ECR Repository:** 387678648422.dkr.ecr.us-east-1.amazonaws.com/bia
+
+#### Arquitetura de Rede
+**Instâncias EC2:**
+1. **bia-dev** - Instância de desenvolvimento (onde Amazon Q roda)
+2. **bia-ecs-instance-1a-v2** - Criada pelo ECS Cluster (us-east-1a, t3.micro)
+3. **bia-ecs-instance-1b-v2** - Criada pelo ECS Cluster (us-east-1b, t3.micro)
+
+**Fluxo de Tráfego:**
+```
+Internet → ALB → Target Group → 2 ECS Instances → ECS Tasks (containers)
+```
 
 #### Configurações de Rede
 - **Security Groups:**
@@ -96,12 +107,42 @@ O foco base dele é fornecer uma estrutura educacional em que o aluno possa evol
 - DB_PORT: 5432
 - NODE_ENV: production
 
+### Otimizações de Performance Aplicadas
+
+#### Configurações Otimizadas
+
+**1. Target Group - Health Check:**
+- **Interval:** 30s → 10s (3x mais rápido)
+- **Timeout:** 5s (mantido)
+- **Threshold:** 2 checks (mantido)
+- **Tempo mínimo para healthy:** 60s → 20s
+
+**2. Target Group - Deregistration Delay:**
+- **Delay:** 30s → 5s (6x mais rápido)
+- **Justificativa:** Aplicação stateless, sem sessões longas
+
+**3. ECS Service - Deployment Configuration:**
+- **minimumHealthyPercent:** 50% (mantido)
+- **maximumPercent:** 100% → 200% (deploy paralelo)
+- **Resultado:** 4 tasks simultâneas durante deploy
+
+#### Impacto das Otimizações
+
+| Configuração | Antes | Depois | Melhoria |
+|-------------|-------|--------|----------|
+| **Health Check** | 30s interval | 10s interval | 3x mais rápido |
+| **Health Check Total** | 60s mínimo | 20s mínimo | 3x mais rápido |
+| **Deregistration** | 30s delay | 5s delay | 6x mais rápido |
+| **Deploy Strategy** | Sequencial | Paralelo | 2x mais rápido |
+| **Tempo Total Esperado** | ~10 minutos | ~2 minutos | 80% redução |
+
 ### Pontos de Atenção
 
 #### Resolvidos
 1. **Permissões ECR:** ✅ Adicionada policy AmazonEC2ContainerRegistryPowerUser
 2. **Deploy Automatizado:** ✅ CodePipeline funcionando
 3. **Infraestrutura:** ✅ Todos os componentes AWS operacionais
+4. **Performance:** ✅ Deploy otimizado para alta velocidade
 
 #### Pendentes
 1. **Variáveis de Ambiente:** ❌ CodeBuild não preserva variáveis do banco
@@ -119,7 +160,7 @@ O foco base dele é fornecer uma estrutura educacional em que o aluno possa evol
 1. **Monitoramento:** Implementar CloudWatch Logs e métricas
 2. **Secrets Manager:** Migrar credenciais para gerenciamento seguro
 3. **Multi-ambiente:** Configurar ambientes dev/staging/prod
-4. **Health Checks:** Melhorar verificações de saúde da aplicação
+4. **Health Checks:** Implementar health checks mais específicos da aplicação
 
 ---
 
@@ -139,6 +180,42 @@ O foco base dele é fornecer uma estrutura educacional em que o aluno possa evol
 
 **Solução:** Adicionar policy `AmazonEC2ContainerRegistryPowerUser` à role do CodeBuild
 
+### Problema: Deploy muito lento
+**Sintomas:** Deploy levando mais de 5 minutos
+
+**Soluções aplicadas:**
+- Health Check interval reduzido para 10s
+- Deregistration delay reduzido para 5s
+- maximumPercent aumentado para 200%
+
 ---
 
-*Última atualização: 02/08/2025 04:20 UTC*
+## Rolling Update Otimizado
+
+### Configuração Final
+```json
+{
+  "minimumHealthyPercent": 50,
+  "maximumPercent": 200,
+  "strategy": "ROLLING"
+}
+```
+
+### Fluxo do Deploy
+1. **Estado inicial:** 2 tasks antigas rodando
+2. **Deploy inicia:** Cria 2 tasks novas simultaneamente
+3. **Estado temporário:** 4 tasks rodando (alta disponibilidade)
+4. **Health check:** 20s para tasks ficarem healthy
+5. **Deregistration:** 5s para remover tasks antigas
+6. **Estado final:** 2 tasks novas rodando
+
+### Benefícios
+- **Zero downtime:** Sempre mantém pelo menos 1 task
+- **Alta disponibilidade:** 4 tasks durante deploy
+- **Deploy rápido:** Processo paralelo em vez de sequencial
+- **Rollback seguro:** Tasks antigas mantidas até confirmação
+
+---
+
+*Última atualização: 02/08/2025 04:47 UTC*
+*Otimizações de performance aplicadas e testadas*

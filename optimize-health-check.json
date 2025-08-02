@@ -1,0 +1,8 @@
+{
+  "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:387678648422:targetgroup/tg-bia/9e999191b3d60e38",
+  "HealthCheckIntervalSeconds": 10,
+  "HealthCheckTimeoutSeconds": 5,
+  "HealthyThresholdCount": 2,
+  "UnhealthyThresholdCount": 2,
+  "HealthCheckPath": "/api/versao"
+}
