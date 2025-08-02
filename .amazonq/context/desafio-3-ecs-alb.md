@@ -60,14 +60,19 @@ aws elbv2 describe-load-balancers --names "bia"
 **Sintoma:** `/api/versao` funciona, `/api/usuarios` retorna HTML  
 
 ```json
-// VARIÁVEIS CORRETAS:
+// IMPORTANTE: SEMPRE PERGUNTAR as variáveis atuais do RDS!
+// Estes valores MUDAM conforme o ambiente/tempo:
 "environment": [
-  {"name": "DB_HOST", "value": "bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com"},
-  {"name": "DB_PORT", "value": "5432"},
-  {"name": "DB_USER", "value": "postgres"},
-  {"name": "DB_PWD", "value": "Kgegwlaj6mAIxzHaEqgo"},  // ← CRÍTICO!
+  {"name": "DB_HOST", "value": "PERGUNTAR_AO_USUARIO"},
+  {"name": "DB_PORT", "value": "PERGUNTAR_AO_USUARIO"},
+  {"name": "DB_USER", "value": "PERGUNTAR_AO_USUARIO"},
+  {"name": "DB_PWD", "value": "PERGUNTAR_AO_USUARIO"},  // ← SEMPRE PERGUNTAR!
   {"name": "NODE_ENV", "value": "production"}
 ]
+
+// Exemplo atual (válido até RDS ser recriado):
+// DB_HOST: "bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com"
+// DB_PWD: "Kgegwlaj6mAIxzHaEqgo"
 ```
 
 ---
@@ -184,10 +189,10 @@ aws ecs register-task-definition --cli-input-json '{
       "appProtocol": "http"
     }],
     "environment": [
-      {"name": "DB_HOST", "value": "bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com"},
-      {"name": "DB_PORT", "value": "5432"},
-      {"name": "DB_USER", "value": "postgres"},
-      {"name": "DB_PWD", "value": "Kgegwlaj6mAIxzHaEqgo"},
+      {"name": "DB_HOST", "value": "PERGUNTAR_AO_USUARIO"},
+      {"name": "DB_PORT", "value": "PERGUNTAR_AO_USUARIO"},
+      {"name": "DB_USER", "value": "PERGUNTAR_AO_USUARIO"},
+      {"name": "DB_PWD", "value": "PERGUNTAR_AO_USUARIO"},
       {"name": "NODE_ENV", "value": "production"}
     ],
     "logConfiguration": {
@@ -259,9 +264,10 @@ aws ecs create-service \
 
 ## 🎯 LIÇÕES APRENDIDAS
 
-### **1. Sempre Especificar Variáveis RDS**
-- Nunca assumir que as variáveis de ambiente estão corretas
-- Sempre incluir DB_HOST, DB_PORT, DB_USER, DB_PWD na task definition
+### **1. Sempre Perguntar Variáveis RDS**
+- **NUNCA assumir** que as variáveis de ambiente estão corretas
+- **SEMPRE perguntar** DB_HOST, DB_PORT, DB_USER, DB_PWD na implementação
+- **Variáveis mudam** quando RDS é recriado ou alterado
 - Testar endpoints que precisam do banco vs endpoints que não precisam
 
 ### **2. IAM Role Correto para Troubleshooting**

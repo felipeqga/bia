@@ -21,11 +21,13 @@ curl http://alb-url/api/usuarios
 **Soluções:**
 1. **Verificar variáveis de ambiente RDS:**
    ```json
+   // IMPORTANTE: SEMPRE PERGUNTAR as variáveis atuais!
+   // Valores mudam quando RDS é recriado:
    "environment": [
-     {"name": "DB_HOST", "value": "bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com"},
-     {"name": "DB_PORT", "value": "5432"},
-     {"name": "DB_USER", "value": "postgres"},
-     {"name": "DB_PWD", "value": "Kgegwlaj6mAIxzHaEqgo"}  // ← Verificar senha!
+     {"name": "DB_HOST", "value": "PERGUNTAR_AO_USUARIO"},
+     {"name": "DB_PORT", "value": "PERGUNTAR_AO_USUARIO"},
+     {"name": "DB_USER", "value": "PERGUNTAR_AO_USUARIO"},
+     {"name": "DB_PWD", "value": "PERGUNTAR_AO_USUARIO"}  // ← Verificar senha!
    ]
    ```
 

@@ -70,13 +70,19 @@ Implementar cluster ECS com Application Load Balancer (ALB) para alta disponibil
 
 ## 🌐 **VARIÁVEIS DE AMBIENTE RDS:**
 ```json
+// IMPORTANTE: Estes valores MUDAM conforme o ambiente!
+// SEMPRE PERGUNTAR as variáveis atuais na implementação:
 {
-  "DB_HOST": "bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com",
-  "DB_PORT": "5432",
-  "DB_USER": "postgres",
-  "DB_PWD": "Kgegwlaj6mAIxzHaEqgo",
+  "DB_HOST": "PERGUNTAR_AO_USUARIO",
+  "DB_PORT": "PERGUNTAR_AO_USUARIO", 
+  "DB_USER": "PERGUNTAR_AO_USUARIO",
+  "DB_PWD": "PERGUNTAR_AO_USUARIO",
   "NODE_ENV": "production"
 }
+
+// Exemplo atual (válido até RDS ser recriado):
+// DB_HOST: "bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com"
+// DB_PWD: "Kgegwlaj6mAIxzHaEqgo"
 ```
 
 ---
@@ -122,9 +128,10 @@ aws elbv2 describe-target-health --target-group-arn arn:aws:elasticloadbalancing
 - **Benefício:** Targets healthy no ALB
 
 ### **❌ → ✅ Variáveis RDS Incorretas:**
-- **Problema:** Senha errada (postgres123)
-- **Solução:** Senha correta (Kgegwlaj6mAIxzHaEqgo)
+- **Problema:** Senha errada (postgres123) e valores assumidos
+- **Solução:** SEMPRE perguntar variáveis atuais do RDS
 - **Benefício:** Conectividade com banco funcionando
+- **Lição:** Variáveis mudam quando RDS é recriado
 
 ---
 
