@@ -10,7 +10,7 @@ ECR_REPOSITORY="bia"
 CLUSTER_NAME="cluster-bia-alb"
 SERVICE_NAME="service-bia-alb"
 REGION="us-east-1"
-ALB_DNS="bia-1433396588.us-east-1.elb.amazonaws.com"
+ALB_DNS="bia-1260066125.us-east-1.elb.amazonaws.com"
 
 # Cores para output
 RED='\033[0;31m'

@@ -1,6 +1,6 @@
 # 🤖 CONTEXTO COMPLETO CARREGADO - PROJETO BIA
 
-## ✅ **CONFIRMAÇÃO: TODOS OS 30 ARQUIVOS .MD LIDOS**
+## ✅ **CONFIRMAÇÃO: TODOS OS 31 ARQUIVOS .MD LIDOS**
 
 **Data:** 03/08/2025  
 **Comando:** `qbia` executado com sucesso  
@@ -8,7 +8,7 @@
 
 ---
 
-## 📚 **ARQUIVOS LIDOS E PROCESSADOS (30 TOTAL):**
+## 📚 **ARQUIVOS LIDOS E PROCESSADOS (31 TOTAL):**
 
 ### **🔧 Regras de Configuração (9 arquivos):**
 - ✅ `.amazonq/rules/atualizacao-leitura-automatica.md` - Regra CRÍTICA para atualização automática
@@ -27,12 +27,14 @@
 - ✅ `docs/README.md` - Documentação técnica adicional
 - ✅ `scripts_evento/README.md` - Scripts do evento
 
-### **📖 Histórico e Guias (6 arquivos):**
+### **📖 Histórico e Guias (7 arquivos):**
 - ✅ `historico-conversas-amazonq.md` - **CRÍTICO:** 12+ conversas completas
 - ✅ `guia-criacao-ec2-bia.md` - Guia para criação de EC2
 - ✅ `guia-completo-ecs-bia-desafio-2.md` - Guia completo de infraestrutura ECS
 - ✅ `guia-mcp-servers-bia.md` - Guia dos MCP servers
 - ✅ `guia-script-deploy-versionado.md` - Sistema de deploy versionado
+- ✅ `guia-desafio-3-corrigido.md` - Guia corrigido do DESAFIO-3
+- ✅ `historico-desafio-3-zero-downtime.md` - **NOVO:** Validação de zero downtime
 
 ### **📊 Status e Verificação (1 arquivo):**
 - ✅ `CONTEXTO-RAPIDO.md` - Referência rápida
