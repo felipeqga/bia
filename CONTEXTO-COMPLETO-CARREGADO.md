@@ -1,6 +1,6 @@
 # 🤖 CONTEXTO COMPLETO CARREGADO - PROJETO BIA
 
-## ✅ **CONFIRMAÇÃO: TODOS OS 28 ARQUIVOS .MD LIDOS**
+## ✅ **CONFIRMAÇÃO: TODOS OS 30 ARQUIVOS .MD LIDOS**
 
 **Data:** 03/08/2025  
 **Comando:** `qbia` executado com sucesso  
@@ -8,10 +8,11 @@
 
 ---
 
-## 📚 **ARQUIVOS LIDOS E PROCESSADOS (28 TOTAL):**
+## 📚 **ARQUIVOS LIDOS E PROCESSADOS (30 TOTAL):**
 
-### **🔧 Regras de Configuração (8 arquivos):**
+### **🔧 Regras de Configuração (9 arquivos):**
 - ✅ `.amazonq/rules/atualizacao-leitura-automatica.md` - Regra CRÍTICA para atualização automática
+- ✅ `.amazonq/rules/desafio-3-correcao-ia.md` - Regra CRÍTICA: IA não pode criar instâncias EC2 manualmente
 - ✅ `.amazonq/rules/dockerfile.md` - Regras para Dockerfiles
 - ✅ `.amazonq/rules/infraestrutura.md` - Regras de infraestrutura AWS  
 - ✅ `.amazonq/rules/pipeline.md` - Regras para pipelines CI/CD
@@ -26,7 +27,7 @@
 - ✅ `docs/README.md` - Documentação técnica adicional
 - ✅ `scripts_evento/README.md` - Scripts do evento
 
-### **📖 Histórico e Guias (5 arquivos):**
+### **📖 Histórico e Guias (6 arquivos):**
 - ✅ `historico-conversas-amazonq.md` - **CRÍTICO:** 12+ conversas completas
 - ✅ `guia-criacao-ec2-bia.md` - Guia para criação de EC2
 - ✅ `guia-completo-ecs-bia-desafio-2.md` - Guia completo de infraestrutura ECS

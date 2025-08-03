@@ -2,10 +2,11 @@
 
 ## ⚠️ **LEIA IMEDIATAMENTE TODOS OS ARQUIVOS .MD DO PROJETO BIA**
 
-Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 28 arquivos .md listados abaixo para ter contexto completo:
+Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 30 arquivos .md listados abaixo para ter contexto completo:
 
-### **🔧 Regras de Configuração (8 arquivos) - CRÍTICAS:**
+### **🔧 Regras de Configuração (9 arquivos) - CRÍTICAS:**
 - `/home/ec2-user/bia/.amazonq/rules/atualizacao-leitura-automatica.md`
+- `/home/ec2-user/bia/.amazonq/rules/desafio-3-correcao-ia.md`
 - `/home/ec2-user/bia/.amazonq/rules/dockerfile.md`
 - `/home/ec2-user/bia/.amazonq/rules/infraestrutura.md`
 - `/home/ec2-user/bia/.amazonq/rules/pipeline.md`
@@ -20,12 +21,13 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 2
 - `/home/ec2-user/bia/docs/README.md`
 - `/home/ec2-user/bia/scripts_evento/README.md`
 
-### **📖 Histórico e Guias (5 arquivos):**
+### **📖 Histórico e Guias (6 arquivos):**
 - `/home/ec2-user/bia/historico-conversas-amazonq.md`
 - `/home/ec2-user/bia/guia-criacao-ec2-bia.md`
 - `/home/ec2-user/bia/guia-completo-ecs-bia-desafio-2.md`
 - `/home/ec2-user/bia/guia-mcp-servers-bia.md`
 - `/home/ec2-user/bia/guia-script-deploy-versionado.md`
+- `/home/ec2-user/bia/guia-desafio-3-corrigido.md`
 
 ### **📊 Status e Verificação (1 arquivo):**
 - `/home/ec2-user/bia/CONTEXTO-RAPIDO.md`
@@ -83,9 +85,9 @@ Você deve estar completamente contextualizado sobre:
 
 **IMPORTANTE:** Não peça para o usuário explicar o contexto. Você deve ler automaticamente e ficar contextualizado.
 
-## 📊 **TOTAL DE ARQUIVOS: 28 ARQUIVOS .MD**
+## 📊 **TOTAL DE ARQUIVOS: 30 ARQUIVOS .MD**
 
-**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 28
+**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 30
 
 ---
 

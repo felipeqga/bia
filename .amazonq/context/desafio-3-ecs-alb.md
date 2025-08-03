@@ -1,5 +1,40 @@
 # DESAFIO-3: ECS Cluster com Application Load Balancer (ALB)
 
+## ⚠️ **CORREÇÃO CRÍTICA: COMO CRIAR CLUSTER ECS CORRETAMENTE**
+
+**❌ MÉTODO ERRADO (que não funciona):**
+```bash
+aws ecs create-cluster --cluster-name cluster-bia-alb  # Cria cluster VAZIO!
+```
+
+**✅ MÉTODO CORRETO:**
+**Use o Console AWS** com as seguintes configurações:
+
+### **Configurações do Console AWS:**
+1. **AWS Console** → **ECS** → **Clusters** → **Create Cluster**
+2. **Cluster name:** cluster-bia-alb
+3. **Infrastructure:** Amazon EC2 instances
+4. **Provisioning model:** On-demand
+5. **Instance type:** t3.micro
+6. **EC2 instance role:** role-acesso-ssm
+7. **Desired capacity:** Minimum=2, Maximum=2
+8. **VPC:** default
+9. **Subnets:** us-east-1a, us-east-1b
+10. **Security group:** bia-ec2
+
+### **O que o Console AWS cria automaticamente:**
+- ✅ **Auto Scaling Group** (com Min=2, Max=2)
+- ✅ **Launch Template** (com AMI ECS otimizada)
+- ✅ **CloudFormation Stack** (gerencia toda infraestrutura)
+- ✅ **Capacity Provider** (para EC2 instances)
+- ✅ **2 Instâncias EC2** (nas AZs corretas)
+- ✅ **Registro automático** no cluster
+
+### **⚠️ IMPORTANTE PARA AMAZON Q:**
+**A IA NÃO pode replicar o processo do Console AWS via CLI.** O Console usa templates CloudFormation internos que não são acessíveis via CLI simples.
+
+---
+
 ## 📋 RESUMO EXECUTIVO
 **Status:** ✅ CONCLUÍDO COM SUCESSO  
 **Data:** 02/08/2025  
