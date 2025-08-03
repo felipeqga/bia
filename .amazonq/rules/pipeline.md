@@ -35,9 +35,31 @@ Sempre que falarmos de **pipeline** para este projeto, estamos nos referindo à 
 
 ## Configurações Importantes
 
+### Nomenclatura do Projeto CodeBuild
+- **Nome correto:** `bia-build-pipeline` (não bia-build)
+- **Buildspec:** `buildspec.yml` na raiz do projeto
+- **⚠️ Importante:** Alterar parâmetros de ECR no buildspec.yml
+
 ### Variáveis de Ambiente
 - Configuradas no CodeBuild project
 - Variáveis específicas por ambiente (dev/prod)
+
+#### Configuração de Variáveis no CodeBuild
+```bash
+# Adicionar variáveis de ambiente no projeto CodeBuild
+aws codebuild update-project --name bia-build-pipeline --environment '{
+  "type": "LINUX_CONTAINER",
+  "image": "aws/codebuild/amazonlinux2-x86_64-standard:3.0",
+  "computeType": "BUILD_GENERAL1_MEDIUM",
+  "environmentVariables": [
+    {"name": "DB_HOST", "value": "bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com"},
+    {"name": "DB_USER", "value": "postgres"},
+    {"name": "DB_PWD", "value": "Kgegwlaj6mAIxzHaEqgo"},
+    {"name": "DB_PORT", "value": "5432"},
+    {"name": "NODE_ENV", "value": "production"}
+  ]
+}'
+```
 
 ### Permissões IAM
 - Role do CodeBuild com permissões para:

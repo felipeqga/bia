@@ -5,49 +5,55 @@ Implementar cluster ECS com Application Load Balancer (ALB) para alta disponibil
 
 ---
 
-## 📊 **STATUS FINAL: ✅ CONCLUÍDO COM SUCESSO**
+## 📊 **STATUS FINAL: ✅ CONCLUÍDO COM SUCESSO (RECURSOS DELETADOS PARA ECONOMIA)**
 
-### **🏗️ INFRAESTRUTURA CRIADA:**
+### **⚠️ IMPORTANTE: RECURSOS DELETADOS**
+Todos os recursos do DESAFIO-3 foram deletados para economia de custos. A documentação permanece para recriação futura.
 
-#### **Application Load Balancer:**
+---
+
+## 🏗️ **INFRAESTRUTURA QUE FOI CRIADA:**
+
+### **Application Load Balancer:**
 - **Nome:** bia
 - **DNS:** bia-1433396588.us-east-1.elb.amazonaws.com
-- **Status:** ✅ Active
+- **Status:** ✅ Foi criado e funcionou
 - **AZs:** us-east-1a, us-east-1b
 - **Security Group:** bia-alb (sg-081297c2a6694761b)
 
-#### **Target Group:**
+### **Target Group:**
 - **Nome:** tg-bia
 - **ARN:** arn:aws:elasticloadbalancing:us-east-1:387678648422:targetgroup/tg-bia/9e999191b3d60e38
 - **Health Check:** /api/versao
-- **Status:** ✅ 2 targets healthy
+- **Status:** ✅ Teve 2 targets healthy
+- **Deregistration Delay:** 30s (conforme especificação)
 
-#### **ECS Cluster:**
+### **ECS Cluster:**
 - **Nome:** cluster-bia-alb
-- **Status:** ✅ Active
+- **Status:** ✅ Foi criado e funcionou
 - **Container Instances:** 2 registradas
 
-#### **Task Definition:**
-- **Nome:** task-def-bia-alb:5 (versão final)
-- **Imagem:** 387678648422.dkr.ecr.us-east-1.amazonaws.com/bia:v20250802-014059-alb
-- **CPU:** 1024
+### **Task Definition:**
+- **Nome:** task-def-bia-alb:12 (versão final)
+- **Imagem:** 387678648422.dkr.ecr.us-east-1.amazonaws.com/bia:latest
+- **CPU:** 1024 (1 vCPU)
 - **Memory:** 3072 (409 reserved)
 - **Network Mode:** bridge
-- **Port Mapping:** Container 8080 → Host random
+- **Port Mapping:** Container 8080 → Host 0 (portas aleatórias)
 
-#### **ECS Service:**
+### **ECS Service:**
 - **Nome:** service-bia-alb
-- **Status:** ✅ Active
+- **Status:** ✅ Funcionou com 2 tasks
 - **Desired Count:** 2
-- **Running Count:** 2
+- **Running Count:** 2 (quando ativo)
 - **Deployment Strategy:** Rolling (50%/100%)
 - **Placement Strategy:** Spread by AZ
 
-#### **Instâncias EC2:**
+### **Instâncias EC2:**
 - **Tipo:** t3.micro
 - **Quantidade:** 2
-- **AZs:** us-east-1a (i-0ce079b5c267180bd), us-east-1b (i-0778fcd843cd3ef5f)
-- **IAM Role:** ✅ role-acesso-ssm (corrigido)
+- **AZs:** us-east-1a, us-east-1b
+- **IAM Role:** ✅ role-acesso-ssm (corrigido conforme especificação)
 - **Security Group:** bia-ec2 (sg-00c1a082f04bc6709)
 
 ---
@@ -56,34 +62,30 @@ Implementar cluster ECS com Application Load Balancer (ALB) para alta disponibil
 
 ### **bia-alb (sg-081297c2a6694761b):**
 - **Inbound:** HTTP:80 e HTTPS:443 de 0.0.0.0/0
-- **Outbound:** All traffic
+- **Outbound:** All traffic de 0.0.0.0/0
 
 ### **bia-ec2 (sg-00c1a082f04bc6709):**
 - **Inbound:** All TCP do bia-alb
-- **Outbound:** All traffic
+- **Outbound:** All traffic (padrão)
 
 ### **bia-db (sg-0d954919e73c1af79):**
 - **Inbound:** PostgreSQL:5432 do bia-ec2
-- **Outbound:** All traffic
+- **Outbound:** All traffic de 0.0.0.0/0
 
 ---
 
-## 🌐 **VARIÁVEIS DE AMBIENTE RDS:**
+## 🎯 **VARIÁVEIS DE AMBIENTE RDS (CONFIRMADAS):**
 ```json
-// IMPORTANTE: Estes valores MUDAM conforme o ambiente!
-// SEMPRE PERGUNTAR as variáveis atuais na implementação:
 {
-  "DB_HOST": "PERGUNTAR_AO_USUARIO",
-  "DB_PORT": "PERGUNTAR_AO_USUARIO", 
-  "DB_USER": "PERGUNTAR_AO_USUARIO",
-  "DB_PWD": "PERGUNTAR_AO_USUARIO",
+  "DB_HOST": "bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com",
+  "DB_PORT": "5432", 
+  "DB_USER": "postgres",
+  "DB_PWD": "Kgegwlaj6mAIxzHaEqgo",
   "NODE_ENV": "production"
 }
-
-// Exemplo atual (válido até RDS ser recriado):
-// DB_HOST: "bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com"
-// DB_PWD: "Kgegwlaj6mAIxzHaEqgo"
 ```
+
+**⚠️ LIÇÃO IMPORTANTE:** Estas variáveis MUDAM conforme o ambiente. SEMPRE perguntar as variáveis atuais na implementação.
 
 ---
 

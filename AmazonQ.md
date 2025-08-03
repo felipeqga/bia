@@ -76,12 +76,17 @@ O foco base dele é fornecer uma estrutura educacional em que o aluno possa evol
 ### Estado Atual da Infraestrutura
 
 #### Componentes Ativos
-- **ECS Cluster:** cluster-bia-alb (pausado)
-- **ECS Service:** service-bia-alb (desired count = 0)
-- **Task Definition:** task-def-bia-alb:12
-- **Load Balancer:** bia-1433396588.us-east-1.elb.amazonaws.com
+- **ECS Cluster:** cluster-bia-alb (ativo)
+- **ECS Service:** service-bia-alb (desired count = 2)
+- **Task Definition:** task-def-bia-alb:13
+- **Load Balancer:** bia-1429815790.us-east-1.elb.amazonaws.com
 - **RDS Instance:** bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com
 - **ECR Repository:** 387678648422.dkr.ecr.us-east-1.amazonaws.com/bia
+
+**Verificar DNS atual do ALB:**
+```bash
+aws elbv2 describe-load-balancers --names bia --query 'LoadBalancers[0].DNSName' --output text
+```
 
 #### Arquitetura de Rede
 **Instâncias EC2:**
@@ -254,7 +259,19 @@ aws ecs update-service --cluster cluster-bia-alb --service service-bia-alb --des
 aws ecs describe-services --cluster cluster-bia-alb --services service-bia-alb
 
 # Testar aplicação
-curl http://bia-1433396588.us-east-1.elb.amazonaws.com/api/versao
+curl http://bia-1429815790.us-east-1.elb.amazonaws.com/api/versao
+```
+
+### Verificar Otimizações Aplicadas
+```bash
+# Verificar configuração do Target Group (deve ser 10s)
+aws elbv2 describe-target-groups --names tg-bia --query 'TargetGroups[0].HealthCheckIntervalSeconds'
+
+# Verificar deregistration delay (deve ser 5s)
+aws elbv2 describe-target-group-attributes --target-group-arn arn:aws:elasticloadbalancing:us-east-1:387678648422:targetgroup/tg-bia/9e999191b3d60e38 --query 'Attributes[?Key==`deregistration_delay.timeout_seconds`].Value' --output text
+
+# Verificar configuração do ECS Service (maximumPercent deve ser 200)
+aws ecs describe-services --cluster cluster-bia-alb --services service-bia-alb --query 'services[0].deploymentConfiguration.maximumPercent'
 ```
 
 ### Reaplicar Otimizações (se necessário)
@@ -276,6 +293,6 @@ aws ecs update-service --cluster cluster-bia-alb --service service-bia-alb \
 
 ---
 
-*Última atualização: 02/08/2025 05:11 UTC*
-*Cluster pausado para economia de recursos*
-*Otimizações de performance comprovadas: 31% melhoria no tempo de deploy*
+*Última atualização: 03/08/2025 15:10 UTC*
+*Cluster ativo com 2 tasks rodando*
+*Otimizações de performance aplicadas: 31% melhoria no tempo de deploy*

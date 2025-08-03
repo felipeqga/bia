@@ -24,9 +24,9 @@
 - **Prefixo:** `bia` (nome do projeto)
 
 ### Nomenclatura de Recursos ECS
-- **Cluster com ALB:** `bia-cluster-alb`
-- **Task Definition:** `bia-tf` (sufixo tf, não task)
-- **Service:** `bia-service`
+- **Cluster com ALB:** `cluster-bia-alb`
+- **Task Definition:** `task-def-bia-alb`
+- **Service:** `service-bia-alb`
 
 ### Sufixos dos Security Groups
 
