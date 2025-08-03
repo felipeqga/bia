@@ -474,6 +474,31 @@ find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | sor
 
 ---
 
-*Sessão concluída em: 03/08/2025 21:00 UTC*
+## 📋 **SESSÃO 03/08/2025 21:10-21:20 UTC - Regras e Context Overflow**
+
+### **🔧 Criação de Regra Crítica**
+- **Arquivo criado:** `.amazonq/rules/atualizacao-leitura-automatica.md`
+- **Propósito:** Regra obrigatória para Amazon Q atualizar lista de leitura automática
+- **Importância:** CRÍTICA para funcionamento do sistema `qbia`
+- **Processo:** Toda vez que criar arquivo .md, DEVE atualizar `LEIA-AUTOMATICAMENTE.md` e `CONTEXTO-COMPLETO-CARREGADO.md`
+
+### **❓ Discussão sobre Context Window Overflow**
+- **Problema:** Usuário relatou mensagens frequentes de "context window overflow"
+- **Causa:** 27 arquivos .md + histórico extenso atingindo limite de tokens
+- **Esclarecimento:** Não há parâmetros shell/ambiente para evitar
+- **Realidade:** Compactação é inteligente, não perde contexto importante
+- **Preservado:** Contexto dos 27 arquivos, conversas recentes, regras críticas
+- **Compactado:** Detalhes de conversas antigas, comandos repetitivos
+
+### **✅ Confirmações Importantes**
+- Amazon Q mantém contexto após compactação
+- Sistema `qbia` continua funcionando perfeitamente
+- Regra de atualização automática agora ativa
+- Próximo passo: Commit das atualizações para GitHub
+
+---
+
+*Sessão concluída em: 03/08/2025 21:20 UTC*
 *Status: Contexto 100% completo - 27 arquivos .md processados*
+*Regra crítica de atualização automática implementada*
 *Amazon Q totalmente contextualizado e pronto para uso*
