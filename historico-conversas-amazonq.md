@@ -595,3 +595,114 @@ RUN cd client && VITE_API_URL=http://bia-1751550233.us-east-1.elb.amazonaws.com 
 *Status: DESAFIO-3 95% implementado - Aguardando configuração DNS manual*
 *Infraestrutura funcionando perfeitamente - Aplicação acessível via HTTP*
 *Próximo passo: Configurar DNS no Registro.br para completar HTTPS*
+
+---
+
+## 📋 **SESSÃO 04/08/2025 02:45-03:20 UTC - PASSO-11 + Método Híbrido de Rollback**
+
+### **🎯 CONTEXTO DA SESSÃO**
+- **Objetivo:** Implementar PASSO-11 (Dockerfile HTTPS) + Demonstrar método híbrido de rollback
+- **Descoberta:** Método equivalente ao botão "RETURN" do CodePipeline
+- **Resultado:** Deploy + Rollback com ZERO DOWNTIME comprovado
+
+### **🔧 PASSO-11 EXECUTADO COM SUCESSO**
+
+#### **📋 Alteração no Dockerfile:**
+```dockerfile
+# ANTES:
+RUN cd client && VITE_API_URL=http://bia-1751550233.us-east-1.elb.amazonaws.com npm run build
+
+# DEPOIS:
+RUN cd client && VITE_API_URL=https://desafio3.eletroboards.com.br npm run build
+```
+
+#### **🚀 Deploy Executado:**
+- **Commit:** `48f22b9` - "PASSO-11: Atualizar Dockerfile para HTTPS desafio3.eletroboards.com.br"
+- **Imagem:** `bia:passo11-https`
+- **Task Definition:** Revisão 19 criada
+- **Monitoramento:** 67+ verificações consecutivas com status 200
+- **Resultado:** ZERO DOWNTIME absoluto
+
+### **🔄 MÉTODO HÍBRIDO DE ROLLBACK DOCUMENTADO**
+
+#### **📊 Equivalente ao Botão "RETURN" do CodePipeline:**
+
+**Processo Executado:**
+```bash
+# Rollback direto (igual ao CodePipeline RETURN)
+aws ecs update-service \
+  --cluster cluster-bia-alb \
+  --service service-bia-alb \
+  --task-definition task-def-bia-alb:18
+```
+
+#### **📈 Performance do Rollback:**
+- **Tempo Total:** ~2 minutos
+- **Monitoramento:** 58+ verificações consecutivas com status 200
+- **Downtime:** ZERO (rolling update otimizado)
+- **Configurações:** Health Check 10s, Deregistration 5s, MaximumPercent 200%
+
+#### **🎯 Timeline do Rollback:**
+- **03:18:18** - Rollback iniciado (Revisão 19 → 18)
+- **03:18:34** - Primeira task nova (revisão 18) iniciada
+- **03:18:43** - Segunda task nova + draining da antiga
+- **03:19:14** - Tasks registradas no Target Group
+- **03:20:26** - **ROLLBACK COMPLETED** ✅
+
+### **📋 DOCUMENTAÇÃO CRIADA**
+
+#### **🔧 Scripts Desenvolvidos:**
+1. **`monitor-rollback.sh`** - Monitoramento de downtime durante rollback
+2. **Método Híbrido Completo** - Documentado em detalhes
+3. **Scripts auxiliares** - Para automação do processo
+
+#### **📊 Comparação com CodePipeline:**
+
+| **Funcionalidade** | **CodePipeline RETURN** | **Método Híbrido** | **Status** |
+|-------------------|--------------------------|---------------------|------------|
+| **Rollback direto** | ✅ Um clique | ✅ Um comando | ✅ **IGUAL** |
+| **Tempo** | ✅ 2-3 minutos | ✅ 2 minutos | ✅ **IGUAL** |
+| **Zero Downtime** | ✅ Rolling update | ✅ Rolling update | ✅ **IGUAL** |
+| **Monitoramento** | ✅ Interface visual | ✅ Script automatizado | ✅ **IGUAL** |
+| **Controle** | ❌ Console apenas | ✅ CLI + automação | ✅ **MELHOR** |
+
+### **🏆 DESCOBERTAS IMPORTANTES**
+
+#### **🔍 Diferença entre Deploy e Rollback:**
+- **Deploy (PASSO-11):** Nova imagem → Nova task definition → 67+ verificações
+- **Rollback:** Task definition existente → Reutilização → 58+ verificações
+- **Ambos:** ZERO DOWNTIME comprovado com otimizações aplicadas
+
+#### **💡 Método Híbrido Validado:**
+- **Equivalência:** 100% igual ao botão "RETURN" do CodePipeline
+- **Vantagem:** Controle total via CLI + automação
+- **Performance:** Mesma velocidade, mesma segurança
+- **Flexibilidade:** Scripts modulares para diferentes cenários
+
+### **📊 ESTADO FINAL**
+- **Task Definition Atual:** `task-def-bia-alb:18` (Deploy Otimizado V2)
+- **Frontend:** Apontando para ALB DNS (HTTP)
+- **Aplicação:** Funcionando perfeitamente
+- **Otimizações:** Mantidas (Health Check 10s, Deregistration 5s)
+- **Histórico:** Revisão 19 disponível para rollforward se necessário
+
+### **🎯 PRÓXIMOS PASSOS DISPONÍVEIS**
+1. **Configurar DNS no Registro.br** (para ativar HTTPS)
+2. **Rollforward para revisão 19** (quando DNS estiver ativo)
+3. **Implementar Listener HTTPS** no ALB
+4. **Configurar redirect HTTP → HTTPS**
+5. **Usar método híbrido** para futuros rollbacks
+
+### **📝 LIÇÕES APRENDIDAS**
+1. **PASSO-11 preparatório:** Dockerfile pode ser atualizado antes do DNS estar ativo
+2. **Método híbrido:** Replica perfeitamente o CodePipeline via CLI
+3. **Zero downtime:** Comprovado tanto em deploy quanto rollback
+4. **Otimizações críticas:** Health Check e Deregistration fazem diferença real
+5. **Versionamento:** Task definitions permitem rollback instantâneo
+
+---
+
+*Sessão concluída em: 04/08/2025 03:20 UTC*
+*Status: PASSO-11 implementado + Método Híbrido documentado*
+*Deploy e Rollback com ZERO DOWNTIME comprovados*
+*Próximo passo: Aguardar DNS + usar método híbrido conforme necessário*

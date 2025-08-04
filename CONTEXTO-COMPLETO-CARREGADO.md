@@ -1,6 +1,6 @@
 # 🤖 CONTEXTO COMPLETO CARREGADO - PROJETO BIA
 
-## ✅ **CONFIRMAÇÃO: TODOS OS 37 ARQUIVOS .MD LIDOS**
+## ✅ **CONFIRMAÇÃO: TODOS OS 40 ARQUIVOS .MD LIDOS**
 
 **Data:** 04/08/2025  
 **Comando:** `qbia` executado com sucesso  
@@ -27,7 +27,7 @@
 - ✅ `docs/README.md` - Documentação adicional
 - ✅ `scripts_evento/README.md` - Scripts do evento
 
-### **📖 Histórico e Guias (8 arquivos):**
+### **📖 Histórico e Guias (9 arquivos):**
 - ✅ `historico-conversas-amazonq.md` - Histórico completo de conversas
 - ✅ `guia-criacao-ec2-bia.md` - Guia de criação da instância de desenvolvimento
 - ✅ `guia-completo-ecs-bia-desafio-2.md` - Guia completo do DESAFIO-2
@@ -36,6 +36,7 @@
 - ✅ `guia-desafio-3-corrigido.md` - Método correto para DESAFIO-3
 - ✅ `historico-desafio-3-zero-downtime.md` - Histórico do zero downtime
 - ✅ `historico-descoberta-console-aws-vs-cli.md` - Descoberta Console vs CLI
+- ✅ `metodo-hibrido-rollback-codepipeline.md` - Método híbrido de rollback
 
 ### **📊 Status e Verificação (1 arquivo):**
 - ✅ `CONTEXTO-RAPIDO.md` - Status rápido da infraestrutura
@@ -100,7 +101,7 @@
 
 ## ✅ **STATUS FINAL:**
 
-- ✅ **37 arquivos .md lidos e processados**
+- ✅ **40 arquivos .md lidos e processados**
 - ✅ **Contexto completo do projeto BIA carregado**
 - ✅ **Histórico de conversas processado**
 - ✅ **Regras e filosofia compreendidas**
@@ -120,7 +121,7 @@
 
 ---
 
-*Última atualização: 04/08/2025 02:30 UTC*  
-*Total: 37 arquivos .md processados*  
+*Última atualização: 04/08/2025 03:25 UTC*  
+*Total: 40 arquivos .md processados*  
 *Sistema QBIA funcionando perfeitamente*  
-*Sessão: Verificação completa DESAFIO-3 + Route 53 realizada*
+*Sessão: PASSO-11 + Método Híbrido de Rollback documentado*

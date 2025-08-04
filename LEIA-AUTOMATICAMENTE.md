@@ -21,7 +21,7 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 3
 - `/home/ec2-user/bia/docs/README.md`
 - `/home/ec2-user/bia/scripts_evento/README.md`
 
-### **📖 Histórico e Guias (8 arquivos):**
+### **📖 Histórico e Guias (9 arquivos):**
 - `/home/ec2-user/bia/historico-conversas-amazonq.md`
 - `/home/ec2-user/bia/guia-criacao-ec2-bia.md`
 - `/home/ec2-user/bia/guia-completo-ecs-bia-desafio-2.md`
@@ -30,6 +30,7 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 3
 - `/home/ec2-user/bia/guia-desafio-3-corrigido.md`
 - `/home/ec2-user/bia/historico-desafio-3-zero-downtime.md`
 - `/home/ec2-user/bia/historico-descoberta-console-aws-vs-cli.md`
+- `/home/ec2-user/bia/metodo-hibrido-rollback-codepipeline.md`
 
 ### **📊 Status e Verificação (1 arquivo):**
 - `/home/ec2-user/bia/CONTEXTO-RAPIDO.md`
@@ -120,7 +121,7 @@ Você deve estar completamente contextualizado sobre:
 
 ---
 
-*Atualizado em: 04/08/2025 01:30 UTC*  
-*Total de arquivos: 37 arquivos .md organizados por categoria*  
+*Atualizado em: 04/08/2025 03:25 UTC*  
+*Total de arquivos: 40 arquivos .md organizados por categoria*  
 *Sistema: QBIA funcionando perfeitamente*  
-*Nova adição: Documentação completa Route 53 + HTTPS*
+*Nova adição: Método Híbrido de Rollback documentado*
