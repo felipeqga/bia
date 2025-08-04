@@ -155,6 +155,25 @@ aws cloudformation describe-stacks --stack-name Infra-ECS-Cluster-cluster-bia-al
 - ✅ ECS Service com rolling update
 - ✅ Zero downtime comprovado
 - ✅ Deploy 31% mais rápido com otimizações
+- ✅ Documentação HTTPS completa (Route 53 + ACM)
+
+### **🎯 Configuração Mínima (Educacional):**
+- **1 Listener HTTP (80):** Para desenvolvimento e testes
+- **Target Group:** Health check em `/api/versao`
+- **Security Group:** Porta 80 liberada
+- **DNS:** ALB DNS direto
+
+### **🔐 Configuração Completa (Produção):**
+- **Route 53:** Hosted Zone + DNS personalizado
+- **ACM:** Certificado SSL gratuito
+- **ALB:** 2 Listeners (HTTP + HTTPS)
+- **Security Groups:** Portas 80 e 443
+- **Dockerfile:** VITE_API_URL com HTTPS
+
+### **⚠️ Importante:**
+**Sempre perguntar qual domínio o usuário possui!**
+- Exemplo genérico: `eletroboards.com.br`
+- Substituir pelo domínio real do usuário
 
 ### **Conhecimento Adquirido:**
 **O Console AWS tem capacidades que o CLI não possui devido a templates internos. Esta é uma limitação técnica real, não uma preferência de método!**

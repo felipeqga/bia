@@ -222,6 +222,112 @@ aws elbv2 describe-load-balancers --names bia --query 'LoadBalancers[0].DNSName'
 curl http://<ALB-DNS>/api/versao
 ```
 
+### **PASSO 8: Configuração Route 53 + ACM (OPCIONAL - PRODUÇÃO) 🌐**
+
+**⚠️ IMPORTANTE:** Pergunte ao usuário qual domínio ele possui (ex: seudominio.com.br)
+
+#### **8.1 - Criar Hosted Zone:**
+```bash
+# Substituir "seudominio.com.br" pelo domínio do usuário
+aws route53 create-hosted-zone \
+  --name seudominio.com.br \
+  --caller-reference $(date +%s) \
+  --hosted-zone-config Comment="Hosted Zone para projeto BIA - DESAFIO-3"
+```
+
+#### **8.2 - Configurar DNS no Registro.br:**
+1. Anotar os 4 servidores DNS criados pelo Route 53
+2. Acessar **registro.br** → **DNS**
+3. Substituir pelos 4 DNS do Route 53
+4. Aguardar propagação (até 48h)
+
+#### **8.3 - Solicitar Certificados SSL:**
+```bash
+# Certificado Wildcard
+aws acm request-certificate \
+  --domain-name "*.seudominio.com.br" \
+  --subject-alternative-names "seudominio.com.br" \
+  --validation-method DNS \
+  --key-algorithm RSA_2048
+
+# Certificado específico para DESAFIO-3
+aws acm request-certificate \
+  --domain-name "desafio3.seudominio.com.br" \
+  --validation-method DNS \
+  --key-algorithm RSA_2048
+```
+
+#### **8.4 - Criar Record CNAME:**
+```bash
+# Obter Hosted Zone ID
+HOSTED_ZONE_ID=$(aws route53 list-hosted-zones --query 'HostedZones[?Name==`seudominio.com.br.`].Id' --output text)
+
+# Obter DNS do ALB
+ALB_DNS=$(aws elbv2 describe-load-balancers --names bia --query 'LoadBalancers[0].DNSName' --output text)
+
+# Criar registro CNAME
+aws route53 change-resource-record-sets \
+  --hosted-zone-id $HOSTED_ZONE_ID \
+  --change-batch '{
+    "Changes": [{
+      "Action": "CREATE",
+      "ResourceRecordSet": {
+        "Name": "desafio3.seudominio.com.br",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [{"Value": "'$ALB_DNS'"}]
+      }
+    }]
+  }'
+```
+
+### **PASSO 9: Configuração Listener HTTPS 🔐**
+
+#### **9.1 - Obter ARN do Certificado:**
+```bash
+# Listar certificados
+aws acm list-certificates --query 'CertificateSummaryList[*].{Domain:DomainName,Arn:CertificateArn,Status:Status}'
+
+# Obter ARN específico
+CERT_ARN=$(aws acm list-certificates --query 'CertificateSummaryList[?DomainName==`desafio3.seudominio.com.br`].CertificateArn' --output text)
+```
+
+#### **9.2 - Criar Listener HTTPS:**
+```bash
+# Criar Listener HTTPS na porta 443
+aws elbv2 create-listener \
+  --load-balancer-arn <ALB-ARN> \
+  --protocol HTTPS \
+  --port 443 \
+  --certificates CertificateArn=$CERT_ARN \
+  --ssl-policy ELBSecurityPolicy-TLS13-1-2-2021-06 \
+  --default-actions Type=forward,TargetGroupArn=<TG-ARN>
+```
+
+#### **9.3 - Atualizar Security Group:**
+```bash
+# Adicionar porta 443 ao Security Group do ALB
+aws ec2 authorize-security-group-ingress \
+  --group-id <ALB-SG-ID> \
+  --protocol tcp \
+  --port 443 \
+  --cidr 0.0.0.0/0
+```
+
+#### **9.4 - Atualizar Dockerfile:**
+```dockerfile
+# Atualizar VITE_API_URL para HTTPS
+RUN cd client && VITE_API_URL=https://desafio3.seudominio.com.br npm run build
+```
+
+#### **9.5 - Configurar Redirect HTTP → HTTPS:**
+```bash
+# Modificar listener HTTP para redirecionar
+aws elbv2 modify-listener \
+  --listener-arn <HTTP-LISTENER-ARN> \
+  --default-actions Type=redirect,RedirectConfig='{Protocol=HTTPS,StatusCode=HTTP_301,Port=443}'
+```
+
 ---
 
 ## 📊 **RECURSOS CRIADOS AUTOMATICAMENTE PELO CONSOLE:**
@@ -268,6 +374,41 @@ aws ecs update-service \
 ```
 
 **Resultado:** 31% de melhoria no tempo de deploy comprovada!
+
+---
+
+## 📊 **CONFIGURAÇÕES FINAIS DOS LISTENERS:**
+
+### **🎯 Configuração Mínima (Educacional):**
+| **Listener** | **Porta** | **Protocolo** | **Ação** | **Certificado** |
+|--------------|-----------|---------------|----------|------------------|
+| **Listener 1** | 80 | HTTP | Forward → tg-bia | - |
+
+### **🔐 Configuração Completa (Produção):**
+| **Listener** | **Porta** | **Protocolo** | **Ação** | **Certificado** |
+|--------------|-----------|---------------|----------|------------------|
+| **Listener 1** | 80 | HTTP | Redirect → HTTPS | - |
+| **Listener 2** | 443 | HTTPS | Forward → tg-bia | ACM Certificate |
+
+### **🧪 Testes de Validação:**
+
+#### **HTTP (Mínimo):**
+```bash
+# Testar HTTP
+curl http://bia-1751550233.us-east-1.elb.amazonaws.com/api/versao
+```
+
+#### **HTTPS (Completo):**
+```bash
+# Testar HTTP (deve redirecionar)
+curl -I http://desafio3.seudominio.com.br/api/versao
+
+# Testar HTTPS
+curl https://desafio3.seudominio.com.br/api/versao
+
+# Verificar certificado SSL
+openssl s_client -connect desafio3.seudominio.com.br:443 -servername desafio3.seudominio.com.br
+```
 
 ---
 
