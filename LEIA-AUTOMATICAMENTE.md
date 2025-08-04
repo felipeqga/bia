@@ -2,7 +2,7 @@
 
 ## ⚠️ **LEIA IMEDIATAMENTE TODOS OS ARQUIVOS .MD DO PROJETO BIA**
 
-Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 37 arquivos .md listados abaixo para ter contexto completo:
+Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 39 arquivos .md listados abaixo para ter contexto completo:
 
 ### **🔧 Regras de Configuração (9 arquivos) - CRÍTICAS:**
 - `/home/ec2-user/bia/.amazonq/rules/atualizacao-leitura-automatica.md`
@@ -34,10 +34,12 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 3
 ### **📊 Status e Verificação (1 arquivo):**
 - `/home/ec2-user/bia/CONTEXTO-RAPIDO.md`
 
-### **🤖 Arquivos de Contexto e Sistema (7 arquivos):**
+### **🤖 Arquivos de Contexto e Sistema (9 arquivos):**
 - `/home/ec2-user/bia/.amazonq/context/desafio-3-ecs-alb.md`
 - `/home/ec2-user/bia/.amazonq/context/desafio-3-route53-https.md`
 - `/home/ec2-user/bia/.amazonq/context/iam-permissions-discovery.md`
+- `/home/ec2-user/bia/.amazonq/context/permissoes-completas-desafio-3.md`
+- `/home/ec2-user/bia/.amazonq/context/codepipeline-troubleshooting-permissions.md`
 - `/home/ec2-user/bia/CONTEXTO-AUTOMATICO.md`
 - `/home/ec2-user/bia/CONTEXTO-COMPLETO-CARREGADO.md`
 - `/home/ec2-user/bia/LEIA-AUTOMATICAMENTE.md`
@@ -86,9 +88,9 @@ Você deve estar completamente contextualizado sobre:
 
 **IMPORTANTE:** Não peça para o usuário explicar o contexto. Você deve ler automaticamente e ficar contextualizado.
 
-## 📊 **TOTAL DE ARQUIVOS: 37 ARQUIVOS .MD**
+## 📊 **TOTAL DE ARQUIVOS: 39 ARQUIVOS .MD**
 
-**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 37
+**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 39
 
 ---
 

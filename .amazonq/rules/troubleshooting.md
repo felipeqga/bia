@@ -145,5 +145,94 @@ aws logs describe-log-groups --log-group-name-prefix "/aws/codebuild/bia-build-p
 
 ---
 
+## 🚀 **PROBLEMA: Erros no CodePipeline**
+
+### **Problema 1: Erro de Policy Durante Criação**
+**Sintoma:** Erro de policy conflitante ao criar pipeline
+**Solução:** Deletar policy com nome que aparece no erro
+```bash
+aws iam delete-policy --policy-arn arn:aws:iam::ACCOUNT:policy/NOME-DA-POLICY
+```
+
+### **Problema 2: ECR Login Falha no CodeBuild**
+**Sintoma:** 
+```
+Error while executing command: aws ecr get-login-password
+Reason: exit status 1
+```
+**Solução:** Adicionar permissão ECR à role do CodeBuild
+```bash
+aws iam attach-role-policy \
+  --role-name codebuild-bia-build-pipeline-service-role \
+  --policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser
+```
+
+### **Problema 3: PassRole Error**
+**Sintoma:** `AccessDenied: iam:PassRole`
+**Solução:** Criar policy PASSROLE inline na role do CodeBuild
+
+**Documentação completa:** `.amazonq/context/codepipeline-troubleshooting-permissions.md`
+
+---
+
+## 🔐 **PROBLEMA: Permissões Insuficientes para Análise**
+
+### **Sintomas:**
+- `AccessDenied: route53:ListHostedZones`
+- `AccessDenied: acm:ListCertificates`
+- `AccessDenied: codepipeline:ListPipelines`
+- `AccessDenied: codebuild:ListProjects`
+
+### **Causa:**
+Role `role-acesso-ssm` não tem permissões para todos os serviços do DESAFIO-3
+
+### **✅ SOLUÇÃO AUTOMÁTICA:**
+Amazon Q resolve automaticamente se a role tiver `iam:*`:
+
+```bash
+# Para Route 53 + ACM
+aws iam put-role-policy \
+  --role-name role-acesso-ssm \
+  --policy-name Route53_ACM_Access \
+  --policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Action": ["route53:*", "acm:*", "cloudformation:*"],
+      "Resource": "*"
+    }]
+  }'
+
+# Para CodePipeline + CodeBuild
+aws iam put-role-policy \
+  --role-name role-acesso-ssm \
+  --policy-name CodePipeline_CodeBuild_Access \
+  --policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Action": ["codepipeline:*", "codebuild:*"],
+      "Resource": "*"
+    }]
+  }'
+```
+
+### **🔍 VERIFICAÇÃO:**
+```bash
+# Testar permissões
+aws route53 list-hosted-zones
+aws acm list-certificates
+aws codepipeline list-pipelines
+aws codebuild list-projects
+```
+
+### **📋 PRÉ-REQUISITO:**
+**A role DEVE ter `iam:*` para auto-correção funcionar!**
+
+**Documentação completa:** `.amazonq/context/permissoes-completas-desafio-3.md`
+
+---
+
 *Baseado em problemas reais encontrados durante implementação*
 *Atualizado com soluções testadas e validadas*
+*Permissões extras documentadas: Route 53, ACM, CodePipeline, CodeBuild*

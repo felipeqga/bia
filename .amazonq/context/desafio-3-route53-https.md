@@ -79,8 +79,23 @@ aws acm describe-certificate --certificate-arn <CERT-ARN> \
 # (Processo automático via Console ou manual via CLI)
 ```
 
-### **8.5 - Criar Record CNAME para Aplicação:**
+### **8.5 - Criar Record CNAME para Aplicação (⚠️ CRÍTICO):**
 
+**🎯 PASSO OBRIGATÓRIO IDENTIFICADO PELO USUÁRIO:**
+*"Temos que editar lá em hosted zones o CNAME desafio3.eletroboards.com.br o 'Value' com o DNS name do ALB"*
+
+**📋 CONFIGURAÇÃO MANUAL (Console AWS) - RECOMENDADO:**
+1. **Route 53** → **Hosted Zones** → **eletroboards.com.br**
+2. **Create Record**
+3. **Record Name:** `desafio3`
+4. **Record Type:** `CNAME`
+5. **Value:** `bia-1751550233.us-east-1.elb.amazonaws.com` (DNS do ALB)
+6. **TTL:** 300
+7. **Create Record**
+
+**🎯 RESULTADO:** `desafio3.eletroboards.com.br` → ALB DNS
+
+**💻 CONFIGURAÇÃO VIA CLI:**
 ```bash
 # Obter Hosted Zone ID
 HOSTED_ZONE_ID=$(aws route53 list-hosted-zones \
@@ -105,6 +120,8 @@ aws route53 change-resource-record-sets \
     }]
   }"
 ```
+
+**✅ STATUS ATUAL:** CNAME já criado e funcionando corretamente!
 
 ---
 
