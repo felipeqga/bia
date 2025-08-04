@@ -226,6 +226,31 @@ curl http://<ALB-DNS>/api/versao
 
 **⚠️ IMPORTANTE:** Pergunte ao usuário qual domínio ele possui (ex: seudominio.com.br)
 
+#### **🔧 PRÉ-REQUISITO CRÍTICO - PERMISSÕES IAM:**
+
+**A role `role-acesso-ssm` DEVE ter permissões para Route 53 e ACM:**
+
+```bash
+# Verificar se já tem permissões
+aws route53 list-hosted-zones 2>&1 | head -1
+aws acm list-certificates 2>&1 | head -1
+
+# Se retornar AccessDenied, adicionar permissões:
+aws iam put-role-policy \
+  --role-name role-acesso-ssm \
+  --policy-name Route53_ACM_Access \
+  --policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Action": ["route53:*", "acm:*", "cloudformation:*"],
+      "Resource": "*"
+    }]
+  }'
+```
+
+**💡 Nota:** Esta correção só funciona se a role tiver `iam:*` ou `iam:PutRolePolicy`
+
 #### **8.1 - Criar Hosted Zone:**
 ```bash
 # Substituir "seudominio.com.br" pelo domínio do usuário

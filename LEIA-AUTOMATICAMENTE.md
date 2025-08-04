@@ -34,9 +34,10 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 3
 ### **📊 Status e Verificação (1 arquivo):**
 - `/home/ec2-user/bia/CONTEXTO-RAPIDO.md`
 
-### **🤖 Arquivos de Contexto e Sistema (6 arquivos):**
+### **🤖 Arquivos de Contexto e Sistema (7 arquivos):**
 - `/home/ec2-user/bia/.amazonq/context/desafio-3-ecs-alb.md`
 - `/home/ec2-user/bia/.amazonq/context/desafio-3-route53-https.md`
+- `/home/ec2-user/bia/.amazonq/context/iam-permissions-discovery.md`
 - `/home/ec2-user/bia/CONTEXTO-AUTOMATICO.md`
 - `/home/ec2-user/bia/CONTEXTO-COMPLETO-CARREGADO.md`
 - `/home/ec2-user/bia/LEIA-AUTOMATICAMENTE.md`
@@ -61,7 +62,7 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 3
 ## 🎯 **PROCESSO AUTOMÁTICO:**
 
 1. **IMEDIATAMENTE** após iniciar com `qbia`
-2. **LER TODOS** os 37 arquivos .md listados acima
+2. **LER TODOS** os 38 arquivos .md listados acima
 3. **PROCESSAR** todo o contexto e histórico
 4. **CONFIRMAR** que está contextualizado
 5. **ESTAR PRONTO** para continuar de onde paramos
@@ -69,7 +70,7 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 3
 ## ✅ **CONFIRMAÇÃO OBRIGATÓRIA:**
 
 Após ler todos os arquivos, você deve confirmar:
-- ✅ Contexto completo carregado (37 arquivos .md lidos)
+- ✅ Contexto completo carregado (38 arquivos .md lidos)
 - ✅ Histórico de conversas processado
 - ✅ Status atual da infraestrutura conhecido
 - ✅ Regras e filosofia do projeto compreendidas
