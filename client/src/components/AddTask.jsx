@@ -59,7 +59,7 @@ const AddTask = ({ onAdd }) => {
       </div>
       
       <button type="submit" className="btn btn-block success">
-        Add Tarefa: DEPLOY-OTIMIZADO-V2
+        Add Tarefa: CODEPIPELINE-CRIADO
       </button>
       
       <Modal
