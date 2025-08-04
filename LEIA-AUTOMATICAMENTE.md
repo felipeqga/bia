@@ -2,7 +2,7 @@
 
 ## ⚠️ **LEIA IMEDIATAMENTE TODOS OS ARQUIVOS .MD DO PROJETO BIA**
 
-Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 30 arquivos .md listados abaixo para ter contexto completo:
+Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 36 arquivos .md listados abaixo para ter contexto completo:
 
 ### **🔧 Regras de Configuração (9 arquivos) - CRÍTICAS:**
 - `/home/ec2-user/bia/.amazonq/rules/atualizacao-leitura-automatica.md`
@@ -21,7 +21,7 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 3
 - `/home/ec2-user/bia/docs/README.md`
 - `/home/ec2-user/bia/scripts_evento/README.md`
 
-### **📖 Histórico e Guias (7 arquivos):**
+### **📖 Histórico e Guias (8 arquivos):**
 - `/home/ec2-user/bia/historico-conversas-amazonq.md`
 - `/home/ec2-user/bia/guia-criacao-ec2-bia.md`
 - `/home/ec2-user/bia/guia-completo-ecs-bia-desafio-2.md`
@@ -29,11 +29,13 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 3
 - `/home/ec2-user/bia/guia-script-deploy-versionado.md`
 - `/home/ec2-user/bia/guia-desafio-3-corrigido.md`
 - `/home/ec2-user/bia/historico-desafio-3-zero-downtime.md`
+- `/home/ec2-user/bia/historico-descoberta-console-aws-vs-cli.md`
 
 ### **📊 Status e Verificação (1 arquivo):**
 - `/home/ec2-user/bia/CONTEXTO-RAPIDO.md`
 
-### **🤖 Arquivos de Contexto e Sistema (4 arquivos):**
+### **🤖 Arquivos de Contexto e Sistema (5 arquivos):**
+- `/home/ec2-user/bia/.amazonq/context/desafio-3-ecs-alb.md`
 - `/home/ec2-user/bia/CONTEXTO-AUTOMATICO.md`
 - `/home/ec2-user/bia/CONTEXTO-COMPLETO-CARREGADO.md`
 - `/home/ec2-user/bia/LEIA-AUTOMATICAMENTE.md`
@@ -44,15 +46,11 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 3
 - `/home/ec2-user/bia/DESAFIO-2-RESUMO-USUARIO.md`
 - `/home/ec2-user/bia/VERIFICACAO-DESAFIO-2.md`
 
-### **🎯 DESAFIO-3 (8 arquivos):**
+### **🎯 DESAFIO-3 (4 arquivos):**
 - `/home/ec2-user/bia/.amazonq/context/desafio-3-ecs-alb.md`
 - `/home/ec2-user/bia/.amazonq/context/troubleshooting-ecs-alb.md`
 - `/home/ec2-user/bia/.amazonq/context/erros-criacao-cluster-ecs.md`
-- `/home/ec2-user/bia/DESAFIO-3-RESUMO-USUARIO.md`
-- `/home/ec2-user/bia/VERIFICACAO-DESAFIO-3.md`
 - `/home/ec2-user/bia/GUIA-DEPLOY-VERSIONADO.md`
-- `/home/ec2-user/bia/ATUALIZACAO-DESAFIO-3-COMPLETA.md`
-- `/home/ec2-user/bia/DESAFIO-3-RESUMO-USUARIO-ATUALIZADO.md`
 
 ### **🔍 Troubleshooting (1 arquivo):**
 - `/home/ec2-user/bia/troubleshooting-session-2025-08-02.md`
@@ -62,7 +60,7 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 3
 ## 🎯 **PROCESSO AUTOMÁTICO:**
 
 1. **IMEDIATAMENTE** após iniciar com `qbia`
-2. **LER TODOS** os 27 arquivos .md listados acima
+2. **LER TODOS** os 36 arquivos .md listados acima
 3. **PROCESSAR** todo o contexto e histórico
 4. **CONFIRMAR** que está contextualizado
 5. **ESTAR PRONTO** para continuar de onde paramos
@@ -70,7 +68,7 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 3
 ## ✅ **CONFIRMAÇÃO OBRIGATÓRIA:**
 
 Após ler todos os arquivos, você deve confirmar:
-- ✅ Contexto completo carregado (27 arquivos .md lidos)
+- ✅ Contexto completo carregado (36 arquivos .md lidos)
 - ✅ Histórico de conversas processado
 - ✅ Status atual da infraestrutura conhecido
 - ✅ Regras e filosofia do projeto compreendidas
@@ -86,9 +84,9 @@ Você deve estar completamente contextualizado sobre:
 
 **IMPORTANTE:** Não peça para o usuário explicar o contexto. Você deve ler automaticamente e ficar contextualizado.
 
-## 📊 **TOTAL DE ARQUIVOS: 31 ARQUIVOS .MD**
+## 📊 **TOTAL DE ARQUIVOS: 36 ARQUIVOS .MD**
 
-**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 31
+**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 36
 
 ---
 
@@ -118,6 +116,6 @@ Você deve estar completamente contextualizado sobre:
 
 ---
 
-*Atualizado em: 03/08/2025 21:00 UTC*  
-*Total de arquivos: 27 arquivos .md organizados por categoria*  
+*Atualizado em: 04/08/2025 01:00 UTC*  
+*Total de arquivos: 36 arquivos .md organizados por categoria*  
 *Sistema: QBIA funcionando perfeitamente*
