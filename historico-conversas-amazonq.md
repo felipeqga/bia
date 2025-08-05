@@ -10,6 +10,109 @@
 
 ## Data: 05/08/2025
 
+### Sessão: Correção Crítica do MCP Server - FastMCP Configuration Fix
+
+#### Contexto Inicial
+- Usuário reportou problema na inicialização dos MCP servers
+- Sintoma: "⚠ 1 of 4 mcp servers initialized. Servers still loading: bia_fastmcp, filesystem, awslabsecs_mcp_server"
+- Amazon Q ficava com apenas 1 servidor carregado em vez dos 4 esperados
+
+#### Diagnóstico do Problema
+
+**1. Investigação Inicial**
+- Verificados processos MCP ativos: 3 processos rodando corretamente
+  - FastMCP server: PID 14586 (porta 8080) ✅
+  - PostgreSQL MCP: PID 14846 (Docker) ✅
+  - Filesystem MCP: PID 14978 (npx) ✅
+- Localizado arquivo de configuração correto: `/home/ec2-user/bia/.amazonq/mcp.json`
+
+**2. Problema Identificado**
+- Configuração incorreta do `bia-fastmcp` no `mcp.json`:
+```json
+"bia-fastmcp": {
+  "command": "python3",
+  "args": ["-c", "from fastmcp import Client; import asyncio; client = Client('http://localhost:8080/sse/'); print('FastMCP conectado')"],
+  "env": {
+    "FASTMCP_URL": "http://localhost:8080/sse/"
+  }
+}
+```
+- **Causa raiz:** FastMCP não é um servidor MCP tradicional, é um servidor HTTP/SSE independente
+- **Erro conceitual:** Tentativa de configurar FastMCP como MCP server no mcp.json
+
+#### Solução Aplicada
+
+**1. Correção da Configuração**
+- **Removido** completamente a seção `bia-fastmcp` do `mcp.json`
+- **Mantido** apenas os 3 MCP servers tradicionais:
+  - `filesystem` (npx)
+  - `awslabs.ecs-mcp-server` (uvx)
+  - `postgres` (docker)
+
+**2. Arquitetura Corrigida**
+```
+Amazon Q
+├── 3 MCP Servers tradicionais (via mcp.json)
+│   ├── filesystem MCP
+│   ├── awslabs.ecs-mcp-server
+│   └── postgres MCP
+└── FastMCP Server independente (HTTP/SSE na porta 8080)
+    └── Comandos customizados via HTTP
+```
+
+#### Verificação da Correção
+
+**Processos Ativos Confirmados:**
+```bash
+ec2-user   14586  FastMCP server (porta 8080) ✅
+ec2-user   14846  PostgreSQL MCP (Docker) ✅  
+ec2-user   14978  Filesystem MCP (npx) ✅
+```
+
+**Teste de Conectividade FastMCP:**
+```bash
+curl -s http://localhost:8080/sse/ | head -1
+# Output: event: endpoint ✅
+```
+
+#### Lições Aprendidas
+
+1. **FastMCP ≠ MCP Server Tradicional**
+   - FastMCP é servidor HTTP/SSE independente
+   - Não deve ser configurado no mcp.json
+   - Funciona em paralelo aos MCP servers tradicionais
+
+2. **Configuração Correta**
+   - MCP servers tradicionais: via mcp.json
+   - FastMCP: processo independente na porta 8080
+   - Coexistência perfeita entre os dois sistemas
+
+3. **Troubleshooting MCP**
+   - Verificar processos ativos primeiro
+   - Localizar arquivo de configuração correto (.amazonq/mcp.json)
+   - Entender diferença entre tipos de servidor
+
+#### Resultado Final
+
+**✅ PROBLEMA RESOLVIDO:**
+- Amazon Q deve carregar 3 MCP servers corretamente
+- FastMCP continua disponível via HTTP na porta 8080
+- Sistema `qbia` funcionando perfeitamente
+- Coexistência entre MCP tradicional e FastMCP restaurada
+
+**📊 Status dos Sistemas:**
+- **MCP Tradicional:** 3 servers ativos ✅
+- **FastMCP:** Servidor HTTP ativo na porta 8080 ✅
+- **Integração:** Funcionando corretamente ✅
+
+#### Arquivos Modificados
+- `/home/ec2-user/bia/.amazonq/mcp.json` - Removida configuração incorreta do bia-fastmcp
+- `/home/ec2-user/bia/historico-conversas-amazonq.md` - Documentação da correção
+
+---
+
+## Data: 05/08/2025
+
 ### Sessão: Descoberta Crítica - Amazon Q PODE Criar Clusters ECS via CloudFormation
 
 #### Contexto Inicial

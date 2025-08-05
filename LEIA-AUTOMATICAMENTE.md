@@ -22,7 +22,7 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 4
 - `/home/ec2-user/bia/docs/README.md`
 - `/home/ec2-user/bia/scripts_evento/README.md`
 
-### **📖 Histórico e Guias (9 arquivos):**
+### **📖 Histórico e Guias (10 arquivos):**
 - `/home/ec2-user/bia/historico-conversas-amazonq.md`
 - `/home/ec2-user/bia/guia-criacao-ec2-bia.md`
 - `/home/ec2-user/bia/guia-completo-ecs-bia-desafio-2.md`
@@ -32,6 +32,7 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 4
 - `/home/ec2-user/bia/historico-desafio-3-zero-downtime.md`
 - `/home/ec2-user/bia/historico-descoberta-console-aws-vs-cli.md`
 - `/home/ec2-user/bia/metodo-hibrido-rollback-codepipeline.md`
+- `/home/ec2-user/bia/correcao-mcp-fastmcp-config.md`
 
 ### **📊 Status e Verificação (2 arquivos):**
 - `/home/ec2-user/bia/CONTEXTO-RAPIDO.md`
@@ -124,7 +125,7 @@ Você deve estar completamente contextualizado sobre:
 
 ---
 
-*Atualizado em: 05/08/2025 16:35 UTC*  
-*Total de arquivos: 51 arquivos .md organizados por categoria*  
-*Sistema: QBIA funcionando perfeitamente com FastMCP integrado*  
-*Nova adição: Descoberta crítica - Amazon Q PODE criar clusters ECS via CloudFormation*
+*Atualizado em: 05/08/2025 16:45 UTC*  
+*Total de arquivos: 52 arquivos .md organizados por categoria*  
+*Sistema: QBIA funcionando perfeitamente com FastMCP corrigido*  
+*Última correção: Configuração MCP + FastMCP fix aplicado*
