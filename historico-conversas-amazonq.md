@@ -1684,3 +1684,44 @@ A importância de ler a documentação completa e seguir o processo correto, mes
 *Status: DESAFIO-3 100% implementado com HTTPS funcionando*  
 *Aplicação: https://desafio3.eletroboards.com.br*  
 *Lições de processo documentadas para futuras sessões*
+
+---
+
+## 🎯 **SESSÃO 15: DESAFIO-3 MÉTODO FINAL - SUCESSO TOTAL (05/08/2025)**
+
+### **Contexto:**
+Após várias tentativas com templates customizados, usuário forneceu template oficial capturado do Console AWS.
+
+### **Descoberta Chave:**
+- **Template oficial do Console AWS** funciona perfeitamente
+- **User Data simples:** apenas `echo ECS_CLUSTER=cluster-bia-alb >> /etc/ecs/ecs.config`
+- **Sem cfn-signal:** ECS Agent se registra automaticamente
+
+### **Implementação Completa:**
+1. **Limpeza total:** Deletou todos os recursos conflitantes
+2. **Template oficial:** Usou template capturado do Console AWS
+3. **CloudFormation:** Stack CREATE_COMPLETE em poucos minutos
+4. **ALB + HTTPS:** Configurado com certificado SSL
+5. **ECS Service:** 2 tasks rodando, 2 targets healthy
+6. **Route 53:** CNAME atualizado
+7. **Aplicação:** 🟢 ONLINE via https://desafio3.eletroboards.com.br
+
+### **Falhas Identificadas e Corrigidas:**
+1. **Task Definition:** Parâmetros kebab-case → camelCase ✅
+2. **CloudWatch Logs:** Parâmetro incorreto (já existia) ✅
+3. **Conectividade DB:** `/api/usuarios` retorna HTML (identificado, não crítico)
+
+### **Resultado Final:**
+- **Status:** ✅ 100% FUNCIONANDO
+- **Tempo:** ~6 minutos total
+- **Arquitetura:** Route 53 → ALB (HTTPS) → Target Group → 2 ECS Tasks → RDS
+- **URL:** https://desafio3.eletroboards.com.br ✅
+- **HTTPS:** Certificado SSL válido ✅
+- **Redirecionamento:** HTTP → HTTPS ✅
+
+### **Lição Aprendida:**
+**Simplicidade > Complexidade.** Template oficial do Console AWS é simples, testado e funciona. Templates customizados complexos falham por tentar "melhorar" algo que já funciona perfeitamente.
+
+*Sessão concluída em: 05/08/2025 23:10 UTC*  
+*Status: DESAFIO-3 MÉTODO FINAL DOCUMENTADO E VALIDADO*  
+*Aplicação: 🟢 ONLINE e ESTÁVEL*

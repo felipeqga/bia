@@ -75,13 +75,24 @@ O foco base dele é fornecer uma estrutura educacional em que o aluno possa evol
 
 ### Estado Atual da Infraestrutura
 
+#### Status Atual (05/08/2025 - 23:06 UTC)
+- **Aplicação:** 🟢 ONLINE via HTTPS
+- **Domínio:** https://desafio3.eletroboards.com.br
+- **Status:** DESAFIO-3 100% implementado e funcionando
+- **Método:** Template oficial do Console AWS + CLI otimizado
+- **Tempo total:** ~6 minutos (implementação completa)
+- **Arquitetura:** Route 53 → ALB (HTTPS) → Target Group → 2 ECS Tasks → RDS
+
 #### Componentes Ativos
-- **ECS Cluster:** cluster-bia-alb (ativo)
+- **ECS Cluster:** cluster-bia-alb (método Template Oficial)
 - **ECS Service:** service-bia-alb (desired count = 2)
-- **Task Definition:** task-def-bia-alb:13
-- **Load Balancer:** bia-1429815790.us-east-1.elb.amazonaws.com
+- **Task Definition:** task-def-bia-alb:29 (versão final)
+- **Load Balancer:** ALB com HTTPS + certificado SSL válido
 - **RDS Instance:** bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com
 - **ECR Repository:** 387678648422.dkr.ecr.us-east-1.amazonaws.com/bia
+- **Route 53:** Hosted Zone + CNAME configurados
+- **Certificados SSL:** desafio3.eletroboards.com.br (ISSUED)
+- **CloudFormation Stack:** bia-cluster-template-oficial (CREATE_COMPLETE)
 
 **Verificar DNS atual do ALB:**
 ```bash

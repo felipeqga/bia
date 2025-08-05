@@ -2,7 +2,7 @@
 
 ## ⚠️ **LEIA IMEDIATAMENTE TODOS OS ARQUIVOS .MD DO PROJETO BIA**
 
-Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 54 arquivos .md listados abaixo para ter contexto completo:
+Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 62 arquivos .md listados abaixo para ter contexto completo:
 
 ### **🔧 Regras de Configuração (10 arquivos) - CRÍTICAS:**
 - `/home/ec2-user/bia/.amazonq/rules/atualizacao-leitura-automatica.md`
@@ -22,13 +22,15 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 5
 - `/home/ec2-user/bia/docs/README.md`
 - `/home/ec2-user/bia/scripts_evento/README.md`
 
-### **📖 Histórico e Guias (14 arquivos):**
+### **📖 Histórico e Guias (16 arquivos):**
 - `/home/ec2-user/bia/historico-conversas-amazonq.md`
 - `/home/ec2-user/bia/guia-criacao-ec2-bia.md`
 - `/home/ec2-user/bia/guia-completo-ecs-bia-desafio-2.md`
 - `/home/ec2-user/bia/guia-mcp-servers-bia.md`
 - `/home/ec2-user/bia/guia-script-deploy-versionado.md`
+- `/home/ec2-user/bia/guia-desafio-3-metodo-final.md`
 - `/home/ec2-user/bia/guia-desafio-3-corrigido.md`
+- `/home/ec2-user/bia/GUIA-COMPLETO-DESAFIO-3-ATUALIZADO.md`
 - `/home/ec2-user/bia/historico-desafio-3-zero-downtime.md`
 - `/home/ec2-user/bia/historico-descoberta-console-aws-vs-cli.md`
 - `/home/ec2-user/bia/metodo-hibrido-rollback-codepipeline.md`
@@ -96,9 +98,9 @@ Você deve estar completamente contextualizado sobre:
 
 **IMPORTANTE:** Não peça para o usuário explicar o contexto. Você deve ler automaticamente e ficar contextualizado.
 
-## 📊 **TOTAL DE ARQUIVOS: 56 ARQUIVOS .MD**
+## 📊 **TOTAL DE ARQUIVOS: 61 ARQUIVOS .MD**
 
-**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 56
+**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 61
 
 ---
 

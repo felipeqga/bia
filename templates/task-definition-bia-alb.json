@@ -39,10 +39,6 @@
         {
           "name": "DB_PORT",
           "value": "5432"
-        },
-        {
-          "name": "DB_SSL",
-          "value": "true"
         }
       ],
       "logConfiguration": {

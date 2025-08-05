@@ -1,0 +1,327 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Template ECS Cluster Melhorado - Baseado na documentação oficial AWS com melhores práticas'
+
+Parameters:
+  ClusterName:
+    Type: String
+    Default: cluster-bia-alb
+    Description: Nome do cluster ECS
+    MinLength: 1
+    MaxLength: 255
+  
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    Description: Tipo de instância EC2
+    AllowedValues:
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+  
+  MinSize:
+    Type: Number
+    Default: 2
+    Description: Número mínimo de instâncias
+    MinValue: 1
+    MaxValue: 10
+  
+  MaxSize:
+    Type: Number
+    Default: 2
+    Description: Número máximo de instâncias
+    MinValue: 1
+    MaxValue: 10
+  
+  DesiredCapacity:
+    Type: Number
+    Default: 2
+    Description: Capacidade desejada
+    MinValue: 1
+    MaxValue: 10
+  
+  VpcId:
+    Type: String
+    Default: vpc-08b8e37ee6ff01860
+    Description: VPC ID
+  
+  SubnetIds:
+    Type: CommaDelimitedList
+    Default: "subnet-068e3484d05611445,subnet-0c665b052ff5c528d"
+    Description: Subnet IDs (us-east-1a, us-east-1b)
+  
+  SecurityGroupId:
+    Type: String
+    Default: sg-00c1a082f04bc6709
+    Description: Security Group ID (bia-ec2)
+  
+  KeyPairName:
+    Type: String
+    Default: ""
+    Description: Nome do Key Pair para SSH (opcional)
+  
+  ECSOptimizedAMI:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ecs/optimized-ami/amazon-linux-2023/recommended/image_id
+    Description: AMI ECS otimizada mais recente
+
+Conditions:
+  HasKeyPair: !Not [!Equals [!Ref KeyPairName, ""]]
+  IsSingleInstance: !Equals [!Ref DesiredCapacity, 1]
+
+Resources:
+  # ECS Cluster
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Ref ClusterName
+      ClusterSettings:
+        - Name: containerInsights
+          Value: disabled
+      Tags:
+        - Key: Name
+          Value: !Ref ClusterName
+        - Key: Project
+          Value: BIA
+        - Key: Environment
+          Value: Production
+
+  # Launch Template Melhorado
+  ECSLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub "${ClusterName}-LaunchTemplate-v2"
+      LaunchTemplateData:
+        ImageId: !Ref ECSOptimizedAMI
+        InstanceType: !Ref InstanceType
+        KeyName: !If [HasKeyPair, !Ref KeyPairName, !Ref "AWS::NoValue"]
+        IamInstanceProfile:
+          Arn: !Sub "arn:aws:iam::${AWS::AccountId}:instance-profile/role-acesso-ssm"
+        SecurityGroupIds:
+          - !Ref SecurityGroupId
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            # Configuração ECS
+            echo ECS_CLUSTER=${ClusterName} >> /etc/ecs/ecs.config
+            echo ECS_BACKEND_HOST= >> /etc/ecs/ecs.config
+            echo ECS_ENABLE_CONTAINER_METADATA=true >> /etc/ecs/ecs.config
+            echo ECS_ENABLE_TASK_IAM_ROLE=true >> /etc/ecs/ecs.config
+            
+            # Instalar CloudFormation helper scripts
+            yum update -y
+            yum install -y aws-cfn-bootstrap
+            
+            # Aguardar ECS Agent estar pronto
+            until curl -s http://localhost:51678/v1/metadata
+            do
+              echo "Aguardando ECS Agent..."
+              sleep 5
+            done
+            
+            # Sinalizar sucesso para CloudFormation
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ECSAutoScalingGroup --region ${AWS::Region}
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: !Sub "ECS Instance - ${ClusterName}"
+              - Key: Project
+                Value: BIA
+              - Key: Environment
+                Value: Production
+              - Key: ClusterName
+                Value: !Ref ClusterName
+        MetadataOptions:
+          HttpTokens: required
+          HttpPutResponseHopLimit: 2
+          HttpEndpoint: enabled
+        Monitoring:
+          Enabled: false
+
+  # Auto Scaling Group Melhorado
+  ECSAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: !Sub "${ClusterName}-AutoScalingGroup-v2"
+      VPCZoneIdentifier: !Ref SubnetIds
+      LaunchTemplate:
+        LaunchTemplateId: !Ref ECSLaunchTemplate
+        Version: !GetAtt ECSLaunchTemplate.LatestVersionNumber
+      MinSize: !Ref MinSize
+      MaxSize: !Ref MaxSize
+      DesiredCapacity: !Ref DesiredCapacity
+      HealthCheckType: EC2
+      HealthCheckGracePeriod: 300
+      Tags:
+        - Key: Name
+          Value: !Sub "${ClusterName}-AutoScalingGroup-v2"
+          PropagateAtLaunch: false
+        - Key: Project
+          Value: BIA
+          PropagateAtLaunch: true
+        - Key: Environment
+          Value: Production
+          PropagateAtLaunch: true
+        - Key: ClusterName
+          Value: !Ref ClusterName
+          PropagateAtLaunch: true
+    CreationPolicy:
+      ResourceSignal:
+        Count: !Ref DesiredCapacity
+        Timeout: PT15M
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MinInstancesInService: !If [IsSingleInstance, 0, 1]
+        MaxBatchSize: 1
+        PauseTime: PT15M
+        WaitOnResourceSignals: true
+        SuspendProcesses:
+          - HealthCheck
+          - ReplaceUnhealthy
+          - AZRebalance
+          - AlarmNotification
+          - ScheduledActions
+
+  # Capacity Provider Melhorado
+  AsgCapacityProvider:
+    Type: AWS::ECS::CapacityProvider
+    Properties:
+      Name: !Sub "${AWS::StackName}-AsgCapacityProvider-v2"
+      AutoScalingGroupProvider:
+        AutoScalingGroupArn: !Ref ECSAutoScalingGroup
+        ManagedScaling:
+          Status: ENABLED
+          TargetCapacity: 100
+          MinimumScalingStepSize: 1
+          MaximumScalingStepSize: 1000
+          InstanceWarmupPeriod: 300
+        ManagedTerminationProtection: DISABLED
+        ManagedDraining: ENABLED
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-AsgCapacityProvider-v2"
+        - Key: Project
+          Value: BIA
+        - Key: Environment
+          Value: Production
+
+  # Cluster Capacity Provider Association
+  ClusterCPAssociation:
+    Type: AWS::ECS::ClusterCapacityProviderAssociations
+    Properties:
+      Cluster: !Ref ECSCluster
+      CapacityProviders:
+        - FARGATE
+        - FARGATE_SPOT
+        - !Ref AsgCapacityProvider
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: !Ref AsgCapacityProvider
+          Weight: 1
+          Base: 0
+
+  # CloudWatch Log Group para ECS
+  ECSLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/ecs/${ClusterName}"
+      RetentionInDays: 7
+      Tags:
+        - Key: Name
+          Value: !Sub "${ClusterName}-LogGroup"
+        - Key: Project
+          Value: BIA
+
+Outputs:
+  ClusterName:
+    Description: Nome do cluster ECS criado
+    Value: !Ref ECSCluster
+    Export:
+      Name: !Sub "${AWS::StackName}-ClusterName"
+  
+  ClusterArn:
+    Description: ARN do cluster ECS
+    Value: !GetAtt ECSCluster.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-ClusterArn"
+  
+  CapacityProviderName:
+    Description: Nome do Capacity Provider
+    Value: !Ref AsgCapacityProvider
+    Export:
+      Name: !Sub "${AWS::StackName}-CapacityProvider"
+  
+  AutoScalingGroupName:
+    Description: Nome do Auto Scaling Group
+    Value: !Ref ECSAutoScalingGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-AutoScalingGroup"
+  
+  LaunchTemplateId:
+    Description: ID do Launch Template
+    Value: !Ref ECSLaunchTemplate
+    Export:
+      Name: !Sub "${AWS::StackName}-LaunchTemplate"
+  
+  LaunchTemplateVersion:
+    Description: Versão do Launch Template
+    Value: !GetAtt ECSLaunchTemplate.LatestVersionNumber
+    Export:
+      Name: !Sub "${AWS::StackName}-LaunchTemplateVersion"
+
+  LogGroupName:
+    Description: Nome do CloudWatch Log Group
+    Value: !Ref ECSLogGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-LogGroup"
+
+# Metadata para documentação
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Configurações do Cluster"
+        Parameters:
+          - ClusterName
+          - InstanceType
+      - Label:
+          default: "Configurações de Capacidade"
+        Parameters:
+          - MinSize
+          - MaxSize
+          - DesiredCapacity
+      - Label:
+          default: "Configurações de Rede"
+        Parameters:
+          - VpcId
+          - SubnetIds
+          - SecurityGroupId
+          - KeyPairName
+    ParameterLabels:
+      ClusterName:
+        default: "Nome do Cluster ECS"
+      InstanceType:
+        default: "Tipo de Instância EC2"
+      MinSize:
+        default: "Capacidade Mínima"
+      MaxSize:
+        default: "Capacidade Máxima"
+      DesiredCapacity:
+        default: "Capacidade Desejada"
+      KeyPairName:
+        default: "Key Pair SSH (Opcional)"
+
+  AWS::CloudFormation::Designer:
+    Description: "Template ECS Cluster com melhores práticas AWS"
+
+# Melhorias implementadas:
+# 1. ✅ CloudFormation Signals - Resolve problema de timeout
+# 2. ✅ Systems Manager Parameter - AMI dinâmica sempre atualizada
+# 3. ✅ Launch Template versionado - Melhor controle de versões
+# 4. ✅ Metadata Options - Segurança IMDSv2
+# 5. ✅ CloudWatch Log Group - Logs centralizados
+# 6. ✅ Tags padronizadas - Melhor organização
+# 7. ✅ Conditions - Key Pair opcional
+# 8. ✅ Update Policy - Rolling updates seguros
+# 9. ✅ Validation - Parâmetros com limites
+# 10. ✅ ECS Agent health check - Aguarda agent estar pronto

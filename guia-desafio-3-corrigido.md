@@ -1,21 +1,25 @@
 # 🎯 GUIA DESAFIO-3 CORRIGIDO - ECS Cluster com ALB
 
-## 📋 **MÉTODO CORRETO PARA CRIAR CLUSTER ECS**
+## 📋 **MÉTODO CORRETO ATUALIZADO**
 
-**Data:** 04/08/2025  
+**Data:** 05/08/2025  
 **Status:** ✅ TESTADO E VALIDADO  
-**Baseado em:** Análise completa do Console AWS vs CLI  
+**Baseado em:** Captura de template CloudFormation do Console AWS + Implementação real  
+**Aplicação funcionando:** https://desafio3.eletroboards.com.br  
 
 ---
 
 ## 🎯 **OBJETIVO:**
-Criar cluster ECS com Application Load Balancer para alta disponibilidade da aplicação BIA.
+Criar cluster ECS com Application Load Balancer para alta disponibilidade da aplicação BIA usando o método CloudFormation capturado do Console AWS.
 
 ---
 
-## 🚨 **DESCOBERTA CRÍTICA:**
+## 🚀 **DESCOBERTA REVOLUCIONÁRIA:**
 
-### **❌ POR QUE CLI NÃO FUNCIONA:**
+### **✅ MÉTODO CLOUDFORMATION FUNCIONA:**
+Após capturar o template interno do Console AWS, descobrimos que **É POSSÍVEL** criar o cluster via CLI usando CloudFormation!
+
+### **🎯 TEMPLATE CAPTURADO:**
 O Console AWS usa um **CloudFormation template interno** que cria 5 recursos simultaneamente:
 - `AWS::ECS::Cluster`
 - `AWS::EC2::LaunchTemplate` 
@@ -23,10 +27,39 @@ O Console AWS usa um **CloudFormation template interno** que cria 5 recursos sim
 - `AWS::ECS::CapacityProvider`
 - `AWS::ECS::ClusterCapacityProviderAssociations`
 
-**Este template NÃO é público e NÃO pode ser replicado via CLI!**
+**Este template foi capturado e está disponível em:** `/home/ec2-user/bia/templates/ecs-cluster-template.yaml`
 
-### **✅ MÉTODO CORRETO:**
-**OBRIGATÓRIO usar Console AWS** para criar o cluster com instâncias EC2.
+---
+
+## 📊 **MÉTODO CORRETO (CLOUDFORMATION):**
+
+### **PASSO 1: Criar Cluster via CloudFormation**
+```bash
+aws cloudformation create-stack \
+  --stack-name bia-ecs-cluster-stack \
+  --template-body file:///home/ec2-user/bia/templates/ecs-cluster-template.yaml \
+  --parameters \
+    ParameterKey=ECSClusterName,ParameterValue=cluster-bia-alb \
+    ParameterKey=InstanceType,ParameterValue=t3.micro \
+    ParameterKey=MinSize,ParameterValue=2 \
+    ParameterKey=MaxSize,ParameterValue=2 \
+    ParameterKey=DesiredCapacity,ParameterValue=2 \
+    ParameterKey=VpcId,ParameterValue=vpc-08b8e37ee6ff01860 \
+    ParameterKey=SubnetIds,ParameterValue="subnet-068e3484d05611445,subnet-0c665b052ff5c528d" \
+    ParameterKey=SecurityGroupIds,ParameterValue=sg-00c1a082f04bc6709 \
+    ParameterKey=Ec2InstanceProfileArn,ParameterValue="arn:aws:iam::387678648422:instance-profile/role-acesso-ssm" \
+  --capabilities CAPABILITY_NAMED_IAM
+```
+
+### **PASSO 2: Aguardar Criação**
+```bash
+aws cloudformation wait stack-create-complete --stack-name bia-ecs-cluster-stack
+```
+
+### **PASSO 3: Verificar Cluster Criado**
+```bash
+aws ecs describe-clusters --clusters cluster-bia-alb --include ATTACHMENTS
+```
 
 ---
 

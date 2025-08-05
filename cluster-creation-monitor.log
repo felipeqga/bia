@@ -1,0 +1,1399 @@
+
+==================== ITERATION 1 - Tue Aug  5 20:07:51 UTC 2025 ====================
+[0;34m[20:07:51] Iteration 1 - Capturando recursos...[0m
+=== CLOUDFORMATION STACKS ===
+-----------------------------------------------------------
+|                     DescribeStacks                      |
++---------+-----------------------------------------------+
+|  Created|  2025-08-05T20:07:28.939000+00:00             |
+|  Name   |  Infra-ECS-Cluster-cluster-bia-alb-ff935a86   |
+|  Status |  CREATE_IN_PROGRESS                           |
++---------+-----------------------------------------------+
+=== STACK RESOURCES: Infra-ECS-Cluster-cluster-bia-alb-ff935a86 ===
+{
+    "StackResources": [
+        {
+            "StackName": "Infra-ECS-Cluster-cluster-bia-alb-ff935a86",
+            "StackId": "arn:aws:cloudformation:us-east-1:387678648422:stack/Infra-ECS-Cluster-cluster-bia-alb-ff935a86/d01a5600-7237-11f0-8f6b-0e8f122c069f",
+            "LogicalResourceId": "ECSAutoScalingGroup",
+            "PhysicalResourceId": "Infra-ECS-Cluster-cluster-bia-alb-ff935a86-ECSAutoScalingGroup-pXMGKUVzuxTw",
+            "ResourceType": "AWS::AutoScaling::AutoScalingGroup",
+            "Timestamp": "2025-08-05T20:07:41.394000+00:00",
+            "ResourceStatus": "CREATE_IN_PROGRESS",
+            "ResourceStatusReason": "Resource creation Initiated",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "Infra-ECS-Cluster-cluster-bia-alb-ff935a86",
+            "StackId": "arn:aws:cloudformation:us-east-1:387678648422:stack/Infra-ECS-Cluster-cluster-bia-alb-ff935a86/d01a5600-7237-11f0-8f6b-0e8f122c069f",
+            "LogicalResourceId": "ECSCluster",
+            "PhysicalResourceId": "cluster-bia-alb",
+            "ResourceType": "AWS::ECS::Cluster",
+            "Timestamp": "2025-08-05T20:07:36.467000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "Infra-ECS-Cluster-cluster-bia-alb-ff935a86",
+            "StackId": "arn:aws:cloudformation:us-east-1:387678648422:stack/Infra-ECS-Cluster-cluster-bia-alb-ff935a86/d01a5600-7237-11f0-8f6b-0e8f122c069f",
+            "LogicalResourceId": "ECSLaunchTemplate",
+            "PhysicalResourceId": "lt-026f642de0ed12152",
+            "ResourceType": "AWS::EC2::LaunchTemplate",
+            "Timestamp": "2025-08-05T20:07:39.264000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        }
+    ]
+}
+=== STACK TEMPLATE: Infra-ECS-Cluster-cluster-bia-alb-ff935a86 ===
+{
+    "TemplateBody": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The template used to create an ECS Cluster from the ECS Console.",
+        "Parameters": {
+            "ECSClusterName": {
+                "Type": "String",
+                "Description": "Specifies the ECS Cluster Name with which the resources would be associated",
+                "Default": "cluster-bia-alb"
+            },
+            "SecurityGroupIds": {
+                "Type": "CommaDelimitedList",
+                "Description": "Optional - Specifies the Comma separated list of the Security Group Id of an existing Security Group.",
+                "Default": ""
+            },
+            "VpcId": {
+                "Type": "String",
+                "Description": "Optional - Specifies the ID of an existing VPC in which to launch your container instances. If you specify a VPC ID, you must specify a list of existing subnets in that VPC. If you do not specify a VPC ID, a new VPC is created with at least 1 subnet.",
+                "Default": "",
+                "AllowedPattern": "^(?:vpc-[0-9a-f]{8,17}|)$",
+                "ConstraintDescription": "VPC Id must begin with 'vpc-' and have a valid uuid"
+            },
+            "SubnetIds": {
+                "Type": "CommaDelimitedList",
+                "Description": "Optional - Specifies the Comma separated list of existing VPC Subnet Ids where ECS instances will run",
+                "Default": ""
+            },
+            "LatestECSOptimizedAMI": {
+                "Description": "AMI ID",
+                "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+                "Default": "/aws/service/ecs/optimized-ami/amazon-linux-2023/recommended/image_id"
+            },
+            "Ec2InstanceProfileArn": {
+                "Type": "String",
+                "Description": "Specifies the Name or the Amazon Resource Name (ARN) of the instance profile associated with the IAM role for the instance",
+                "Default": "arn:aws:iam::387678648422:instance-profile/role-acesso-ssm"
+            }
+        },
+        "Resources": {
+            "ECSCluster": {
+                "Type": "AWS::ECS::Cluster",
+                "Properties": {
+                    "ClusterName": {
+                        "Ref": "ECSClusterName"
+                    },
+                    "ClusterSettings": [
+                        {
+                            "Name": "containerInsights",
+                            "Value": "disabled"
+                        }
+                    ],
+                    "Tags": []
+                }
+            },
+            "ECSLaunchTemplate": {
+                "Type": "AWS::EC2::LaunchTemplate",
+                "DependsOn": "ECSCluster",
+                "Properties": {
+                    "LaunchTemplateData": {
+                        "ImageId": {
+                            "Ref": "LatestECSOptimizedAMI"
+                        },
+                        "SecurityGroupIds": {
+                            "Ref": "SecurityGroupIds"
+                        },
+                        "InstanceType": "t3.micro",
+                        "IamInstanceProfile": {
+                            "Arn": {
+                                "Ref": "Ec2InstanceProfileArn"
+                            }
+                        },
+                        "UserData": {
+                            "Fn::Base64": {
+                                "Fn::Sub": [
+                                    "#!/bin/bash \necho ECS_CLUSTER=${ClusterName} >> /etc/ecs/ecs.config;",
+                                    {
+                                        "ClusterName": {
+                                            "Ref": "ECSClusterName"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "ECSAutoScalingGroup": {
+                "Type": "AWS::AutoScaling::AutoScalingGroup",
+                "DependsOn": "ECSCluster",
+                "Properties": {
+                    "MinSize": "2",
+                    "MaxSize": "2",
+                    "DesiredCapacity": "2",
+                    "LaunchTemplate": {
+                        "LaunchTemplateId": {
+                            "Ref": "ECSLaunchTemplate"
+                        },
+                        "Version": {
+                            "Fn::GetAtt": [
+                                "ECSLaunchTemplate",
+                                "LatestVersionNumber"
+                            ]
+                        }
+                    },
+                    "VPCZoneIdentifier": {
+                        "Ref": "SubnetIds"
+                    },
+                    "Tags": [
+                        {
+                            "Key": "Name",
+                            "PropagateAtLaunch": true,
+                            "Value": {
+                                "Fn::Join": [
+                                    " - ",
+                                    [
+                                        "ECS Instance",
+                                        {
+                                            "Ref": "ECSClusterName"
+                                        }
+                                    ]
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "AsgCapacityProvider": {
+                "Type": "AWS::ECS::CapacityProvider",
+                "Properties": {
+                    "AutoScalingGroupProvider": {
+                        "AutoScalingGroupArn": {
+                            "Ref": "ECSAutoScalingGroup"
+                        },
+                        "ManagedScaling": {
+                            "Status": "ENABLED",
+                            "TargetCapacity": 100
+                        },
+                        "ManagedTerminationProtection": "DISABLED"
+                    }
+                }
+            },
+            "ClusterCPAssociation": {
+                "Type": "AWS::ECS::ClusterCapacityProviderAssociations",
+                "DependsOn": "ECSCluster",
+                "Properties": {
+                    "Cluster": {
+                        "Ref": "ECSClusterName"
+                    },
+                    "CapacityProviders": [
+                        "FARGATE",
+                        "FARGATE_SPOT",
+                        {
+                            "Ref": "AsgCapacityProvider"
+                        }
+                    ],
+                    "DefaultCapacityProviderStrategy": [
+                        {
+                            "Base": 0,
+                            "Weight": 1,
+                            "CapacityProvider": {
+                                "Ref": "AsgCapacityProvider"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Outputs": {
+            "ECSCluster": {
+                "Description": "The created cluster.",
+                "Value": {
+                    "Ref": "ECSCluster"
+                }
+            }
+        }
+    },
+    "StagesAvailable": [
+        "Original",
+        "Processed"
+    ]
+}
+=== AUTO SCALING GROUPS ===
+----------------------------------------------------------------------------------------------
+|                                  DescribeAutoScalingGroups                                 |
++-----------+--------------------------------------------------------------------------------+
+|  Desired  |  2                                                                             |
+|  Instances|  2                                                                             |
+|  Max      |  2                                                                             |
+|  Min      |  2                                                                             |
+|  Name     |  Infra-ECS-Cluster-cluster-bia-alb-ff935a86-ECSAutoScalingGroup-pXMGKUVzuxTw   |
+|  Status   |  None                                                                          |
++-----------+--------------------------------------------------------------------------------+
+=== LAUNCH TEMPLATES ===
+-----------------------------------------------
+|           DescribeLaunchTemplates           |
++---------+-----------------------------------+
+|  Created|  2025-08-05T20:07:38+00:00        |
+|  Id     |  lt-026f642de0ed12152             |
+|  Name   |  ECSLaunchTemplate_shM2qLZ7Lo7H   |
+|  Version|  1                                |
++---------+-----------------------------------+
+=== LAUNCH TEMPLATE DETAILS: lt-026f642de0ed12152 ===
+{
+    "LaunchTemplateVersions": [
+        {
+            "LaunchTemplateId": "lt-026f642de0ed12152",
+            "LaunchTemplateName": "ECSLaunchTemplate_shM2qLZ7Lo7H",
+            "VersionNumber": 1,
+            "CreateTime": "2025-08-05T20:07:38+00:00",
+            "CreatedBy": "arn:aws:iam::387678648422:root",
+            "DefaultVersion": true,
+            "LaunchTemplateData": {
+                "IamInstanceProfile": {
+                    "Arn": "arn:aws:iam::387678648422:instance-profile/role-acesso-ssm"
+                },
+                "ImageId": "ami-07985a96d172b21ee",
+                "InstanceType": "t3.micro",
+                "UserData": "IyEvYmluL2Jhc2ggCmVjaG8gRUNTX0NMVVNURVI9Y2x1c3Rlci1iaWEtYWxiID4+IC9ldGMvZWNzL2Vjcy5jb25maWc7",
+                "SecurityGroupIds": [
+                    "sg-00c1a082f04bc6709"
+                ]
+            },
+            "Operator": {
+                "Managed": false
+            }
+        }
+    ]
+}
+=== CAPACITY PROVIDERS ===
+=== ECS CLUSTER ===
+--------------------------------------------
+|             DescribeClusters             |
++------------+-------------------+---------+
+|  Instances |       Name        | Status  |
++------------+-------------------+---------+
+|  0         |  cluster-bia-alb  |  ACTIVE |
++------------+-------------------+---------+
+=== EC2 INSTANCES (ECS) ===
+---------------------------------------------------------------------------------------------------------------
+|                                              DescribeInstances                                              |
++---------------------+-----------------------------+----------+----------------------------------+-----------+
+|         Id          |         LaunchTime          |  State   |              Tags                |   Type    |
++---------------------+-----------------------------+----------+----------------------------------+-----------+
+|  i-0c2ae9b2aacad6d35|  2025-08-05T20:07:56+00:00  |  running |  ECS Instance - cluster-bia-alb  |  t3.micro |
+|  i-0ad0591743928c602|  2025-08-05T20:07:55+00:00  |  running |  ECS Instance - cluster-bia-alb  |  t3.micro |
++---------------------+-----------------------------+----------+----------------------------------+-----------+
+==================== END ITERATION 1 ====================
+
+==================== ITERATION 2 - Tue Aug  5 20:08:16 UTC 2025 ====================
+[0;34m[20:08:16] Iteration 2 - Capturando recursos...[0m
+=== CLOUDFORMATION STACKS ===
+-----------------------------------------------------------
+|                     DescribeStacks                      |
++---------+-----------------------------------------------+
+|  Created|  2025-08-05T20:07:28.939000+00:00             |
+|  Name   |  Infra-ECS-Cluster-cluster-bia-alb-ff935a86   |
+|  Status |  CREATE_IN_PROGRESS                           |
++---------+-----------------------------------------------+
+=== STACK RESOURCES: Infra-ECS-Cluster-cluster-bia-alb-ff935a86 ===
+{
+    "StackResources": [
+        {
+            "StackName": "Infra-ECS-Cluster-cluster-bia-alb-ff935a86",
+            "StackId": "arn:aws:cloudformation:us-east-1:387678648422:stack/Infra-ECS-Cluster-cluster-bia-alb-ff935a86/d01a5600-7237-11f0-8f6b-0e8f122c069f",
+            "LogicalResourceId": "AsgCapacityProvider",
+            "PhysicalResourceId": "Infra-ECS-Cluster-cluster-bia-alb-ff935a86-AsgCapacityProvider-bJ7n7UBV146A",
+            "ResourceType": "AWS::ECS::CapacityProvider",
+            "Timestamp": "2025-08-05T20:08:08.202000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "Infra-ECS-Cluster-cluster-bia-alb-ff935a86",
+            "StackId": "arn:aws:cloudformation:us-east-1:387678648422:stack/Infra-ECS-Cluster-cluster-bia-alb-ff935a86/d01a5600-7237-11f0-8f6b-0e8f122c069f",
+            "LogicalResourceId": "ClusterCPAssociation",
+            "PhysicalResourceId": "cluster-bia-alb",
+            "ResourceType": "AWS::ECS::ClusterCapacityProviderAssociations",
+            "Timestamp": "2025-08-05T20:08:09.664000+00:00",
+            "ResourceStatus": "CREATE_IN_PROGRESS",
+            "ResourceStatusReason": "Resource creation Initiated",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "Infra-ECS-Cluster-cluster-bia-alb-ff935a86",
+            "StackId": "arn:aws:cloudformation:us-east-1:387678648422:stack/Infra-ECS-Cluster-cluster-bia-alb-ff935a86/d01a5600-7237-11f0-8f6b-0e8f122c069f",
+            "LogicalResourceId": "ECSAutoScalingGroup",
+            "PhysicalResourceId": "Infra-ECS-Cluster-cluster-bia-alb-ff935a86-ECSAutoScalingGroup-pXMGKUVzuxTw",
+            "ResourceType": "AWS::AutoScaling::AutoScalingGroup",
+            "Timestamp": "2025-08-05T20:08:06.120000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "Infra-ECS-Cluster-cluster-bia-alb-ff935a86",
+            "StackId": "arn:aws:cloudformation:us-east-1:387678648422:stack/Infra-ECS-Cluster-cluster-bia-alb-ff935a86/d01a5600-7237-11f0-8f6b-0e8f122c069f",
+            "LogicalResourceId": "ECSCluster",
+            "PhysicalResourceId": "cluster-bia-alb",
+            "ResourceType": "AWS::ECS::Cluster",
+            "Timestamp": "2025-08-05T20:07:36.467000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        },
+        {
+            "StackName": "Infra-ECS-Cluster-cluster-bia-alb-ff935a86",
+            "StackId": "arn:aws:cloudformation:us-east-1:387678648422:stack/Infra-ECS-Cluster-cluster-bia-alb-ff935a86/d01a5600-7237-11f0-8f6b-0e8f122c069f",
+            "LogicalResourceId": "ECSLaunchTemplate",
+            "PhysicalResourceId": "lt-026f642de0ed12152",
+            "ResourceType": "AWS::EC2::LaunchTemplate",
+            "Timestamp": "2025-08-05T20:07:39.264000+00:00",
+            "ResourceStatus": "CREATE_COMPLETE",
+            "DriftInformation": {
+                "StackResourceDriftStatus": "NOT_CHECKED"
+            }
+        }
+    ]
+}
+=== STACK TEMPLATE: Infra-ECS-Cluster-cluster-bia-alb-ff935a86 ===
+{
+    "TemplateBody": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The template used to create an ECS Cluster from the ECS Console.",
+        "Parameters": {
+            "ECSClusterName": {
+                "Type": "String",
+                "Description": "Specifies the ECS Cluster Name with which the resources would be associated",
+                "Default": "cluster-bia-alb"
+            },
+            "SecurityGroupIds": {
+                "Type": "CommaDelimitedList",
+                "Description": "Optional - Specifies the Comma separated list of the Security Group Id of an existing Security Group.",
+                "Default": ""
+            },
+            "VpcId": {
+                "Type": "String",
+                "Description": "Optional - Specifies the ID of an existing VPC in which to launch your container instances. If you specify a VPC ID, you must specify a list of existing subnets in that VPC. If you do not specify a VPC ID, a new VPC is created with at least 1 subnet.",
+                "Default": "",
+                "AllowedPattern": "^(?:vpc-[0-9a-f]{8,17}|)$",
+                "ConstraintDescription": "VPC Id must begin with 'vpc-' and have a valid uuid"
+            },
+            "SubnetIds": {
+                "Type": "CommaDelimitedList",
+                "Description": "Optional - Specifies the Comma separated list of existing VPC Subnet Ids where ECS instances will run",
+                "Default": ""
+            },
+            "LatestECSOptimizedAMI": {
+                "Description": "AMI ID",
+                "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+                "Default": "/aws/service/ecs/optimized-ami/amazon-linux-2023/recommended/image_id"
+            },
+            "Ec2InstanceProfileArn": {
+                "Type": "String",
+                "Description": "Specifies the Name or the Amazon Resource Name (ARN) of the instance profile associated with the IAM role for the instance",
+                "Default": "arn:aws:iam::387678648422:instance-profile/role-acesso-ssm"
+            }
+        },
+        "Resources": {
+            "ECSCluster": {
+                "Type": "AWS::ECS::Cluster",
+                "Properties": {
+                    "ClusterName": {
+                        "Ref": "ECSClusterName"
+                    },
+                    "ClusterSettings": [
+                        {
+                            "Name": "containerInsights",
+                            "Value": "disabled"
+                        }
+                    ],
+                    "Tags": []
+                }
+            },
+            "ECSLaunchTemplate": {
+                "Type": "AWS::EC2::LaunchTemplate",
+                "DependsOn": "ECSCluster",
+                "Properties": {
+                    "LaunchTemplateData": {
+                        "ImageId": {
+                            "Ref": "LatestECSOptimizedAMI"
+                        },
+                        "SecurityGroupIds": {
+                            "Ref": "SecurityGroupIds"
+                        },
+                        "InstanceType": "t3.micro",
+                        "IamInstanceProfile": {
+                            "Arn": {
+                                "Ref": "Ec2InstanceProfileArn"
+                            }
+                        },
+                        "UserData": {
+                            "Fn::Base64": {
+                                "Fn::Sub": [
+                                    "#!/bin/bash \necho ECS_CLUSTER=${ClusterName} >> /etc/ecs/ecs.config;",
+                                    {
+                                        "ClusterName": {
+                                            "Ref": "ECSClusterName"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "ECSAutoScalingGroup": {
+                "Type": "AWS::AutoScaling::AutoScalingGroup",
+                "DependsOn": "ECSCluster",
+                "Properties": {
+                    "MinSize": "2",
+                    "MaxSize": "2",
+                    "DesiredCapacity": "2",
+                    "LaunchTemplate": {
+                        "LaunchTemplateId": {
+                            "Ref": "ECSLaunchTemplate"
+                        },
+                        "Version": {
+                            "Fn::GetAtt": [
+                                "ECSLaunchTemplate",
+                                "LatestVersionNumber"
+                            ]
+                        }
+                    },
+                    "VPCZoneIdentifier": {
+                        "Ref": "SubnetIds"
+                    },
+                    "Tags": [
+                        {
+                            "Key": "Name",
+                            "PropagateAtLaunch": true,
+                            "Value": {
+                                "Fn::Join": [
+                                    " - ",
+                                    [
+                                        "ECS Instance",
+                                        {
+                                            "Ref": "ECSClusterName"
+                                        }
+                                    ]
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "AsgCapacityProvider": {
+                "Type": "AWS::ECS::CapacityProvider",
+                "Properties": {
+                    "AutoScalingGroupProvider": {
+                        "AutoScalingGroupArn": {
+                            "Ref": "ECSAutoScalingGroup"
+                        },
+                        "ManagedScaling": {
+                            "Status": "ENABLED",
+                            "TargetCapacity": 100
+                        },
+                        "ManagedTerminationProtection": "DISABLED"
+                    }
+                }
+            },
+            "ClusterCPAssociation": {
+                "Type": "AWS::ECS::ClusterCapacityProviderAssociations",
+                "DependsOn": "ECSCluster",
+                "Properties": {
+                    "Cluster": {
+                        "Ref": "ECSClusterName"
+                    },
+                    "CapacityProviders": [
+                        "FARGATE",
+                        "FARGATE_SPOT",
+                        {
+                            "Ref": "AsgCapacityProvider"
+                        }
+                    ],
+                    "DefaultCapacityProviderStrategy": [
+                        {
+                            "Base": 0,
+                            "Weight": 1,
+                            "CapacityProvider": {
+                                "Ref": "AsgCapacityProvider"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "Outputs": {
+            "ECSCluster": {
+                "Description": "The created cluster.",
+                "Value": {
+                    "Ref": "ECSCluster"
+                }
+            }
+        }
+    },
+    "StagesAvailable": [
+        "Original",
+        "Processed"
+    ]
+}
+=== AUTO SCALING GROUPS ===
+----------------------------------------------------------------------------------------------
+|                                  DescribeAutoScalingGroups                                 |
++-----------+--------------------------------------------------------------------------------+
+|  Desired  |  2                                                                             |
+|  Instances|  2                                                                             |
+|  Max      |  2                                                                             |
+|  Min      |  2                                                                             |
+|  Name     |  Infra-ECS-Cluster-cluster-bia-alb-ff935a86-ECSAutoScalingGroup-pXMGKUVzuxTw   |
+|  Status   |  None                                                                          |
++-----------+--------------------------------------------------------------------------------+
+=== LAUNCH TEMPLATES ===
+-----------------------------------------------
+|           DescribeLaunchTemplates           |
++---------+-----------------------------------+
+|  Created|  2025-08-05T20:07:38+00:00        |
+|  Id     |  lt-026f642de0ed12152             |
+|  Name   |  ECSLaunchTemplate_shM2qLZ7Lo7H   |
+|  Version|  1                                |
++---------+-----------------------------------+
+=== LAUNCH TEMPLATE DETAILS: lt-026f642de0ed12152 ===
+{
+    "LaunchTemplateVersions": [
+        {
+            "LaunchTemplateId": "lt-026f642de0ed12152",
+            "LaunchTemplateName": "ECSLaunchTemplate_shM2qLZ7Lo7H",
+            "VersionNumber": 1,
+            "CreateTime": "2025-08-05T20:07:38+00:00",
+            "CreatedBy": "arn:aws:iam::387678648422:root",
+            "DefaultVersion": true,
+            "LaunchTemplateData": {
+                "IamInstanceProfile": {
+                    "Arn": "arn:aws:iam::387678648422:instance-profile/role-acesso-ssm"
+                },
+                "ImageId": "ami-07985a96d172b21ee",
+                "InstanceType": "t3.micro",
+                "UserData": "IyEvYmluL2Jhc2ggCmVjaG8gRUNTX0NMVVNURVI9Y2x1c3Rlci1iaWEtYWxiID4+IC9ldGMvZWNzL2Vjcy5jb25maWc7",
+                "SecurityGroupIds": [
+                    "sg-00c1a082f04bc6709"
+                ]
+            },
+            "Operator": {
+                "Managed": false
+            }
+        }
+    ]
+}
+=== CAPACITY PROVIDERS ===
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+|                                                                                           DescribeCapacityProviders                                                                                           |
++--------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|  ASG   |  arn:aws:autoscaling:us-east-1:387678648422:autoScalingGroup:51815407-0286-450b-9775-d8caa4d08841:autoScalingGroupName/Infra-ECS-Cluster-cluster-bia-alb-ff935a86-ECSAutoScalingGroup-pXMGKUVzuxTw   |
+|  Name  |  Infra-ECS-Cluster-cluster-bia-alb-ff935a86-AsgCapacityProvider-bJ7n7UBV146A                                                                                                                         |
+|  Status|  ACTIVE                                                                                                                                                                                              |
++--------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+=== ECS CLUSTER ===
+---------------------------------------------------------------------------------------------------------------------
+|                                                 DescribeClusters                                                  |
++----------------------------------------------+--------------------------------------------------------------------+
+|  Instances                                   |  1                                                                 |
+|  Name                                        |  cluster-bia-alb                                                   |
+|  Status                                      |  ACTIVE                                                            |
++----------------------------------------------+--------------------------------------------------------------------+
+||                                                   Attachments                                                   ||
+|+---------------------+-------------------------------------------------------------------------------------------+|
+||  id                 |  06b23b2c-65db-4bac-b272-332ec8ec64f6                                                     ||
+||  status             |  CREATED                                                                                  ||
+||  type               |  managed_draining                                                                         ||
+|+---------------------+-------------------------------------------------------------------------------------------+|
+|||                                                    details                                                    |||
+||+-------------------------------+-------------------------------------------------------------------------------+||
+|||             name              |                                     value                                     |||
+||+-------------------------------+-------------------------------------------------------------------------------+||
+|||  capacityProviderName         |  Infra-ECS-Cluster-cluster-bia-alb-ff935a86-AsgCapacityProvider-bJ7n7UBV146A  |||
+|||  autoScalingLifecycleHookName |  ecs-managed-draining-termination-hook                                        |||
+||+-------------------------------+-------------------------------------------------------------------------------+||
+||                                                   Attachments                                                   ||
+|+---------------------+-------------------------------------------------------------------------------------------+|
+||  id                 |  53cefc33-be4d-49fb-b7f9-f8dc227472ef                                                     ||
+||  status             |  CREATED                                                                                  ||
+||  type               |  as_policy                                                                                ||
+|+---------------------+-------------------------------------------------------------------------------------------+|
+|||                                                    details                                                    |||
+||+------------------------+--------------------------------------------------------------------------------------+||
+|||          name          |                                        value                                         |||
+||+------------------------+--------------------------------------------------------------------------------------+||
+|||  capacityProviderName  |  Infra-ECS-Cluster-cluster-bia-alb-ff935a86-AsgCapacityProvider-bJ7n7UBV146A         |||
+|||  scalingPolicyName     |  ECSManagedAutoScalingPolicy-d8895557-7986-47ea-a3cd-7f911461e435                    |||
+||+------------------------+--------------------------------------------------------------------------------------+||
+||                                                CapacityProviders                                                ||
+|+-----------------------------------------------------------------------------------------------------------------+|
+||  FARGATE                                                                                                        ||
+||  FARGATE_SPOT                                                                                                   ||
+||  Infra-ECS-Cluster-cluster-bia-alb-ff935a86-AsgCapacityProvider-bJ7n7UBV146A                                    ||
+|+-----------------------------------------------------------------------------------------------------------------+|
+=== CONTAINER INSTANCES ===
+{
+    "containerInstances": [
+        {
+            "containerInstanceArn": "arn:aws:ecs:us-east-1:387678648422:container-instance/cluster-bia-alb/72929d8f494942b0a1a255d0821bd705",
+            "ec2InstanceId": "i-0c2ae9b2aacad6d35",
+            "version": 3,
+            "versionInfo": {
+                "agentVersion": "1.97.0",
+                "agentHash": "37ff4978",
+                "dockerVersion": "DockerVersion: 25.0.8"
+            },
+            "remainingResources": [
+                {
+                    "name": "CPU",
+                    "type": "INTEGER",
+                    "doubleValue": 0.0,
+                    "longValue": 0,
+                    "integerValue": 2048
+                },
+                {
+                    "name": "MEMORY",
+                    "type": "INTEGER",
+                    "doubleValue": 0.0,
+                    "longValue": 0,
+                    "integerValue": 904
+                },
+                {
+                    "name": "PORTS",
+                    "type": "STRINGSET",
+                    "doubleValue": 0.0,
+                    "longValue": 0,
+                    "integerValue": 0,
+                    "stringSetValue": [
+                        "22",
+                        "2376",
+                        "2375",
+                        "51678",
+                        "51679"
+                    ]
+                },
+                {
+                    "name": "PORTS_UDP",
+                    "type": "STRINGSET",
+                    "doubleValue": 0.0,
+                    "longValue": 0,
+                    "integerValue": 0,
+                    "stringSetValue": []
+                }
+            ],
+            "registeredResources": [
+                {
+                    "name": "CPU",
+                    "type": "INTEGER",
+                    "doubleValue": 0.0,
+                    "longValue": 0,
+                    "integerValue": 2048
+                },
+                {
+                    "name": "MEMORY",
+                    "type": "INTEGER",
+                    "doubleValue": 0.0,
+                    "longValue": 0,
+                    "integerValue": 904
+                },
+                {
+                    "name": "PORTS",
+                    "type": "STRINGSET",
+                    "doubleValue": 0.0,
+                    "longValue": 0,
+                    "integerValue": 0,
+                    "stringSetValue": [
+                        "22",
+                        "2376",
+                        "2375",
+                        "51678",
+                        "51679"
+                    ]
+                },
+                {
+                    "name": "PORTS_UDP",
+                    "type": "STRINGSET",
+                    "doubleValue": 0.0,
+                    "longValue": 0,
+                    "integerValue": 0,
+                    "stringSetValue": []
+                }
+            ],
+            "status": "ACTIVE",
+            "agentConnected": true,
+            "runningTasksCount": 0,
+            "pendingTasksCount": 0,
+            "attributes": [
+                {
+                    "name": "ecs.capability.secrets.asm.environment-variables"
+                },
+                {
+                    "name": "ecs.capability.branch-cni-plugin-version",
+                    "value": "unknown-"
+                },
+                {
+                    "name": "ecs.ami-id",
+                    "value": "ami-07985a96d172b21ee"
+                },
+                {
+                    "name": "ecs.capability.secrets.asm.bootstrap.log-driver"
+                },
+                {
+                    "name": "ecs.capability.task-eia.optimized-cpu"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.logging-driver.none"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.35"
+                },
+                {
+                    "name": "ecs.capability.ecr-endpoint"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.36"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.37"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.38"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.39"
+                },
+                {
+                    "name": "ecs.capability.docker-plugin.local"
+                },
+                {
+                    "name": "ecs.capability.task-cpu-mem-limit"
+                },
+                {
+                    "name": "ecs.capability.secrets.ssm.bootstrap.log-driver"
+                },
+                {
+                    "name": "ecs.capability.efsAuth"
+                },
+                {
+                    "name": "ecs.capability.full-sync"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.30"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.31"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.32"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.33"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.logging-driver.fluentd"
+                },
+                {
+                    "name": "ecs.capability.storage.ebs-supported-instance"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.34"
+                },
+                {
+                    "name": "ecs.capability.firelens.options.config.file"
+                },
+                {
+                    "name": "ecs.capability.logging-driver.awsfirelens.log-driver-buffer-limit"
+                },
+                {
+                    "name": "ecs.availability-zone",
+                    "value": "us-east-1a"
+                },
+                {
+                    "name": "ecs.capability.aws-appmesh"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.24"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.25"
+                },
+                {
+                    "name": "ecs.capability.task-eni-trunking"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.26"
+                },
+                {
+                    "name": "ecs.capability.container-restart-policy"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.27"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.28"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.privileged-container"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+                },
+                {
+                    "name": "ecs.cpu-architecture",
+                    "value": "x86_64"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.ecr-auth"
+                },
+                {
+                    "name": "ecs.capability.firelens.fluentbit"
+                },
+                {
+                    "name": "ecs.capability.service-connect-v1"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.20"
+                },
+                {
+                    "name": "ecs.os-type",
+                    "value": "linux"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.22"
+                },
+                {
+                    "name": "ecs.capability.private-registry-authentication.secretsmanager"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.23"
+                },
+                {
+                    "name": "ecs.capability.task-eia"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.logging-driver.syslog"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.logging-driver.awsfirelens"
+                },
+                {
+                    "name": "ecs.capability.firelens.options.config.s3"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.logging-driver.json-file"
+                },
+                {
+                    "name": "ecs.capability.execution-role-awslogs"
+                },
+                {
+                    "name": "ecs.vpc-id",
+                    "value": "vpc-08b8e37ee6ff01860"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.17"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+                },
+                {
+                    "name": "ecs.capability.docker-plugin.amazon-ecs-volume-plugin"
+                },
+                {
+                    "name": "ecs.capability.task-eni"
+                },
+                {
+                    "name": "ecs.capability.firelens.fluentd"
+                },
+                {
+                    "name": "ecs.capability.efs"
+                },
+                {
+                    "name": "ecs.capability.execution-role-ecr-pull"
+                },
+                {
+                    "name": "ecs.capability.storage.ebs-task-volume-attach"
+                },
+                {
+                    "name": "ecs.capability.task-eni.ipv6"
+                },
+                {
+                    "name": "ecs.capability.container-health-check"
+                },
+                {
+                    "name": "ecs.os-family",
+                    "value": "LINUX"
+                },
+                {
+                    "name": "ecs.capability.execute-command"
+                },
+                {
+                    "name": "ecs.subnet-id",
+                    "value": "subnet-068e3484d05611445"
+                },
+                {
+                    "name": "ecs.instance-type",
+                    "value": "t3.micro"
+                },
+                {
+                    "name": "ecs.capability.firelens.non-root-user"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.task-iam-role-network-host"
+                },
+                {
+                    "name": "ecs.capability.increased-task-cpu-limit"
+                },
+                {
+                    "name": "ecs.capability.network.container-port-range"
+                },
+                {
+                    "name": "ecs.capability.fault-injection"
+                },
+                {
+                    "name": "ecs.capability.container-ordering"
+                },
+                {
+                    "name": "ecs.capability.cni-plugin-version",
+                    "value": "unknown-"
+                },
+                {
+                    "name": "ecs.capability.env-files.s3"
+                },
+                {
+                    "name": "ecs.capability.pid-ipc-namespace-sharing"
+                },
+                {
+                    "name": "ecs.capability.secrets.ssm.environment-variables"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.40"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.41"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.42"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.43"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.44"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.task-iam-role"
+                }
+            ],
+            "registeredAt": "2025-08-05T20:08:26.076000+00:00",
+            "attachments": [],
+            "tags": []
+        },
+        {
+            "containerInstanceArn": "arn:aws:ecs:us-east-1:387678648422:container-instance/cluster-bia-alb/c1216a830a224d079ef923ddda8add81",
+            "ec2InstanceId": "i-0ad0591743928c602",
+            "version": 3,
+            "versionInfo": {
+                "agentVersion": "1.97.0",
+                "agentHash": "37ff4978",
+                "dockerVersion": "DockerVersion: 25.0.8"
+            },
+            "remainingResources": [
+                {
+                    "name": "CPU",
+                    "type": "INTEGER",
+                    "doubleValue": 0.0,
+                    "longValue": 0,
+                    "integerValue": 2048
+                },
+                {
+                    "name": "MEMORY",
+                    "type": "INTEGER",
+                    "doubleValue": 0.0,
+                    "longValue": 0,
+                    "integerValue": 904
+                },
+                {
+                    "name": "PORTS",
+                    "type": "STRINGSET",
+                    "doubleValue": 0.0,
+                    "longValue": 0,
+                    "integerValue": 0,
+                    "stringSetValue": [
+                        "22",
+                        "2376",
+                        "2375",
+                        "51678",
+                        "51679"
+                    ]
+                },
+                {
+                    "name": "PORTS_UDP",
+                    "type": "STRINGSET",
+                    "doubleValue": 0.0,
+                    "longValue": 0,
+                    "integerValue": 0,
+                    "stringSetValue": []
+                }
+            ],
+            "registeredResources": [
+                {
+                    "name": "CPU",
+                    "type": "INTEGER",
+                    "doubleValue": 0.0,
+                    "longValue": 0,
+                    "integerValue": 2048
+                },
+                {
+                    "name": "MEMORY",
+                    "type": "INTEGER",
+                    "doubleValue": 0.0,
+                    "longValue": 0,
+                    "integerValue": 904
+                },
+                {
+                    "name": "PORTS",
+                    "type": "STRINGSET",
+                    "doubleValue": 0.0,
+                    "longValue": 0,
+                    "integerValue": 0,
+                    "stringSetValue": [
+                        "22",
+                        "2376",
+                        "2375",
+                        "51678",
+                        "51679"
+                    ]
+                },
+                {
+                    "name": "PORTS_UDP",
+                    "type": "STRINGSET",
+                    "doubleValue": 0.0,
+                    "longValue": 0,
+                    "integerValue": 0,
+                    "stringSetValue": []
+                }
+            ],
+            "status": "ACTIVE",
+            "agentConnected": true,
+            "runningTasksCount": 0,
+            "pendingTasksCount": 0,
+            "attributes": [
+                {
+                    "name": "ecs.capability.secrets.asm.environment-variables"
+                },
+                {
+                    "name": "ecs.capability.branch-cni-plugin-version",
+                    "value": "unknown-"
+                },
+                {
+                    "name": "ecs.ami-id",
+                    "value": "ami-07985a96d172b21ee"
+                },
+                {
+                    "name": "ecs.capability.secrets.asm.bootstrap.log-driver"
+                },
+                {
+                    "name": "ecs.capability.task-eia.optimized-cpu"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.logging-driver.none"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.35"
+                },
+                {
+                    "name": "ecs.capability.ecr-endpoint"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.36"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.37"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.38"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.39"
+                },
+                {
+                    "name": "ecs.capability.docker-plugin.local"
+                },
+                {
+                    "name": "ecs.capability.task-cpu-mem-limit"
+                },
+                {
+                    "name": "ecs.capability.secrets.ssm.bootstrap.log-driver"
+                },
+                {
+                    "name": "ecs.capability.efsAuth"
+                },
+                {
+                    "name": "ecs.capability.full-sync"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.30"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.31"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.32"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.33"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.logging-driver.fluentd"
+                },
+                {
+                    "name": "ecs.capability.storage.ebs-supported-instance"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.34"
+                },
+                {
+                    "name": "ecs.capability.firelens.options.config.file"
+                },
+                {
+                    "name": "ecs.capability.logging-driver.awsfirelens.log-driver-buffer-limit"
+                },
+                {
+                    "name": "ecs.availability-zone",
+                    "value": "us-east-1b"
+                },
+                {
+                    "name": "ecs.capability.aws-appmesh"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.24"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.25"
+                },
+                {
+                    "name": "ecs.capability.task-eni-trunking"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.26"
+                },
+                {
+                    "name": "ecs.capability.container-restart-policy"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.27"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.28"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.privileged-container"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+                },
+                {
+                    "name": "ecs.cpu-architecture",
+                    "value": "x86_64"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.ecr-auth"
+                },
+                {
+                    "name": "ecs.capability.firelens.fluentbit"
+                },
+                {
+                    "name": "ecs.capability.service-connect-v1"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.20"
+                },
+                {
+                    "name": "ecs.os-type",
+                    "value": "linux"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.22"
+                },
+                {
+                    "name": "ecs.capability.private-registry-authentication.secretsmanager"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.23"
+                },
+                {
+                    "name": "ecs.capability.task-eia"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.logging-driver.syslog"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.logging-driver.awsfirelens"
+                },
+                {
+                    "name": "ecs.capability.firelens.options.config.s3"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.logging-driver.json-file"
+                },
+                {
+                    "name": "ecs.capability.execution-role-awslogs"
+                },
+                {
+                    "name": "ecs.vpc-id",
+                    "value": "vpc-08b8e37ee6ff01860"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.17"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+                },
+                {
+                    "name": "ecs.capability.docker-plugin.amazon-ecs-volume-plugin"
+                },
+                {
+                    "name": "ecs.capability.task-eni"
+                },
+                {
+                    "name": "ecs.capability.firelens.fluentd"
+                },
+                {
+                    "name": "ecs.capability.efs"
+                },
+                {
+                    "name": "ecs.capability.execution-role-ecr-pull"
+                },
+                {
+                    "name": "ecs.capability.storage.ebs-task-volume-attach"
+                },
+                {
+                    "name": "ecs.capability.task-eni.ipv6"
+                },
+                {
+                    "name": "ecs.capability.container-health-check"
+                },
+                {
+                    "name": "ecs.os-family",
+                    "value": "LINUX"
+                },
+                {
+                    "name": "ecs.capability.execute-command"
+                },
+                {
+                    "name": "ecs.subnet-id",
+                    "value": "subnet-0c665b052ff5c528d"
+                },
+                {
+                    "name": "ecs.instance-type",
+                    "value": "t3.micro"
+                },
+                {
+                    "name": "ecs.capability.firelens.non-root-user"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.task-iam-role-network-host"
+                },
+                {
+                    "name": "ecs.capability.increased-task-cpu-limit"
+                },
+                {
+                    "name": "ecs.capability.network.container-port-range"
+                },
+                {
+                    "name": "ecs.capability.fault-injection"
+                },
+                {
+                    "name": "ecs.capability.container-ordering"
+                },
+                {
+                    "name": "ecs.capability.cni-plugin-version",
+                    "value": "unknown-"
+                },
+                {
+                    "name": "ecs.capability.env-files.s3"
+                },
+                {
+                    "name": "ecs.capability.pid-ipc-namespace-sharing"
+                },
+                {
+                    "name": "ecs.capability.secrets.ssm.environment-variables"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.40"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.41"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.42"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.43"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.docker-remote-api.1.44"
+                },
+                {
+                    "name": "com.amazonaws.ecs.capability.task-iam-role"
+                }
+            ],
+            "registeredAt": "2025-08-05T20:08:26.527000+00:00",
+            "attachments": [],
+            "tags": []
+        }
+    ],
+    "failures": []
+}
+=== EC2 INSTANCES (ECS) ===
+---------------------------------------------------------------------------------------------------------------
+|                                              DescribeInstances                                              |
++---------------------+-----------------------------+----------+----------------------------------+-----------+
+|         Id          |         LaunchTime          |  State   |              Tags                |   Type    |
++---------------------+-----------------------------+----------+----------------------------------+-----------+
+|  i-0c2ae9b2aacad6d35|  2025-08-05T20:07:56+00:00  |  running |  ECS Instance - cluster-bia-alb  |  t3.micro |
+|  i-0ad0591743928c602|  2025-08-05T20:07:55+00:00  |  running |  ECS Instance - cluster-bia-alb  |  t3.micro |
++---------------------+-----------------------------+----------+----------------------------------+-----------+
+==================== END ITERATION 2 ====================
+[0;32m[20:08:31] ✅ CLUSTER ATIVO COM 2 INSTÂNCIAS - Captura completa![0m
+[0;32m[20:08:31] 🎯 MONITORAMENTO CONCLUÍDO - Recursos capturados em /home/ec2-user/bia/cluster-creation-monitor.log[0m

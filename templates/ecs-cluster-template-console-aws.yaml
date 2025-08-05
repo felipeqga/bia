@@ -1,0 +1,213 @@
+# Template ECS Cluster - Replicando Console AWS
+# Baseado em análise dos recursos criados automaticamente pelo Console AWS
+# Status: TESTADO E FUNCIONANDO (múltiplas vezes)
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Template para criar cluster ECS com instâncias EC2 - Replicando Console AWS'
+
+Parameters:
+  ClusterName:
+    Type: String
+    Default: cluster-bia-alb
+    Description: Nome do cluster ECS
+  
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    Description: Tipo de instância EC2
+  
+  MinSize:
+    Type: Number
+    Default: 2
+    Description: Número mínimo de instâncias
+  
+  MaxSize:
+    Type: Number
+    Default: 2
+    Description: Número máximo de instâncias
+  
+  DesiredCapacity:
+    Type: Number
+    Default: 2
+    Description: Capacidade desejada
+  
+  VpcId:
+    Type: String
+    Default: vpc-08b8e37ee6ff01860
+    Description: VPC ID
+  
+  SubnetIds:
+    Type: CommaDelimitedList
+    Default: "subnet-068e3484d05611445,subnet-0c665b052ff5c528d"
+    Description: Subnet IDs (us-east-1a, us-east-1b)
+  
+  SecurityGroupId:
+    Type: String
+    Default: sg-00c1a082f04bc6709
+    Description: Security Group ID (bia-ec2)
+  
+  LatestECSOptimizedAMI:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ecs/optimized-ami/amazon-linux-2023/recommended/image_id
+    Description: AMI mais recente otimizada para ECS
+
+Resources:
+  # 1. ECS Cluster
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Ref ClusterName
+      CapacityProviders:
+        - FARGATE
+        - FARGATE_SPOT
+        - !Ref AsgCapacityProvider
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: !Ref AsgCapacityProvider
+          Weight: 1
+          Base: 0
+      ClusterSettings:
+        - Name: containerInsights
+          Value: disabled
+
+  # 2. Launch Template
+  ECSLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub "${ClusterName}-LaunchTemplate"
+      LaunchTemplateData:
+        ImageId: !Ref LatestECSOptimizedAMI
+        InstanceType: !Ref InstanceType
+        SecurityGroupIds:
+          - !Ref SecurityGroupId
+        IamInstanceProfile:
+          Arn: !Sub "arn:aws:iam::${AWS::AccountId}:instance-profile/role-acesso-ssm"
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            echo ECS_CLUSTER=${ClusterName} >> /etc/ecs/ecs.config
+            echo ECS_BACKEND_HOST= >> /etc/ecs/ecs.config
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: !Sub "ECS Instance - ${ClusterName}"
+              - Key: Project
+                Value: BIA
+
+  # 3. Auto Scaling Group
+  ECSAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: !Sub "${ClusterName}-AutoScalingGroup"
+      VPCZoneIdentifier: !Ref SubnetIds
+      LaunchTemplate:
+        LaunchTemplateId: !Ref ECSLaunchTemplate
+        Version: !GetAtt ECSLaunchTemplate.LatestVersionNumber
+      MinSize: !Ref MinSize
+      MaxSize: !Ref MaxSize
+      DesiredCapacity: !Ref DesiredCapacity
+      HealthCheckType: EC2
+      HealthCheckGracePeriod: 300
+      Tags:
+        - Key: Name
+          Value: !Sub "${ClusterName}-AutoScalingGroup"
+          PropagateAtLaunch: false
+        - Key: Project
+          Value: BIA
+          PropagateAtLaunch: true
+
+  # 4. Capacity Provider
+  AsgCapacityProvider:
+    Type: AWS::ECS::CapacityProvider
+    Properties:
+      Name: !Sub "${AWS::StackName}-AsgCapacityProvider"
+      AutoScalingGroupProvider:
+        AutoScalingGroupArn: !Ref ECSAutoScalingGroup
+        ManagedScaling:
+          Status: ENABLED
+          TargetCapacity: 100
+          MinimumScalingStepSize: 1
+          MaximumScalingStepSize: 1000
+          InstanceWarmupPeriod: 300
+        ManagedTerminationProtection: DISABLED
+        ManagedDraining: ENABLED
+
+  # 5. Cluster Capacity Provider Association
+  ClusterCPAssociation:
+    Type: AWS::ECS::ClusterCapacityProviderAssociations
+    Properties:
+      Cluster: !Ref ECSCluster
+      CapacityProviders:
+        - FARGATE
+        - FARGATE_SPOT
+        - !Ref AsgCapacityProvider
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: !Ref AsgCapacityProvider
+          Weight: 1
+          Base: 0
+
+Outputs:
+  ClusterName:
+    Description: Nome do cluster ECS criado
+    Value: !Ref ECSCluster
+    Export:
+      Name: !Sub "${AWS::StackName}-ClusterName"
+  
+  ClusterArn:
+    Description: ARN do cluster ECS
+    Value: !GetAtt ECSCluster.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-ClusterArn"
+  
+  CapacityProviderName:
+    Description: Nome do Capacity Provider
+    Value: !Ref AsgCapacityProvider
+    Export:
+      Name: !Sub "${AWS::StackName}-CapacityProvider"
+  
+  AutoScalingGroupName:
+    Description: Nome do Auto Scaling Group
+    Value: !Ref ECSAutoScalingGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-AutoScalingGroup"
+
+# Metadata para documentação
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Configurações do Cluster"
+        Parameters:
+          - ClusterName
+          - InstanceType
+      - Label:
+          default: "Configurações de Capacidade"
+        Parameters:
+          - MinSize
+          - MaxSize
+          - DesiredCapacity
+      - Label:
+          default: "Configurações de Rede"
+        Parameters:
+          - VpcId
+          - SubnetIds
+          - SecurityGroupId
+          - KeyPairName
+    ParameterLabels:
+      ClusterName:
+        default: "Nome do Cluster ECS"
+      InstanceType:
+        default: "Tipo de Instância EC2"
+      MinSize:
+        default: "Capacidade Mínima"
+      MaxSize:
+        default: "Capacidade Máxima"
+      DesiredCapacity:
+        default: "Capacidade Desejada"
+
+# Histórico de uso:
+# - Criado com sucesso múltiplas vezes
+# - Testado com instâncias t3.micro
+# - Funciona com Security Groups do projeto BIA
+# - Compatível com ALB + Target Groups
+# - Suporta managed scaling e draining
