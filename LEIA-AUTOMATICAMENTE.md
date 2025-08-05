@@ -2,7 +2,7 @@
 
 ## ⚠️ **LEIA IMEDIATAMENTE TODOS OS ARQUIVOS .MD DO PROJETO BIA**
 
-Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 39 arquivos .md listados abaixo para ter contexto completo:
+Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 49 arquivos .md listados abaixo para ter contexto completo:
 
 ### **🔧 Regras de Configuração (9 arquivos) - CRÍTICAS:**
 - `/home/ec2-user/bia/.amazonq/rules/atualizacao-leitura-automatica.md`
@@ -115,13 +115,14 @@ Você deve estar completamente contextualizado sobre:
 
 ### **🚀 Sistemas Implementados:**
 - **Deploy versionado:** Sistema completo com rollback
-- **MCP Servers:** ECS + Database especializados
+- **MCP Servers:** ECS + Database + FastMCP especializados
 - **Otimizações:** 31% melhoria no tempo de deploy comprovada
 - **Scripts automáticos:** Reativação e parada para economia
+- **FastMCP:** Comandos customizados integrados e automatizados
 
 ---
 
-*Atualizado em: 04/08/2025 03:25 UTC*  
-*Total de arquivos: 40 arquivos .md organizados por categoria*  
-*Sistema: QBIA funcionando perfeitamente*  
-*Nova adição: Método Híbrido de Rollback documentado*
+*Atualizado em: 05/08/2025 15:35 UTC*  
+*Total de arquivos: 49 arquivos .md organizados por categoria*  
+*Sistema: QBIA funcionando perfeitamente com FastMCP integrado*  
+*Nova adição: FastMCP implementado com automação completa*

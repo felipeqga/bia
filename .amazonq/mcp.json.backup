@@ -23,13 +23,6 @@
         "run", "-i", "--rm", "mcp/postgres",
         "postgresql://postgres:Kgegwlaj6mAIxzHaEqgo@bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com:5432/bia"
       ]
-    },
-    "bia-fastmcp": {
-      "command": "python3",
-      "args": ["-c", "from fastmcp import Client; import asyncio; client = Client('http://localhost:8080/sse/'); print('FastMCP conectado')"],
-      "env": {
-        "FASTMCP_URL": "http://localhost:8080/sse/"
-      }
     }
   }
 }

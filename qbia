@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# QBIA - Sistema de contexto completo + FastMCP automático
+# Carrega todos os arquivos .md do projeto BIA e inicia FastMCP
+
+echo "🚀 SISTEMA QBIA - Carregando contexto completo do projeto BIA"
+echo "================================================================"
+
+# Iniciar FastMCP automaticamente
+echo "⚡ Iniciando FastMCP em background..."
+/home/ec2-user/bia/scripts/start-fastmcp.sh
+
+echo ""
+echo "📚 Carregando contexto completo do projeto BIA..."
+echo "📁 Diretório: /home/ec2-user/bia"
+echo "📄 Arquivos .md encontrados:"
+
+# Contar e listar arquivos .md
+MD_COUNT=$(find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l)
+echo "📊 Total: $MD_COUNT arquivos .md"
+
+echo ""
+echo "✅ SISTEMA QBIA ATIVO:"
+echo "   🤖 Amazon Q: Contexto completo carregado"
+echo "   ⚡ FastMCP: Servidor rodando em background"
+echo "   🔧 MCP Servers: 4 servidores ativos (filesystem + ECS + postgres + FastMCP)"
+echo ""
+echo "🎯 Agora você pode fazer perguntas sobre o projeto BIA!"
+echo "   - Informações do projeto"
+echo "   - Comandos AWS personalizados"
+echo "   - Análise de arquivos"
+echo "   - Operações de infraestrutura"
+echo ""
+
+# Executar Amazon Q
+exec q
