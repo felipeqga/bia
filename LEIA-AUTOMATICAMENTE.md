@@ -4,7 +4,7 @@
 
 Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 49 arquivos .md listados abaixo para ter contexto completo:
 
-### **🔧 Regras de Configuração (9 arquivos) - CRÍTICAS:**
+### **🔧 Regras de Configuração (10 arquivos) - CRÍTICAS:**
 - `/home/ec2-user/bia/.amazonq/rules/atualizacao-leitura-automatica.md`
 - `/home/ec2-user/bia/.amazonq/rules/desafio-3-correcao-ia.md`
 - `/home/ec2-user/bia/.amazonq/rules/dockerfile.md`
@@ -14,6 +14,7 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 4
 - `/home/ec2-user/bia/.amazonq/rules/troubleshooting.md`
 - `/home/ec2-user/bia/.amazonq/CONTEXTO-INICIAL.md`
 - `/home/ec2-user/bia/.amazonq/REFINAMENTOS.md`
+- `/home/ec2-user/bia/PASSOS-DELETAR-CLUSTER-ECS.md`
 
 ### **📚 Documentação Base (4 arquivos):**
 - `/home/ec2-user/bia/AmazonQ.md`
@@ -32,8 +33,9 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 4
 - `/home/ec2-user/bia/historico-descoberta-console-aws-vs-cli.md`
 - `/home/ec2-user/bia/metodo-hibrido-rollback-codepipeline.md`
 
-### **📊 Status e Verificação (1 arquivo):**
+### **📊 Status e Verificação (2 arquivos):**
 - `/home/ec2-user/bia/CONTEXTO-RAPIDO.md`
+- `/home/ec2-user/bia/CORRECAO-DOCUMENTACAO-CLUSTER-ECS.md`
 
 ### **🤖 Arquivos de Contexto e Sistema (9 arquivos):**
 - `/home/ec2-user/bia/.amazonq/context/desafio-3-ecs-alb.md`
@@ -122,7 +124,7 @@ Você deve estar completamente contextualizado sobre:
 
 ---
 
-*Atualizado em: 05/08/2025 15:35 UTC*  
-*Total de arquivos: 49 arquivos .md organizados por categoria*  
+*Atualizado em: 05/08/2025 16:35 UTC*  
+*Total de arquivos: 51 arquivos .md organizados por categoria*  
 *Sistema: QBIA funcionando perfeitamente com FastMCP integrado*  
-*Nova adição: FastMCP implementado com automação completa*
+*Nova adição: Descoberta crítica - Amazon Q PODE criar clusters ECS via CloudFormation*

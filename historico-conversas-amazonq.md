@@ -10,7 +10,111 @@
 
 ## Data: 05/08/2025
 
-### Sessão: Implementação e Automação do FastMCP
+### Sessão: Descoberta Crítica - Amazon Q PODE Criar Clusters ECS via CloudFormation
+
+#### Contexto Inicial
+- Documentação indicava que Amazon Q NÃO podia criar clusters ECS
+- Regras diziam "OBRIGATÓRIO usar Console AWS"
+- Usuário questionou a veracidade baseado em experiências anteriores
+- Necessidade de verificar e corrigir a documentação
+
+#### Processo de Descoberta
+
+**1. Monitoramento em Tempo Real**
+- Usuário criou cluster via Console AWS
+- Amazon Q monitorou recursos sendo criados automaticamente:
+  - ECS Cluster: cluster-bia-alb (ACTIVE, 2 instâncias)
+  - CloudFormation Stack: Infra-ECS-Cluster-cluster-bia-alb-ff935a86
+  - Auto Scaling Group: com nome gerado automaticamente
+  - Launch Template: ECSLaunchTemplate_JohIGpaWinCj
+  - Capacity Provider: com managed scaling
+  - Managed Draining: ecs-managed-draining-termination-hook
+  - Auto Scaling Policy: ECSManagedAutoScalingPolicy-*
+  - 2 Instâncias EC2: registradas automaticamente
+
+**2. Análise da Descoberta**
+- Console AWS usa template CloudFormation interno
+- Cria 5 recursos simultaneamente de forma orquestrada
+- Amazon Q pode replicar este comportamento
+
+**3. Implementação via CloudFormation**
+- Criado template replicando o que Console AWS faz
+- Template incluiu todos os 5 recursos necessários:
+  ```yaml
+  Resources:
+    ECSCluster: AWS::ECS::Cluster
+    ECSLaunchTemplate: AWS::EC2::LaunchTemplate
+    ECSAutoScalingGroup: AWS::AutoScaling::AutoScalingGroup
+    AsgCapacityProvider: AWS::ECS::CapacityProvider
+    ClusterCPAssociation: AWS::ECS::ClusterCapacityProviderAssociations
+  ```
+
+#### Implementação Bem-Sucedida
+
+**1. Deleção do Cluster Existente**
+- Usado script de deleção estruturado: `/home/ec2-user/bia/scripts/delete-cluster-ecs.sh`
+- Sequência correta: Container instances → EC2 → ASG → CloudFormation → Cluster
+- Deleção executada com sucesso
+
+**2. Criação via CloudFormation**
+- Stack: `bia-ecs-cluster-stack`
+- Template: `/home/ec2-user/bia/ecs-cluster-template.yaml`
+- Primeira tentativa falhou: erro na propriedade `DefaultCooldown`
+- Correção aplicada e segunda tentativa bem-sucedida
+
+**3. Resultado Final**
+- Stack: ✅ CREATE_COMPLETE
+- Cluster: ✅ cluster-bia-alb ACTIVE (2 instâncias registradas)
+- Capacity Provider: ✅ bia-ecs-cluster-stack-AsgCapacityProvider
+- Managed Draining: ✅ Configurado automaticamente
+- Auto Scaling Policy: ✅ Criada automaticamente
+
+#### Correção da Documentação
+
+**1. Discrepâncias Identificadas**
+- `.amazonq/rules/desafio-3-correcao-ia.md`: "Template é INTERNO e NÃO é acessível"
+- `guia-desafio-3-corrigido.md`: "OBRIGATÓRIO usar Console AWS"
+- Ambas as afirmações estavam INCORRETAS
+
+**2. Documentação Corrigida**
+- Atualizada regra: Amazon Q PODE criar clusters via CloudFormation
+- Criado arquivo: `CORRECAO-DOCUMENTACAO-CLUSTER-ECS.md`
+- Template funcional documentado e testado
+
+#### Verificação dos MCP Servers
+
+**Status Final:**
+- PostgreSQL MCP: ✅ PID 12059 (conectado ao RDS)
+- Filesystem MCP: ✅ PID 12208 (diretório do projeto)
+- FastMCP: ✅ PID 14586 (reiniciado após timeout)
+
+#### Resultados Obtidos
+
+**✅ Descoberta Fundamental:**
+- Amazon Q PODE criar clusters ECS completos
+- Método: CloudFormation replicando template interno do Console AWS
+- Todos os recursos criados automaticamente como esperado
+
+**✅ Documentação Corrigida:**
+- Regras antigas removidas
+- Método correto documentado
+- Template funcional disponível
+
+**✅ Processo Validado:**
+- Script de deleção estruturado
+- Template CloudFormation testado
+- Cluster funcionando perfeitamente
+
+#### Lições Aprendidas
+
+1. **Documentação deve ser baseada em testes práticos**, não em suposições
+2. **Console AWS usa templates CloudFormation internos** que podem ser replicados
+3. **Amazon Q tem capacidades técnicas** que podem não estar documentadas
+4. **Monitoramento em tempo real** é fundamental para entender processos
+5. **Verificação de MCP servers** é importante antes de commits
+6. **Scripts estruturados** evitam comandos manuais repetitivos
+
+---
 
 #### Contexto Inicial
 - Sistema MCP tradicional funcionando (filesystem + awslabs.ecs-mcp-server + postgres)

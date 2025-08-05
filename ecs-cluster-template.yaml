@@ -1,0 +1,140 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Template para criar cluster ECS com instâncias EC2 - Replicando Console AWS'
+
+Parameters:
+  ClusterName:
+    Type: String
+    Default: cluster-bia-alb
+    Description: Nome do cluster ECS
+  
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    Description: Tipo da instância EC2
+  
+  DesiredCapacity:
+    Type: Number
+    Default: 2
+    Description: Número de instâncias desejadas
+  
+  VpcId:
+    Type: String
+    Default: vpc-08b8e37ee6ff01860
+    Description: ID da VPC
+  
+  SubnetIds:
+    Type: CommaDelimitedList
+    Default: "subnet-068e3484d05611445,subnet-0c665b052ff5c528d"
+    Description: IDs das subnets
+  
+  SecurityGroupId:
+    Type: String
+    Default: sg-00c1a082f04bc6709
+    Description: ID do Security Group
+  
+  InstanceProfileArn:
+    Type: String
+    Default: arn:aws:iam::387678648422:instance-profile/role-acesso-ssm
+    Description: ARN do Instance Profile
+
+Resources:
+  # ECS Cluster
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Ref ClusterName
+      ClusterSettings:
+        - Name: containerInsights
+          Value: disabled
+
+  # Launch Template
+  ECSLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub 'ECSLaunchTemplate_${ClusterName}'
+      LaunchTemplateData:
+        ImageId: ami-07985a96d172b21ee  # ECS Optimized AMI
+        InstanceType: !Ref InstanceType
+        IamInstanceProfile:
+          Arn: !Ref InstanceProfileArn
+        SecurityGroupIds:
+          - !Ref SecurityGroupId
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            echo ECS_CLUSTER=${ClusterName} >> /etc/ecs/ecs.config
+            yum update -y
+            yum install -y ecs-init
+            service docker start
+            start ecs
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: !Sub 'ECS Instance - ${ClusterName}'
+              - Key: AmazonECSManaged
+                Value: ''
+
+  # Auto Scaling Group
+  ECSAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: !Sub '${AWS::StackName}-ECSAutoScalingGroup'
+      LaunchTemplate:
+        LaunchTemplateId: !Ref ECSLaunchTemplate
+        Version: !GetAtt ECSLaunchTemplate.LatestVersionNumber
+      MinSize: !Ref DesiredCapacity
+      MaxSize: !Ref DesiredCapacity
+      DesiredCapacity: !Ref DesiredCapacity
+      VPCZoneIdentifier: !Ref SubnetIds
+      HealthCheckType: EC2
+      HealthCheckGracePeriod: 0
+      Tags:
+        - Key: Name
+          Value: !Sub 'ECS Instance - ${ClusterName}'
+          PropagateAtLaunch: true
+        - Key: AmazonECSManaged
+          Value: ''
+          PropagateAtLaunch: true
+
+  # Capacity Provider
+  AsgCapacityProvider:
+    Type: AWS::ECS::CapacityProvider
+    Properties:
+      Name: !Sub '${AWS::StackName}-AsgCapacityProvider'
+      AutoScalingGroupProvider:
+        AutoScalingGroupArn: !Ref ECSAutoScalingGroup
+        ManagedScaling:
+          Status: ENABLED
+          TargetCapacity: 100
+          MinimumScalingStepSize: 1
+          MaximumScalingStepSize: 1000
+        ManagedTerminationProtection: DISABLED
+        ManagedDraining: ENABLED
+
+  # Cluster Capacity Provider Association
+  ClusterCPAssociation:
+    Type: AWS::ECS::ClusterCapacityProviderAssociations
+    Properties:
+      Cluster: !Ref ECSCluster
+      CapacityProviders:
+        - FARGATE
+        - FARGATE_SPOT
+        - !Ref AsgCapacityProvider
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: !Ref AsgCapacityProvider
+          Weight: 1
+          Base: 0
+
+Outputs:
+  ECSCluster:
+    Description: The created cluster
+    Value: !Ref ECSCluster
+  
+  AutoScalingGroup:
+    Description: The created Auto Scaling Group
+    Value: !Ref ECSAutoScalingGroup
+  
+  CapacityProvider:
+    Description: The created Capacity Provider
+    Value: !Ref AsgCapacityProvider
