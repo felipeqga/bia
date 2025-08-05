@@ -1371,3 +1371,169 @@ SSH Login → ~/.bashrc (imediato)
 *Status: Investigação completa + Testes práticos realizados*
 *FastMCP customizado confirmado como superior para projeto BIA*
 *Automação de inicialização validada e funcionando*
+
+---
+
+## Data: 05/08/2025
+
+### Sessão: Captura do Template CloudFormation Oficial + Implementação Bem-Sucedida
+
+#### Contexto Inicial
+- Usuário solicitou monitoramento em tempo real da criação de cluster via Console AWS
+- Objetivo: Capturar o template CloudFormation interno que o Console AWS usa
+- Problema histórico: Templates criados manualmente não funcionavam corretamente
+
+#### Processo de Captura Executado
+
+**1. Monitoramento em Tempo Real**
+- Criado script de monitoramento: `monitor-cluster-creation.sh`
+- Capturado em tempo real durante criação via Console AWS
+- Período: 05/08/2025 20:07-20:08 UTC
+- Stack capturado: `Infra-ECS-Cluster-cluster-bia-alb-ff935a86`
+
+**2. Template CloudFormation Oficial Extraído**
+```yaml
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "The template used to create an ECS Cluster from the ECS Console."
+
+Resources:
+  ECSCluster: AWS::ECS::Cluster
+  ECSLaunchTemplate: AWS::EC2::LaunchTemplate  
+  ECSAutoScalingGroup: AWS::AutoScaling::AutoScalingGroup
+  AsgCapacityProvider: AWS::ECS::CapacityProvider
+  ClusterCPAssociation: AWS::ECS::ClusterCapacityProviderAssociations
+```
+
+**3. Descobertas Críticas**
+- **User Data exato:** `echo ECS_CLUSTER=cluster-bia-alb >> /etc/ecs/ecs.config;`
+- **DependsOn obrigatório:** Dependências explícitas entre recursos
+- **GetAtt necessário:** `!GetAtt ECSLaunchTemplate.LatestVersionNumber`
+- **Capacity Provider Strategy:** FARGATE + FARGATE_SPOT + ASG
+- **Managed Scaling:** TargetCapacity: 100, ManagedTerminationProtection: DISABLED
+
+#### Implementação do Template Oficial
+
+**1. Criação dos Arquivos**
+- **Template:** `ecs-cluster-console-template.yaml` (baseado na captura)
+- **Script:** `deploy-cluster-ecs.sh` (automação completa)
+- **Documentação:** `TEMPLATE-CLOUDFORMATION-OFICIAL.md`
+
+**2. Dificuldades Encontradas e Soluções**
+
+**Problema 1: Parâmetro SubnetIds**
+```bash
+# ERRO:
+ParameterValue: ["subnet-068e3484d05611445,subnet-0c665b052ff5c528d"]
+# SOLUÇÃO:
+ParameterValue: subnet-068e3484d05611445,subnet-0c665b052ff5c528d
+```
+
+**Problema 2: Propriedade DefaultCooldown**
+```
+# ERRO:
+[#: extraneous key [DefaultCooldown] is not permitted]
+# SOLUÇÃO:
+Removida propriedade DefaultCooldown do Auto Scaling Group
+```
+
+**3. Implementação Final Bem-Sucedida**
+- **Stack:** `bia-ecs-cluster-stack` → CREATE_COMPLETE
+- **Cluster:** `cluster-bia-alb` → ACTIVE com 2 instâncias registradas
+- **Instâncias EC2:** 2x t3.micro rodando (us-east-1a, us-east-1b)
+- **Auto Scaling Group:** 2/2/2 (Min/Max/Desired) → InService e Healthy
+- **Capacity Provider:** `cluster-bia-alb-CapacityProvider` → ACTIVE
+- **Managed Draining:** Configurado automaticamente
+- **Auto Scaling Policy:** Criada automaticamente
+
+#### Recursos Criados com Sucesso
+
+**CloudFormation Stack:**
+```json
+{
+  "StackName": "bia-ecs-cluster-stack",
+  "StackStatus": "CREATE_COMPLETE",
+  "Description": "Template ECS Cluster - Baseado na captura do Console AWS oficial"
+}
+```
+
+**ECS Cluster:**
+```json
+{
+  "clusterName": "cluster-bia-alb",
+  "status": "ACTIVE",
+  "registeredContainerInstancesCount": 2,
+  "capacityProviders": ["FARGATE", "FARGATE_SPOT", "cluster-bia-alb-CapacityProvider"]
+}
+```
+
+**Instâncias EC2:**
+- **i-0dc06e1044af8e754** (us-east-1a) - 44.204.245.68
+- **i-0064d2ec7b80fa907** (us-east-1b) - 34.230.40.143
+
+**Auto Scaling Group:**
+```json
+{
+  "AutoScalingGroupName": "cluster-bia-alb-AutoScalingGroup",
+  "MinSize": 2, "MaxSize": 2, "DesiredCapacity": 2,
+  "Instances": ["InService", "Healthy"]
+}
+```
+
+#### Validação Completa
+
+**Testes Executados:**
+```bash
+# Cluster ativo com instâncias
+aws ecs describe-clusters --clusters cluster-bia-alb
+# Resultado: ACTIVE, 2 instâncias registradas ✅
+
+# Auto Scaling Group funcionando
+aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names cluster-bia-alb-AutoScalingGroup
+# Resultado: 2 instâncias InService e Healthy ✅
+
+# Capacity Provider ativo
+aws ecs describe-capacity-providers
+# Resultado: cluster-bia-alb-CapacityProvider ACTIVE ✅
+```
+
+#### Lições Aprendidas
+
+1. **Captura em Tempo Real Funciona:** Monitoramento durante criação via Console AWS revelou template interno
+2. **Detalhes Críticos:** User Data, DependsOn, GetAtt são obrigatórios para funcionamento
+3. **Validação de Parâmetros:** AWS CLI é rigoroso com tipos de parâmetros
+4. **Propriedades Específicas:** Nem todas as propriedades do Console são válidas no CloudFormation
+5. **Template Oficial Superior:** 100% compatível com Console AWS
+
+#### Arquivos Criados/Atualizados
+
+- **`ecs-cluster-console-template.yaml`** - Template oficial funcional
+- **`deploy-cluster-ecs.sh`** - Script de automação (corrigido)
+- **`TEMPLATE-CLOUDFORMATION-OFICIAL.md`** - Documentação completa
+- **`monitor-cluster-creation.sh`** - Script de monitoramento
+- **`cluster-creation-monitor.log`** - Log da captura oficial
+
+#### Resultado Final
+
+**✅ SUCESSO COMPLETO:**
+- Template CloudFormation oficial capturado e funcionando
+- Cluster ECS criado via CloudFormation (não Console)
+- 100% compatível com comportamento oficial
+- Documentação completa para reutilização
+- Scripts automatizados para deploy/update/delete
+
+**🎯 IMPACTO:**
+Agora Amazon Q pode criar clusters ECS perfeitamente funcionais via CloudFormation, replicando exatamente o que o Console AWS faz internamente.
+
+**💡 MÉTODO DESCOBERTO:**
+1. Monitorar Console AWS em tempo real
+2. Capturar template CloudFormation interno
+3. Adaptar para uso via CLI
+4. Corrigir incompatibilidades específicas
+5. Validar funcionamento completo
+
+---
+
+*Sessão concluída em: 05/08/2025 20:25 UTC*
+*Status: Template oficial capturado e implementado com sucesso*
+*Cluster ECS funcionando via CloudFormation*
+*Método documentado e validado para reutilização*

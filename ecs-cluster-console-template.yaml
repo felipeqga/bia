@@ -1,0 +1,216 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Template ECS Cluster - Baseado na captura do Console AWS oficial"
+
+Parameters:
+  ECSClusterName:
+    Type: String
+    Description: "Nome do cluster ECS"
+    Default: "cluster-bia-alb"
+    
+  SecurityGroupIds:
+    Type: CommaDelimitedList
+    Description: "Lista de Security Groups para as instâncias EC2"
+    Default: "sg-00c1a082f04bc6709"
+    
+  VpcId:
+    Type: String
+    Description: "ID da VPC onde o cluster será criado"
+    Default: "vpc-08b8e37ee6ff01860"
+    AllowedPattern: "^(?:vpc-[0-9a-f]{8,17}|)$"
+    ConstraintDescription: "VPC Id must begin with 'vpc-' and have a valid uuid"
+    
+  SubnetIds:
+    Type: CommaDelimitedList
+    Description: "Lista de Subnet IDs onde as instâncias EC2 serão criadas"
+    Default: "subnet-068e3484d05611445,subnet-0c665b052ff5c528d"
+    
+  InstanceType:
+    Type: String
+    Description: "Tipo de instância EC2"
+    Default: "t3.micro"
+    AllowedValues:
+      - t3.micro
+      - t3.small
+      - t3.medium
+      
+  MinSize:
+    Type: Number
+    Description: "Número mínimo de instâncias"
+    Default: 2
+    MinValue: 1
+    MaxValue: 10
+    
+  MaxSize:
+    Type: Number
+    Description: "Número máximo de instâncias"
+    Default: 2
+    MinValue: 1
+    MaxValue: 10
+    
+  DesiredCapacity:
+    Type: Number
+    Description: "Número desejado de instâncias"
+    Default: 2
+    MinValue: 1
+    MaxValue: 10
+    
+  LatestECSOptimizedAMI:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Description: "AMI otimizada para ECS (obtida automaticamente)"
+    Default: "/aws/service/ecs/optimized-ami/amazon-linux-2023/recommended/image_id"
+    
+  Ec2InstanceProfileArn:
+    Type: String
+    Description: "ARN do Instance Profile para as instâncias EC2"
+    Default: "arn:aws:iam::387678648422:instance-profile/role-acesso-ssm"
+
+Resources:
+  # 1. ECS Cluster
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Ref ECSClusterName
+      ClusterSettings:
+        - Name: containerInsights
+          Value: disabled
+      Tags:
+        - Key: Name
+          Value: !Ref ECSClusterName
+        - Key: Project
+          Value: BIA
+        - Key: Environment
+          Value: Production
+
+  # 2. Launch Template
+  ECSLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    DependsOn: ECSCluster
+    Properties:
+      LaunchTemplateName: !Sub "${ECSClusterName}-LaunchTemplate"
+      LaunchTemplateData:
+        ImageId: !Ref LatestECSOptimizedAMI
+        SecurityGroupIds: !Ref SecurityGroupIds
+        InstanceType: !Ref InstanceType
+        IamInstanceProfile:
+          Arn: !Ref Ec2InstanceProfileArn
+        UserData:
+          Fn::Base64:
+            Fn::Sub:
+              - |
+                #!/bin/bash 
+                echo ECS_CLUSTER=${ClusterName} >> /etc/ecs/ecs.config;
+              - ClusterName: !Ref ECSClusterName
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: !Sub "ECS Instance - ${ECSClusterName}"
+              - Key: Project
+                Value: BIA
+              - Key: Environment
+                Value: Production
+
+  # 3. Auto Scaling Group
+  ECSAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    DependsOn: ECSCluster
+    Properties:
+      AutoScalingGroupName: !Sub "${ECSClusterName}-AutoScalingGroup"
+      MinSize: !Ref MinSize
+      MaxSize: !Ref MaxSize
+      DesiredCapacity: !Ref DesiredCapacity
+      LaunchTemplate:
+        LaunchTemplateId: !Ref ECSLaunchTemplate
+        Version: !GetAtt ECSLaunchTemplate.LatestVersionNumber
+      VPCZoneIdentifier: !Ref SubnetIds
+      HealthCheckType: EC2
+      HealthCheckGracePeriod: 300
+      Tags:
+        - Key: Name
+          PropagateAtLaunch: false
+          Value: !Sub "${ECSClusterName}-AutoScalingGroup"
+        - Key: Project
+          PropagateAtLaunch: true
+          Value: BIA
+        - Key: Environment
+          PropagateAtLaunch: true
+          Value: Production
+        - Key: ClusterName
+          PropagateAtLaunch: true
+          Value: !Ref ECSClusterName
+        - Key: AmazonECSManaged
+          PropagateAtLaunch: true
+          Value: ""
+
+  # 4. Capacity Provider
+  AsgCapacityProvider:
+    Type: AWS::ECS::CapacityProvider
+    Properties:
+      Name: !Sub "${ECSClusterName}-CapacityProvider"
+      AutoScalingGroupProvider:
+        AutoScalingGroupArn: !Ref ECSAutoScalingGroup
+        ManagedScaling:
+          Status: ENABLED
+          TargetCapacity: 100
+          MinimumScalingStepSize: 1
+          MaximumScalingStepSize: 1000
+        ManagedTerminationProtection: DISABLED
+      Tags:
+        - Key: Name
+          Value: !Sub "${ECSClusterName}-CapacityProvider"
+        - Key: Project
+          Value: BIA
+        - Key: Environment
+          Value: Production
+
+  # 5. Cluster Capacity Provider Association
+  ClusterCPAssociation:
+    Type: AWS::ECS::ClusterCapacityProviderAssociations
+    DependsOn: ECSCluster
+    Properties:
+      Cluster: !Ref ECSClusterName
+      CapacityProviders:
+        - FARGATE
+        - FARGATE_SPOT
+        - !Ref AsgCapacityProvider
+      DefaultCapacityProviderStrategy:
+        - Base: 0
+          Weight: 1
+          CapacityProvider: !Ref AsgCapacityProvider
+
+Outputs:
+  ECSCluster:
+    Description: "Nome do cluster ECS criado"
+    Value: !Ref ECSCluster
+    Export:
+      Name: !Sub "${AWS::StackName}-ECSCluster"
+      
+  ECSClusterArn:
+    Description: "ARN do cluster ECS criado"
+    Value: !GetAtt ECSCluster.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-ECSClusterArn"
+      
+  LaunchTemplateId:
+    Description: "ID do Launch Template criado"
+    Value: !Ref ECSLaunchTemplate
+    Export:
+      Name: !Sub "${AWS::StackName}-LaunchTemplateId"
+      
+  AutoScalingGroupName:
+    Description: "Nome do Auto Scaling Group criado"
+    Value: !Ref ECSAutoScalingGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-AutoScalingGroupName"
+      
+  CapacityProviderName:
+    Description: "Nome do Capacity Provider criado"
+    Value: !Ref AsgCapacityProvider
+    Export:
+      Name: !Sub "${AWS::StackName}-CapacityProviderName"
+      
+  InstanceCount:
+    Description: "Número de instâncias configuradas"
+    Value: !Ref DesiredCapacity
+    Export:
+      Name: !Sub "${AWS::StackName}-InstanceCount"
