@@ -2,7 +2,7 @@
 
 ## ⚠️ **LEIA IMEDIATAMENTE TODOS OS ARQUIVOS .MD DO PROJETO BIA**
 
-Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 49 arquivos .md listados abaixo para ter contexto completo:
+Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 54 arquivos .md listados abaixo para ter contexto completo:
 
 ### **🔧 Regras de Configuração (10 arquivos) - CRÍTICAS:**
 - `/home/ec2-user/bia/.amazonq/rules/atualizacao-leitura-automatica.md`
@@ -22,7 +22,7 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 4
 - `/home/ec2-user/bia/docs/README.md`
 - `/home/ec2-user/bia/scripts_evento/README.md`
 
-### **📖 Histórico e Guias (11 arquivos):**
+### **📖 Histórico e Guias (12 arquivos):**
 - `/home/ec2-user/bia/historico-conversas-amazonq.md`
 - `/home/ec2-user/bia/guia-criacao-ec2-bia.md`
 - `/home/ec2-user/bia/guia-completo-ecs-bia-desafio-2.md`
@@ -34,6 +34,7 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 4
 - `/home/ec2-user/bia/metodo-hibrido-rollback-codepipeline.md`
 - `/home/ec2-user/bia/correcao-mcp-fastmcp-config.md`
 - `/home/ec2-user/bia/metodo-correcao-incompatibilidade-mcp.md`
+- `/home/ec2-user/bia/metodo-teste-fastmcp-vs-awslabs.md`
 
 ### **📊 Status e Verificação (2 arquivos):**
 - `/home/ec2-user/bia/CONTEXTO-RAPIDO.md`
@@ -93,9 +94,9 @@ Você deve estar completamente contextualizado sobre:
 
 **IMPORTANTE:** Não peça para o usuário explicar o contexto. Você deve ler automaticamente e ficar contextualizado.
 
-## 📊 **TOTAL DE ARQUIVOS: 39 ARQUIVOS .MD**
+## 📊 **TOTAL DE ARQUIVOS: 54 ARQUIVOS .MD**
 
-**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 39
+**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 54
 
 ---
 
@@ -126,7 +127,7 @@ Você deve estar completamente contextualizado sobre:
 
 ---
 
-*Atualizado em: 05/08/2025 17:25 UTC*  
-*Total de arquivos: 53 arquivos .md organizados por categoria*  
+*Atualizado em: 05/08/2025 18:35 UTC*  
+*Total de arquivos: 54 arquivos .md organizados por categoria*  
 *Sistema: QBIA funcionando perfeitamente com MCP servers 100% funcionais*  
-*Última correção: Incompatibilidade awslabs-ecs-mcp-server resolvida*
+*Última adição: metodo-teste-fastmcp-vs-awslabs.md*
