@@ -2,7 +2,7 @@
 
 ## ⚠️ **LEIA IMEDIATAMENTE TODOS OS ARQUIVOS .MD DO PROJETO BIA**
 
-Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 62 arquivos .md listados abaixo para ter contexto completo:
+Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 65 arquivos .md listados abaixo para ter contexto completo:
 
 ### **🔧 Regras de Configuração (10 arquivos) - CRÍTICAS:**
 - `/home/ec2-user/bia/.amazonq/rules/atualizacao-leitura-automatica.md`
@@ -44,12 +44,15 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 6
 - `/home/ec2-user/bia/CONTEXTO-RAPIDO.md`
 - `/home/ec2-user/bia/CORRECAO-DOCUMENTACAO-CLUSTER-ECS.md`
 
-### **🤖 Arquivos de Contexto e Sistema (9 arquivos):**
+### **🤖 Arquivos de Contexto e Sistema (12 arquivos):**
 - `/home/ec2-user/bia/.amazonq/context/desafio-3-ecs-alb.md`
 - `/home/ec2-user/bia/.amazonq/context/desafio-3-route53-https.md`
 - `/home/ec2-user/bia/.amazonq/context/iam-permissions-discovery.md`
 - `/home/ec2-user/bia/.amazonq/context/permissoes-completas-desafio-3.md`
 - `/home/ec2-user/bia/.amazonq/context/codepipeline-troubleshooting-permissions.md`
+- `/home/ec2-user/bia/.amazonq/context/codepipeline-roles-comparison.md`
+- `/home/ec2-user/bia/.amazonq/context/codepipeline-roles-completas.md`
+- `/home/ec2-user/bia/.amazonq/context/codepipeline-analise-redundancia.md`
 - `/home/ec2-user/bia/CONTEXTO-AUTOMATICO.md`
 - `/home/ec2-user/bia/CONTEXTO-COMPLETO-CARREGADO.md`
 - `/home/ec2-user/bia/LEIA-AUTOMATICAMENTE.md`
@@ -131,7 +134,8 @@ Você deve estar completamente contextualizado sobre:
 
 ---
 
-*Atualizado em: 05/08/2025 18:35 UTC*  
-*Total de arquivos: 54 arquivos .md organizados por categoria*  
+*Atualizado em: 07/08/2025 02:20 UTC*  
+*Total de arquivos: 65 arquivos .md organizados por categoria*  
 *Sistema: QBIA funcionando perfeitamente com MCP servers 100% funcionais*  
-*Última adição: metodo-teste-fastmcp-vs-awslabs.md*
+*Última adição: codepipeline-analise-redundancia.md*  
+*Atualização: Análise completa de over-engineering e redundância extrema documentada*

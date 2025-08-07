@@ -75,13 +75,13 @@ O foco base dele é fornecer uma estrutura educacional em que o aluno possa evol
 
 ### Estado Atual da Infraestrutura
 
-#### Status Atual (05/08/2025 - 23:06 UTC)
-- **Aplicação:** 🟢 ONLINE via HTTPS
-- **Domínio:** https://desafio3.eletroboards.com.br
-- **Status:** DESAFIO-3 100% implementado e funcionando
+#### Status Atual (05/08/2025 - 23:18 UTC)
+- **Aplicação:** 💰 PAUSADA PARA ECONOMIA
+- **Domínio:** https://desafio3.eletroboards.com.br (offline)
+- **Status:** DESAFIO-3 100% implementado e documentado
 - **Método:** Template oficial do Console AWS + CLI otimizado
-- **Tempo total:** ~6 minutos (implementação completa)
-- **Arquitetura:** Route 53 → ALB (HTTPS) → Target Group → 2 ECS Tasks → RDS
+- **Economia:** Recursos caros deletados (ECS, ALB, EC2)
+- **Reativação:** Script `./reativar-desafio-3.sh` (6 minutos)
 
 #### Componentes Ativos
 - **ECS Cluster:** cluster-bia-alb (método Template Oficial)

@@ -5,6 +5,13 @@ Sempre que falarmos de **pipeline** para este projeto, estamos nos referindo à 
 - **AWS CodePipeline** (orquestração)
 - **AWS CodeBuild** (build e deploy)
 
+## ⚠️ **REGRA CRÍTICA: LEIA A DOCUMENTAÇÃO PRIMEIRO**
+**SEMPRE consultar a documentação de troubleshooting ANTES de inventar soluções!**
+- Arquivo principal: `.amazonq/context/codepipeline-troubleshooting-permissions.md`
+- Comparação de roles: `.amazonq/context/codepipeline-roles-comparison.md`
+- **Erro #1:** GitHub Connection (`codestar-connections:UseConnection`)
+- **Processo:** Documentação → Aplicar solução → Testar
+
 ## Arquitetura do Pipeline
 
 ### Componentes Principais
@@ -82,6 +89,20 @@ aws codebuild update-project --name bia-build-pipeline --environment '{
 
 ## Troubleshooting Comum
 
+### **🚨 ORDEM PREVISÍVEL DE ERROS:**
+1. **GitHub Connection** (`codestar-connections:UseConnection`) - MAIS COMUM
+2. **CodeBuild StartBuild** (permissões CodeBuild na role do CodePipeline)
+3. **ECR Login** (permissões ECR na role do CodeBuild)
+4. **ECS Service Not Found** (service deve existir antes do deploy)
+5. **PassRole** (se necessário)
+
+### **✅ PROCESSO CORRETO:**
+1. **Verificar logs** do pipeline no Console AWS
+2. **Consultar documentação** de troubleshooting
+3. **Aplicar solução específica** para o erro
+4. **Usar "Retry Stage"** em vez de recriar pipeline
+5. **Não inventar soluções** - usar o que já foi testado
+
 ### Build Failures
 - Verificar logs no CloudWatch
 - Validar permissões IAM
@@ -92,6 +113,12 @@ aws codebuild update-project --name bia-build-pipeline --environment '{
 - Validar configuração do service
 - Confirmar conectividade com RDS
 
+### **❌ ERROS COMUNS A EVITAR:**
+- Usar `codeconnections` em vez de `codestar-connections`
+- Over-engineering com permissões excessivas
+- Recriar pipeline em vez de usar "Retry Stage"
+- Ignorar a documentação existente
+
 ## Evolução do Pipeline
 
 ### Fase Inicial
@@ -101,3 +128,20 @@ aws codebuild update-project --name bia-build-pipeline --environment '{
 ### Fase Avançada
 - Múltiplos ambientes (dev/staging/prod)
 - Aprovações manuais para produção
+
+## 🎯 **LIÇÕES APRENDIDAS (07/08/2025)**
+
+### **✅ DESCOBERTAS VALIDADAS:**
+1. **GitHub Connection é o erro #1** - sempre verificar primeiro
+2. **Documentação deve ser consultada PRIMEIRO** antes de inventar soluções
+3. **Retry Stage é mais eficiente** que recriar pipeline
+4. **Permissões mínimas funcionam** tão bem quanto permissões amplas
+5. **Over-engineering não melhora performance** - apenas adiciona complexidade
+6. **Ordem dos erros é previsível:** GitHub → CodeBuild → ECS
+
+### **🔧 REGRAS PARA AMAZON Q:**
+- **SEMPRE** ler documentação completa antes de agir
+- **NUNCA** inventar soluções quando já existem documentadas
+- **PRESTAR ATENÇÃO** quando usuário menciona "já implementamos"
+- **USAR** soluções testadas em vez de experimentar
+- **SIMPLICIDADE** > Complexidade
