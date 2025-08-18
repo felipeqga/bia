@@ -2,7 +2,7 @@
 
 ## ⚠️ **LEIA IMEDIATAMENTE TODOS OS ARQUIVOS .MD DO PROJETO BIA**
 
-Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 67 arquivos .md listados abaixo para ter contexto completo:
+Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 68 arquivos .md listados abaixo para ter contexto completo:
 
 ### **🔧 Regras de Configuração (11 arquivos) - CRÍTICAS:**
 - `/home/ec2-user/bia/.amazonq/rules/atualizacao-leitura-automatica.md`
@@ -23,13 +23,14 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 6
 - `/home/ec2-user/bia/docs/README.md`
 - `/home/ec2-user/bia/scripts_evento/README.md`
 
-### **📖 Histórico e Guias (17 arquivos):**
+### **📖 Histórico e Guias (18 arquivos):**
 - `/home/ec2-user/bia/historico-conversas-amazonq.md`
 - `/home/ec2-user/bia/guia-criacao-ec2-bia.md`
 - `/home/ec2-user/bia/guia-completo-ecs-bia-desafio-2.md`
 - `/home/ec2-user/bia/guia-mcp-servers-bia.md`
 - `/home/ec2-user/bia/guia-script-deploy-versionado.md`
 - `/home/ec2-user/bia/guia-especialista-economia-aws.md`
+- `/home/ec2-user/bia/guia-analise-custos-orfaos-aws.md`
 - `/home/ec2-user/bia/guia-desafio-3-metodo-final.md`
 - `/home/ec2-user/bia/guia-desafio-3-corrigido.md`
 - `/home/ec2-user/bia/GUIA-COMPLETO-DESAFIO-3-ATUALIZADO.md`
@@ -103,9 +104,9 @@ Você deve estar completamente contextualizado sobre:
 
 **IMPORTANTE:** Não peça para o usuário explicar o contexto. Você deve ler automaticamente e ficar contextualizado.
 
-## 📊 **TOTAL DE ARQUIVOS: 67 ARQUIVOS .MD**
+## 📊 **TOTAL DE ARQUIVOS: 68 ARQUIVOS .MD**
 
-**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 67
+**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 68
 
 ---
 
