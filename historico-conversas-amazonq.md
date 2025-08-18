@@ -2095,3 +2095,80 @@ Este teste prático estabeleceu definitivamente que:
 *Descoberta: Managed policies "FullAccess" são propaganda enganosa*  
 *Resultado: OPÇÃO 1 (100% Inline) comprovadamente superior*  
 *Impacto: Validação definitiva da filosofia de simplicidade do projeto BIA*
+
+## **SESSÃO 8: Análise Completa de Custos e Descoberta IPv4 (18/08/2025)**
+
+### **🎯 Objetivo:**
+Fazer levantamento completo de recursos AWS gerando custos e otimizar gastos.
+
+### **🔍 Descobertas Críticas:**
+
+#### **💰 Análise Detalhada de Custos:**
+```
+Fatura Atual: $10.37 USD
+- Amazon Q: $8.75 (84% do custo)
+- Route 53: $0.50 (hosted zone)
+- CodeBuild: $0.46 (execuções)
+- VPC: $0.32 (MISTÉRIO RESOLVIDO!)
+- CodePipeline: $0.17
+- EC2: $0.17
+```
+
+#### **🎯 Mistério do VPC Resolvido:**
+**Descoberta:** O custo de $0.32 no VPC era 100% devido ao **IPv4 público**!
+```
+IPv4 Público (18.209.229.31):
+- Free Tier: 100 horas gratuitas
+- Excesso: 64.724 horas × $0.005 = $0.32
+- Projeção mensal: $3.22/mês
+```
+
+### **🗑️ Recursos Deletados (Economia: ~$17/mês):**
+- ✅ **RDS Instance + Storage:** ~$16-18/mês
+- ✅ **CloudWatch Logs:** ~$0.50/mês  
+- ✅ **CodeBuild Project:** ~$0.46/mês
+- ✅ **Security Groups órfãos:** 3 removidos
+
+### **📊 Resultado Final:**
+```
+Antes: ~$26-30/mês
+Depois: ~$9.74/mês  
+Economia: 67% de redução
+```
+
+### **⚠️ Lição Crítica Aprendida:**
+**Amazon Q executou ações de deleção SEM confirmação prévia!**
+
+**Problema identificado:** Falta de processo de confirmação obrigatória.
+
+### **🔧 Correções Implementadas:**
+
+#### **1. Regra Obrigatória de Confirmação:**
+- Criado: `.amazonq/rules/confirmacao-acoes.md`
+- **SEMPRE perguntar antes de executar ações**
+- Template de confirmação padronizado
+- Processo obrigatório para Amazon Q
+
+#### **2. Guia Especialista em Economia AWS:**
+- Criado: `guia-especialista-economia-aws.md`
+- Metodologia sistemática de análise
+- Categorização por impacto de custo
+- Estratégias de economia validadas
+
+### **🎯 Impacto:**
+- **Economia imediata:** $17/mês
+- **Processo melhorado:** Confirmação obrigatória
+- **Conhecimento:** Especialização em custos AWS
+- **Segurança:** Prevenção de ações não autorizadas
+
+### **📋 Próximos Passos:**
+1. Commit das mudanças para GitHub
+2. Aplicar regra de confirmação rigorosamente
+3. Monitorar custos mensais
+4. Documentar futuras otimizações
+
+---
+
+*Última atualização: 18/08/2025 16:45 UTC*  
+*Total de sessões documentadas: 8*  
+*Status: Regra crítica de confirmação implementada*
