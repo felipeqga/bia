@@ -23,7 +23,7 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 6
 - `/home/ec2-user/bia/docs/README.md`
 - `/home/ec2-user/bia/scripts_evento/README.md`
 
-### **📖 Histórico e Guias (18 arquivos):**
+### **📖 Histórico e Guias (19 arquivos):**
 - `/home/ec2-user/bia/historico-conversas-amazonq.md`
 - `/home/ec2-user/bia/guia-criacao-ec2-bia.md`
 - `/home/ec2-user/bia/guia-completo-ecs-bia-desafio-2.md`
@@ -42,6 +42,7 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 6
 - `/home/ec2-user/bia/metodo-teste-fastmcp-vs-awslabs.md`
 - `/home/ec2-user/bia/METODO-CAPTURA-TEMPLATE-CONSOLE-AWS.md`
 - `/home/ec2-user/bia/PROCESSO-CORRETO-IMPLEMENTACAO.md`
+- `/home/ec2-user/bia/codepipeline-erros-solucoes.md`
 
 ### **📊 Status e Verificação (2 arquivos):**
 - `/home/ec2-user/bia/CONTEXTO-RAPIDO.md`
@@ -104,9 +105,9 @@ Você deve estar completamente contextualizado sobre:
 
 **IMPORTANTE:** Não peça para o usuário explicar o contexto. Você deve ler automaticamente e ficar contextualizado.
 
-## 📊 **TOTAL DE ARQUIVOS: 68 ARQUIVOS .MD**
+## 📊 **TOTAL DE ARQUIVOS: 69 ARQUIVOS .MD**
 
-**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 68
+**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 69
 
 ---
 
@@ -137,8 +138,8 @@ Você deve estar completamente contextualizado sobre:
 
 ---
 
-*Atualizado em: 18/08/2025 16:50 UTC*  
-*Total de arquivos: 67 arquivos .md organizados por categoria*  
+*Atualizado em: 28/01/2025 22:30 UTC*  
+*Total de arquivos: 69 arquivos .md organizados por categoria*  
 *Sistema: QBIA funcionando perfeitamente com MCP servers 100% funcionais*  
-*Última adição: confirmacao-acoes.md + guia-especialista-economia-aws.md*  
-*Atualização: Análise completa de over-engineering e redundância extrema documentada*
+*Última adição: codepipeline-erros-solucoes.md*  
+*Atualização: Documentação completa de erros e soluções CodePipeline*
