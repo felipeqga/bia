@@ -21,7 +21,10 @@ The provided role does not have sufficient permissions.
 - **CRÍTICO:** É `codestar-connections` (com hífen), NÃO `codeconnections`
 
 ### **Solução:**
-```json
+
+**1. Criar arquivo de policy:**
+```bash
+cat > github-connection-policy.json << 'EOF'
 {
   "Version": "2012-10-17",
   "Statement": [{
@@ -30,15 +33,18 @@ The provided role does not have sufficient permissions.
     "Resource": "*"
   }]
 }
+EOF
 ```
 
-### **Comando AWS CLI:**
+**2. Aplicar policy à role:**
 ```bash
 aws iam put-role-policy \
   --role-name AWSCodePipelineServiceRole-us-east-1-bia \
   --policy-name GitHubConnectionPolicy \
   --policy-document file://github-connection-policy.json
 ```
+
+**3. Usar "Retry Stage" no pipeline (mais rápido que recriar)**
 
 ---
 
@@ -54,10 +60,19 @@ A policy called AWSCodePipelineServiceRole-us-east-1-bia already exists
 - Conflito de nomenclatura automática
 
 ### **Solução:**
+
+**1. Identificar ARN da policy conflitante:**
+```bash
+aws iam list-policies --scope Local --query 'Policies[?PolicyName==`AWSCodePipelineServiceRole-us-east-1-bia`]'
+```
+
+**2. Deletar policy duplicada:**
 ```bash
 aws iam delete-policy \
   --policy-arn arn:aws:iam::387678648422:policy/service-role/AWSCodePipelineServiceRole-us-east-1-bia
 ```
+
+**3. Recriar pipeline via Console AWS**
 
 ---
 
@@ -72,7 +87,10 @@ Error calling startBuild: User is not authorized to perform: codebuild:StartBuil
 - Role do CodePipeline não tem permissões para iniciar builds
 
 ### **Solução:**
-```json
+
+**1. Criar arquivo de policy:**
+```bash
+cat > codebuild-policy.json << 'EOF'
 {
   "Version": "2012-10-17",
   "Statement": [{
@@ -84,7 +102,18 @@ Error calling startBuild: User is not authorized to perform: codebuild:StartBuil
     "Resource": "*"
   }]
 }
+EOF
 ```
+
+**2. Aplicar policy à role:**
+```bash
+aws iam put-role-policy \
+  --role-name AWSCodePipelineServiceRole-us-east-1-bia \
+  --policy-name CodeBuildPolicy \
+  --policy-document file://codebuild-policy.json
+```
+
+**3. Usar "Retry Stage" no Build stage**
 
 ---
 
@@ -99,7 +128,10 @@ Access Denied when uploading artifacts to S3
 - Role não tem permissões para bucket de artefatos do CodePipeline
 
 ### **Solução:**
-```json
+
+**1. Criar arquivo de policy:**
+```bash
+cat > s3-artifacts-policy.json << 'EOF'
 {
   "Version": "2012-10-17",
   "Statement": [{
@@ -113,7 +145,18 @@ Access Denied when uploading artifacts to S3
     "Resource": "*"
   }]
 }
+EOF
 ```
+
+**2. Aplicar policy à role:**
+```bash
+aws iam put-role-policy \
+  --role-name AWSCodePipelineServiceRole-us-east-1-bia \
+  --policy-name S3ArtifactsPolicy \
+  --policy-document file://s3-artifacts-policy.json
+```
+
+**3. Usar "Retry Stage" no stage que falhou**
 
 ---
 
@@ -128,7 +171,10 @@ User is not authorized to perform: ecs:UpdateService
 - Role não tem permissões para atualizar serviços ECS
 
 ### **Solução:**
-```json
+
+**1. Criar arquivo de policy:**
+```bash
+cat > ecs-deploy-policy.json << 'EOF'
 {
   "Version": "2012-10-17",
   "Statement": [{
@@ -143,14 +189,28 @@ User is not authorized to perform: ecs:UpdateService
     "Resource": "*"
   }]
 }
+EOF
 ```
+
+**2. Aplicar policy à role:**
+```bash
+aws iam put-role-policy \
+  --role-name AWSCodePipelineServiceRole-us-east-1-bia \
+  --policy-name ECSDeployPolicy \
+  --policy-document file://ecs-deploy-policy.json
+```
+
+**3. Usar "Retry Stage" no Deploy stage**
 
 ---
 
 ## ✅ **TEMPLATE COMPLETO FUNCIONAL**
 
-### **Role Policy Mínima (100% Testada):**
-```json
+### **Implementação Completa (Método Recomendado):**
+
+**1. Criar arquivo com todas as permissões:**
+```bash
+cat > codepipeline-complete-policy.json << 'EOF'
 {
   "Version": "2012-10-17",
   "Statement": [{
@@ -172,7 +232,25 @@ User is not authorized to perform: ecs:UpdateService
     "Resource": "*"
   }]
 }
+EOF
 ```
+
+**2. Aplicar policy completa à role:**
+```bash
+aws iam put-role-policy \
+  --role-name AWSCodePipelineServiceRole-us-east-1-bia \
+  --policy-name CodePipelineCompletePolicy \
+  --policy-document file://codepipeline-complete-policy.json
+```
+
+**3. Verificar policy aplicada:**
+```bash
+aws iam get-role-policy \
+  --role-name AWSCodePipelineServiceRole-us-east-1-bia \
+  --policy-name CodePipelineCompletePolicy
+```
+
+**4. Executar pipeline (deve funcionar 100%)**
 
 ---
 
@@ -232,6 +310,43 @@ User is not authorized to perform: ecs:UpdateService
 - ✅ Zero downtime: Rolling deployment otimizado
 
 **Tempo de resolução:** ~15 minutos seguindo processo estruturado
+
+---
+
+## 🛠️ **COMANDOS ÚTEIS PARA TROUBLESHOOTING**
+
+### **Verificar Role e Policies:**
+```bash
+# Listar policies da role
+aws iam list-role-policies --role-name AWSCodePipelineServiceRole-us-east-1-bia
+
+# Ver conteúdo de uma policy específica
+aws iam get-role-policy --role-name AWSCodePipelineServiceRole-us-east-1-bia --policy-name PolicyName
+
+# Verificar trust relationship da role
+aws iam get-role --role-name AWSCodePipelineServiceRole-us-east-1-bia
+```
+
+### **Gerenciar Pipeline:**
+```bash
+# Listar pipelines
+aws codepipeline list-pipelines
+
+# Ver status do pipeline
+aws codepipeline get-pipeline-state --name bia
+
+# Executar pipeline manualmente
+aws codepipeline start-pipeline-execution --name bia
+```
+
+### **Verificar Logs de Erro:**
+```bash
+# Logs do CodeBuild
+aws logs describe-log-groups --log-group-name-prefix /aws/codebuild/
+
+# Ver execuções do pipeline
+aws codepipeline list-pipeline-executions --pipeline-name bia
+```
 
 ---
 
