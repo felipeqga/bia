@@ -2249,6 +2249,95 @@ aws codepipeline list-pipelines
 
 ---
 
-*Última atualização: 19/08/2025 14:30 UTC*  
-*Total de sessões documentadas: 9*  
-*Status: Método de análise de custos órfãos documentado*
+## 📋 **SESSÃO 10: TESTE COMPARATIVO TEMPLATES ECS - V1 vs V2 (25/10/2024)**
+
+### **🎯 Objetivo:**
+Testar ambos templates ECS (v1 YAML vs v2 JSON) para validar funcionamento e documentar diferenças.
+
+### **🔍 Descobertas:**
+
+#### **✅ TEMPLATE V1 (YAML) - SUCESSO IMEDIATO:**
+- **Arquivo:** `ecs-cluster-template.yaml`
+- **Status:** ✅ CREATE_COMPLETE sem erros
+- **AMI:** Hardcoded `ami-07985a96d172b21ee` ainda válida
+- **User Data:** Complexo (yum update + ecs-init) funcionou perfeitamente
+- **Capacidade:** 2 instâncias criadas e registradas
+- **Tempo:** ~2 minutos para cluster completo
+
+#### **✅ TEMPLATE V2 (JSON) - SUCESSO APÓS CORREÇÕES:**
+- **Arquivo:** `ecs-cluster-template-v2.json`
+- **Status:** ✅ CREATE_COMPLETE após resolver conflitos
+- **AMI:** Dinâmica via SSM Parameter `ami-051685736c7b35f95`
+- **ExecuteCommand:** Configurado automaticamente
+- **Capacidade:** 1 instância por padrão
+- **Problema inicial:** Conflito de nome de cluster (resolvido)
+
+### **🚨 Problemas Encontrados:**
+
+#### **1. ECR Vazio (Ambos Templates):**
+- **Sintoma:** `manifest unknown: Requested image not found`
+- **Causa:** Imagem `bia:latest` não existia no ECR
+- **Solução:** Build + push da imagem Docker
+- **Não é problema dos templates** - Setup inicial
+
+#### **2. Conflito de Recursos (Template V2):**
+- **Sintoma:** `cluster-bia-alb already exists in stack`
+- **Causa:** Stack v1 não deletou completamente
+- **Solução:** Deletar service ECS antes da stack
+- **Lição:** Ordem de deleção é crítica
+
+### **📊 Comparação Final:**
+
+| **Aspecto** | **Template V1 (YAML)** | **Template V2 (JSON)** |
+|-------------|-------------------------|-------------------------|
+| **Criação** | ✅ Imediata | ✅ Após resolver conflito |
+| **AMI** | Hardcoded (estável) | Dinâmica (sempre atual) |
+| **User Data** | Completo (educacional) | Simples (eficiente) |
+| **ExecuteCommand** | ❌ Não configurado | ✅ Configurado |
+| **Validação** | ❌ Básica | ✅ Regex patterns |
+| **Capacidade** | 2 instâncias | 1 instância |
+| **Aplicação** | ✅ Funcionando | ✅ Funcionando |
+
+### **🎯 Implementação Completa DESAFIO-3:**
+
+**Recursos Criados com Sucesso:**
+1. ✅ **ECS Cluster:** `cluster-bia-alb` (ambos templates)
+2. ✅ **ALB:** `bia-481605435.us-east-1.elb.amazonaws.com`
+3. ✅ **Target Group:** `tg-bia` (otimizado: 10s health check, 5s deregistration)
+4. ✅ **Task Definition:** `task-def-bia-alb:30` (com variáveis DB)
+5. ✅ **ECS Service:** `service-bia-alb` (2 tasks, spread por AZ)
+6. ✅ **Aplicação:** Respondendo `"Bia 4.2.0"` via ALB
+
+**Otimizações Aplicadas:**
+- Health Check: 10s (3x mais rápido)
+- Deregistration Delay: 5s (6x mais rápido)  
+- Deployment: maximumPercent=200% (paralelo)
+
+### **💡 Lições Aprendidas:**
+
+#### **✅ Sucessos:**
+1. **Ambos templates funcionam** perfeitamente
+2. **Template v1 mais estável** para aprendizado
+3. **Template v2 mais moderno** para produção
+4. **Reutilização de recursos** (ALB, Target Group) funciona
+5. **Ordem de deleção** é crítica (service → cluster → stack)
+
+#### **📚 Recomendações:**
+- **Para DESAFIO-3 educacional:** Template V1 (YAML)
+- **Para ambiente produção:** Template V2 (JSON)
+- **Sempre verificar ECR** antes de criar services
+- **Deletar services** antes de deletar clusters
+
+### **📁 Arquivos Criados:**
+- `ecs-cluster-template-v2.json` - Template moderno capturado
+- `task-definition-desafio3.json` - Task definition otimizada
+- `guia-escolha-templates-ecs.md` - Guia de escolha entre templates
+
+### **🎯 Resultado Final:**
+**DESAFIO-3 100% COMPLETO** com ambos templates validados e funcionando. Documentação criada para futuras implementações com escolha informada entre v1 (estável/educacional) e v2 (moderno/produção).
+
+---
+
+*Última atualização: 25/10/2024 00:10 UTC*  
+*Total de sessões documentadas: 10*  
+*Status: Ambos templates ECS validados - DESAFIO-3 completo*
