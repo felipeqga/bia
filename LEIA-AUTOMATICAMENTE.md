@@ -23,7 +23,7 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 6
 - `/home/ec2-user/bia/docs/README.md`
 - `/home/ec2-user/bia/scripts_evento/README.md`
 
-### **📖 Histórico e Guias (19 arquivos):**
+### **📖 Histórico e Guias (20 arquivos):**
 - `/home/ec2-user/bia/historico-conversas-amazonq.md`
 - `/home/ec2-user/bia/guia-criacao-ec2-bia.md`
 - `/home/ec2-user/bia/guia-completo-ecs-bia-desafio-2.md`
@@ -33,6 +33,7 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 6
 - `/home/ec2-user/bia/guia-analise-custos-orfaos-aws.md`
 - `/home/ec2-user/bia/guia-desafio-3-metodo-final.md`
 - `/home/ec2-user/bia/guia-desafio-3-corrigido.md`
+- `/home/ec2-user/bia/guia-escolha-templates-ecs.md`
 - `/home/ec2-user/bia/GUIA-COMPLETO-DESAFIO-3-ATUALIZADO.md`
 - `/home/ec2-user/bia/historico-desafio-3-zero-downtime.md`
 - `/home/ec2-user/bia/historico-descoberta-console-aws-vs-cli.md`
@@ -105,9 +106,9 @@ Você deve estar completamente contextualizado sobre:
 
 **IMPORTANTE:** Não peça para o usuário explicar o contexto. Você deve ler automaticamente e ficar contextualizado.
 
-## 📊 **TOTAL DE ARQUIVOS: 69 ARQUIVOS .MD**
+## 📊 **TOTAL DE ARQUIVOS: 70 ARQUIVOS .MD**
 
-**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 69
+**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 70
 
 ---
 
