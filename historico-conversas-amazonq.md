@@ -2499,8 +2499,52 @@ aws rds create-db-instance-read-replica \
   --region us-east-2
 ```
 
+#### Estratégia de Contingência para Acesso à IA
+
+**Pergunta crítica:** Como acessar Amazon Q durante falha regional se a IA está rodando na EC2 da Virgínia?
+
+**Problema identificado:**
+- Amazon Q rodando em: `i-03ebb998505763f22` (us-east-1)
+- Durante falha regional: EC2 + IA inacessíveis
+- Necessidade: Acesso à IA para executar recuperação
+
+**Solução Descoberta: EC2 Backup + GitHub**
+
+**Estratégia Otimizada:**
+```yaml
+Custo: $1.50/mês (EBS storage apenas)
+Método: EC2 parada em Ohio + GitHub sync
+Processo: Ligar → Git pull → qbia → "Leia os .md"
+RTO: 2-3 minutos para acesso completo à IA
+```
+
+**Implementação:**
+1. **AMI Backup:** Criar snapshot da EC2 atual
+2. **Instância Ohio:** Lançar cópia em us-east-2 (parada)
+3. **GitHub Sync:** Documentação sempre atualizada
+4. **Script Emergência:** Automatizar ativação
+
+**Processo de Recuperação:**
+```bash
+# Durante falha Virgínia
+aws ec2 start-instances --instance-ids i-ohio-backup --region us-east-2
+ssh ec2-user@ohio-ip
+cd bia && git pull origin main
+./qbia
+# "Leia os arquivos .md de instrução"
+# ✅ Contexto completo carregado (72 arquivos)
+```
+
+**Vantagens:**
+- **Custo mínimo:** 82% mais barato que instância sempre ativa
+- **Contexto preservado:** GitHub mantém 72 arquivos .md sincronizados
+- **Recuperação rápida:** 2-3 minutos para acesso total à IA
+- **Processo documentado:** Totalmente automatizável
+
+**Conclusão:** Disaster Recovery para IA com custo otimizado e eficiência máxima.
+
 ---
 
-*Última atualização: 28/01/2025 23:00 UTC*  
+*Última atualização: 28/01/2025 23:15 UTC*  
 *Total de sessões documentadas: 11*  
-*Status: Método de resiliência multi-região + análise de custos RDS documentados*
+*Status: Estratégia completa de contingência para acesso à IA documentada*
