@@ -283,21 +283,82 @@ echo "Pilot Light ativado em Ohio!"
 
 ---
 
-## 💰 **ANÁLISE DE CUSTOS**
+## 💰 **ANÁLISE DE CUSTOS DETALHADA - PROJETO BIA**
 
-### **Custo Mensal Estimado (us-east-1 + us-east-2):**
+### **📊 Configuração BIA Atual:**
+- **Endpoint:** `bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com`
+- **Engine:** PostgreSQL
+- **Classe:** db.t3.micro (projeto educacional)
+- **Storage:** 20GB (estimado)
+- **Custo atual:** ~$15.71/mês (single region)
 
-| **Recurso** | **Virgínia (Ativo)** | **Ohio (Pilot Light)** | **Total** |
-|-------------|----------------------|------------------------|-----------|
-| **EC2 (t3.micro)** | $17/mês (2 instâncias) | $0 (0 instâncias) | $17/mês |
-| **ALB** | $22/mês | $22/mês | $44/mês |
-| **RDS (db.t3.micro)** | $15/mês | $15/mês (replica) | $30/mês |
-| **EBS Storage** | $8/mês | $4/mês | $12/mês |
-| **Data Transfer** | $5/mês | $2/mês (replicação) | $7/mês |
-| **CloudFront** | - | $1/mês | $1/mês |
-| **TOTAL** | **$67/mês** | **$44/mês** | **$111/mês** |
+### **💵 Cenários de Custos Multi-Região:**
 
-**Overhead para resiliência:** +$44/mês (~65% adicional)
+#### **Cenário 1: RDS PostgreSQL + Cross-Region Replica (RECOMENDADO)**
+```
+Virgínia (Primário):
+├── db.t3.micro: $0.017/h × 730h = $12.41/mês
+├── Storage 20GB: $0.115/GB × 20 = $2.30/mês
+├── Backup Storage: ~$1.00/mês
+└── Total Virgínia: $15.71/mês
+
+Ohio (Réplica):
+├── db.t3.micro: $0.017/h × 730h = $12.41/mês
+├── Storage 20GB: $0.115/GB × 20 = $2.30/mês
+├── Data Transfer: $0.02/GB × 5GB = $0.10/mês
+└── Total Ohio: $14.81/mês
+
+TOTAL MENSAL: $30.52/mês
+OVERHEAD: +$14.81/mês (+94%)
+```
+
+#### **Cenário 2: Aurora Global Database**
+```
+Virgínia (Cluster Primário):
+├── db.t3.small: $0.034/h × 730h = $24.82/mês
+├── Aurora Storage: $0.10/GB × 20GB = $2.00/mês
+├── I/O Requests: ~$1.00/mês
+└── Total Virgínia: $27.82/mês
+
+Ohio (Cluster Secundário):
+├── db.t3.small: $0.034/h × 730h = $24.82/mês
+├── Aurora Storage: $0.10/GB × 20GB = $2.00/mês
+├── Cross-Region Replication: $0.20/GB × 5GB = $1.00/mês
+└── Total Ohio: $27.82/mês
+
+TOTAL MENSAL: $55.64/mês
+OVERHEAD: +$27.82/mês (+254%)
+```
+
+### **📈 Comparação Custo-Benefício:**
+
+| **Opção** | **Custo Mensal** | **Overhead** | **RTO** | **RPO** | **Recomendação** |
+|-----------|------------------|--------------|---------|---------|------------------|
+| **Atual (Single)** | $15.71 | - | ∞ (falha regional) | ∞ | ❌ Vulnerável |
+| **RDS Cross-Region** | $30.52 | +94% | 5-15 min | <5 min | ✅ **IDEAL BIA** |
+| **Aurora Global** | $55.64 | +254% | 1-3 min | <1 min | ⚠️ Over-engineering |
+
+### **🎯 Recomendação Específica para BIA:**
+
+#### **Solução Otimizada: RDS Cross-Region Replica**
+```bash
+# Implementação para projeto BIA
+aws rds create-db-instance-read-replica \
+  --db-instance-identifier bia-ohio-replica \
+  --source-db-instance-identifier bia \
+  --db-instance-class db.t3.micro \
+  --region us-east-2
+
+# Custo adicional: $14.81/mês
+# Benefício: Proteção contra falha regional
+# ROI: Continuidade do negócio vs $15/mês
+```
+
+### **💡 Justificativa da Escolha:**
+- **Projeto educacional:** RDS Cross-Region é suficiente
+- **Custo controlado:** +$15/mês é razoável para aprendizado
+- **Aurora seria over-engineering:** 254% overhead para ganho mínimo
+- **KISS Principle:** Simplicidade > complexidade desnecessária
 
 ---
 

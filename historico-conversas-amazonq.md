@@ -2459,8 +2459,48 @@ aws rds copy-db-snapshot \
 - Processo de failover automatizado
 - Troubleshooting de cenários de emergência
 
+#### Análise de Custos RDS Multi-Região
+
+**Pergunta do usuário:** Custo específico do RDS para projeto BIA com replicação anti-falha regional
+
+**Configuração BIA Atual:**
+- **Endpoint:** `bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com`
+- **Engine:** PostgreSQL
+- **Classe:** db.t3.micro (projeto educacional)
+- **Storage:** 20GB estimado
+
+**Cálculo de Custos Detalhado:**
+
+**Cenário 1: RDS Cross-Region Replica (Recomendado para BIA)**
+```
+Virgínia (Primário): $15.71/mês
+Ohio (Réplica): $14.81/mês
+TOTAL: $30.52/mês
+OVERHEAD: +$14.81/mês (+94%)
+```
+
+**Cenário 2: Aurora Global Database**
+```
+Virgínia + Ohio: $55.64/mês
+OVERHEAD: +$27.82/mês (+254%)
+```
+
+**Recomendação Final:**
+- **Investimento:** +$15/mês para Cross-Region Replica
+- **Benefício:** Proteção contra falhas regionais
+- **ROI:** Continuidade vs $15/mês (razoável para aprendizado)
+
+**Implementação:**
+```bash
+aws rds create-db-instance-read-replica \
+  --db-instance-identifier bia-ohio-replica \
+  --source-db-instance-identifier bia \
+  --db-instance-class db.t3.micro \
+  --region us-east-2
+```
+
 ---
 
-*Última atualização: 28/01/2025 22:45 UTC*  
+*Última atualização: 28/01/2025 23:00 UTC*  
 *Total de sessões documentadas: 11*  
-*Status: Método de resiliência multi-região documentado*
+*Status: Método de resiliência multi-região + análise de custos RDS documentados*
