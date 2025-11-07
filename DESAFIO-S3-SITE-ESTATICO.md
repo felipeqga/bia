@@ -24,11 +24,6 @@ cd bia
 # 3. Verificar estrutura
 ls -la
 # Deve mostrar: client/, scripts/, documentação, etc.
-
-# 4. Instalar dependências do React
-cd client
-npm install
-cd ..
 ```
 
 ### **🗂️ Estrutura Obrigatória Após Clone:**
@@ -37,12 +32,13 @@ cd ..
 ├── client/                  ← Aplicação React
 │   ├── package.json         ← Dependências React
 │   ├── src/                 ← Código fonte
-│   ├── node_modules/        ← Criado após npm install
 │   └── build/               ← Criado após npm run build
 ├── api/                     ← Backend Node.js
 ├── scripts/                 ← Scripts auxiliares
 └── README.md                ← Documentação
 ```
+
+**Nota:** `node_modules/` será criado automaticamente pelos scripts
 
 ---
 
@@ -354,7 +350,6 @@ cd ..
 ```bash
 git clone https://github.com/henrylle/bia.git
 cd bia
-cd client && npm install && cd ..
 ./deploys3.sh hom
 ```
 
