@@ -70,6 +70,39 @@ function envio_s3() {
 }
 ```
 
+### **⚠️ IMPORTANTE - AWS PROFILES:**
+
+**Dois cenários diferentes:**
+
+**1. Executando de VM Externa (com profile):**
+```bash
+# Script original do desafio
+aws s3 sync ./bia/client/build/ s3://desafios-fundamentais-bia --profile fundamentos
+```
+
+**2. Executando dentro da AWS (nossa implementação):**
+```bash
+# Sem profile - usa IAM Role da instância
+aws s3 sync ./client/build/ s3://SEU-BUCKET-NAME
+```
+
+### **🔍 DIFERENÇAS:**
+
+| **Ambiente** | **Comando** | **Autenticação** |
+|--------------|-------------|------------------|
+| **VM Externa** | `--profile fundamentos` | Credenciais locais (~/.aws/credentials) |
+| **EC2 na AWS** | Sem profile | IAM Role da instância |
+
+### **🔧 COMO SABER QUAL USAR:**
+
+```bash
+# Verificar se está em instância EC2
+curl -s http://169.254.169.254/latest/meta-data/instance-id
+
+# Se retornar instance-id: está na AWS (sem profile)
+# Se der erro: está em VM externa (precisa profile)
+```
+
 ### **Script 3: deploys3.sh**
 ```bash
 #!/bin/bash
@@ -164,7 +197,63 @@ echo "http://SEU-BUCKET-NAME.s3-website-us-east-1.amazonaws.com"
 
 ---
 
-## ⚙️ **PASSO 5: PERMISSÕES IAM NECESSÁRIAS**
+## ⚙️ **PASSO 5: PERMISSÕES E AUTENTICAÇÃO AWS**
+
+### **🔐 Cenário 1: Executando em VM Externa**
+
+**Configurar AWS Profile:**
+```bash
+# Configurar credenciais
+aws configure --profile fundamentos
+# AWS Access Key ID: sua-access-key
+# AWS Secret Access Key: sua-secret-key
+# Default region: us-east-1
+
+# Testar acesso
+aws s3 ls --profile fundamentos
+```
+
+**Script s3.sh para VM Externa:**
+```bash
+function envio_s3() {
+    aws s3 sync ./bia/client/build/ s3://SEU-BUCKET-NAME --profile fundamentos
+}
+```
+
+### **🔐 Cenário 2: Executando em EC2 (Nosso Caso)**
+
+**IAM Role da Instância:**
+```bash
+# Adicionar permissões S3 à role da instância
+aws iam put-role-policy \
+  --role-name SUA-ROLE \
+  --policy-name S3_FullAccess \
+  --policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Action": "s3:*",
+      "Resource": "*"
+    }]
+  }'
+```
+
+**Script s3.sh para EC2:**
+```bash
+function envio_s3() {
+    aws s3 sync ./client/build/ s3://SEU-BUCKET-NAME
+    # Sem --profile (usa IAM Role automaticamente)
+}
+```
+
+### **🔍 Como Identificar Seu Ambiente:**
+```bash
+# Verificar se está em EC2
+curl -s http://169.254.169.254/latest/meta-data/instance-id
+
+# Se retornar instance-id: EC2 (sem profile)
+# Se der timeout/erro: VM externa (precisa profile)
+```
 
 ### **Policy S3 Full Access:**
 ```json
