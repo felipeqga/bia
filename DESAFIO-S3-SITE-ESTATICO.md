@@ -391,6 +391,217 @@ API_URL="https://api.seudominio.com.br"                          # Domínio cust
 5. ✅ **Deploy executado:** `./deploys3.sh hom`
 6. ✅ **Site testado:** Endpoint S3 acessível
 
+## 🧪 **SIMULAÇÃO DE ERROS REAIS - CASOS TESTADOS**
+
+### **CENÁRIO 1: Execução do Diretório Errado (/home/ec2-user/bia)**
+
+**Comando executado:**
+```bash
+cd /home/ec2-user/bia
+./deploys3.sh hom
+```
+
+**Erros gerados:**
+```
+/home/ec2-user/bia/reacts3.sh: line 5: cd: bia: No such file or directory
+```
+
+**Resultado:** Script continua mas com comportamento inesperado
+
+---
+
+### **CENÁRIO 2: Execução de Diretório Completamente Diferente (/tmp)**
+
+**Comando executado:**
+```bash
+cd /tmp
+/home/ec2-user/bia/deploys3.sh hom
+```
+
+**Erros gerados:**
+```
+/home/ec2-user/bia/reacts3.sh: line 5: cd: bia: No such file or directory
+npm ERR! code ENOENT
+npm ERR! syscall open
+npm ERR! path /tmp/package.json
+npm ERR! errno -2
+npm ERR! enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/tmp/package.json'
+
+npm ERR! path /tmp/client/package.json
+npm ERR! errno -2
+npm ERR! enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/tmp/client/package.json'
+
+The user-provided path ./bia/client/build/ does not exist.
+```
+
+**Resultado:** Múltiplas falhas em cascata
+
+---
+
+### **CENÁRIO 3: Dependências Não Instaladas**
+
+**Comando executado:**
+```bash
+# Após remover node_modules do client
+./bia/deploys3.sh hom
+```
+
+**Erros gerados:**
+```
+sh: line 1: vite: command not found
+```
+
+**Resultado:** Build falha silenciosamente
+
+---
+
+## 🚨 **ANÁLISE DOS ERROS E SOLUÇÕES**
+
+### **ERRO CRÍTICO 1: `cd: bia: No such file or directory`**
+
+**Causa:** Script `reacts3.sh` tenta fazer `cd bia` mas não encontra a pasta
+
+**Impacto:**
+- ✅ **Cenário 1:** Script continua no diretório atual
+- ❌ **Cenário 2:** npm install falha completamente
+- ❌ **Cenário 3:** Build falha
+
+**Solução:**
+```bash
+# ✅ SEMPRE executar do diretório pai correto
+cd /home/ec2-user
+./bia/deploys3.sh hom
+```
+
+### **ERRO CRÍTICO 2: `package.json: No such file or directory`**
+
+**Causa:** npm install executado em diretório sem package.json
+
+**Sintomas:**
+```
+npm ERR! enoent Could not read package.json
+npm ERR! path /DIRETORIO-ERRADO/package.json
+```
+
+**Solução:**
+```bash
+# Verificar estrutura antes de executar
+ls -la bia/client/package.json
+# Deve existir: bia/client/package.json
+```
+
+### **ERRO CRÍTICO 3: `vite: command not found`**
+
+**Causa:** Dependências do client não instaladas
+
+**Sintomas:**
+```
+sh: line 1: vite: command not found
+```
+
+**Solução:**
+```bash
+# Instalar dependências manualmente
+cd /home/ec2-user/bia/client
+npm install
+cd /home/ec2-user
+./bia/deploys3.sh hom
+```
+
+### **ERRO CRÍTICO 4: `./bia/client/build/ does not exist`**
+
+**Causa:** Build falhou mas script continua
+
+**Sintomas:**
+```
+The user-provided path ./bia/client/build/ does not exist.
+```
+
+**Solução:**
+```bash
+# Verificar se build foi criado
+ls -la bia/client/build/
+# Se não existir, executar build manual:
+cd bia/client
+VITE_API_URL=http://bia-549844302.us-east-1.elb.amazonaws.com npm run build
+```
+
+---
+
+## 🔧 **CHECKLIST DE VERIFICAÇÃO PRÉ-EXECUÇÃO**
+
+### **1. Verificar Diretório Atual:**
+```bash
+pwd
+# Resultado esperado: /home/ec2-user
+```
+
+### **2. Verificar Estrutura de Pastas:**
+```bash
+ls -la bia/
+# Deve mostrar: client/, deploys3.sh, reacts3.sh, s3.sh
+```
+
+### **3. Verificar package.json do Client:**
+```bash
+ls -la bia/client/package.json
+# Deve existir: bia/client/package.json
+```
+
+### **4. Verificar Dependências Instaladas:**
+```bash
+ls -la bia/client/node_modules/ | head -5
+# Deve mostrar diretórios de dependências
+```
+
+### **5. Teste de Build Manual (Opcional):**
+```bash
+cd bia/client
+npm run build
+ls -la build/
+# Deve mostrar: index.html, assets/, etc.
+cd ../..
+```
+
+---
+
+## ⚡ **SOLUÇÃO RÁPIDA PARA TODOS OS ERROS**
+
+### **Script de Verificação Automática:**
+```bash
+#!/bin/bash
+echo "🔍 Verificando pré-requisitos..."
+
+# 1. Verificar diretório
+if [ "$(pwd)" != "/home/ec2-user" ]; then
+    echo "❌ ERRO: Execute do diretório /home/ec2-user"
+    echo "💡 Solução: cd /home/ec2-user"
+    exit 1
+fi
+
+# 2. Verificar pasta bia
+if [ ! -d "bia" ]; then
+    echo "❌ ERRO: Pasta bia não encontrada"
+    exit 1
+fi
+
+# 3. Verificar package.json
+if [ ! -f "bia/client/package.json" ]; then
+    echo "❌ ERRO: package.json não encontrado"
+    exit 1
+fi
+
+# 4. Verificar node_modules
+if [ ! -d "bia/client/node_modules" ]; then
+    echo "⚠️  AVISO: Instalando dependências..."
+    cd bia/client && npm install && cd ../..
+fi
+
+echo "✅ Todos os pré-requisitos OK!"
+echo "🚀 Executando deploy..."
+./bia/deploys3.sh hom
+```
+
 ## 🔍 **TROUBLESHOOTING**
 
 ### **Problema: Script não encontra pasta bia**
