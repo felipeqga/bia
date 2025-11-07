@@ -199,21 +199,28 @@ echo "http://SEU-BUCKET-NAME.s3-website-us-east-1.amazonaws.com"
 
 ## ⚙️ **PASSO 5: PERMISSÕES E AUTENTICAÇÃO AWS**
 
-### **🔐 Cenário 1: Executando em VM Externa**
+### **🔐 Cenário 1: Executando em VM Externa (Vídeo Henrylle)**
 
-**Configurar AWS Profile:**
+**1. Configurar AWS Profile:**
 ```bash
-# Configurar credenciais
 aws configure --profile fundamentos
 # AWS Access Key ID: sua-access-key
 # AWS Secret Access Key: sua-secret-key
 # Default region: us-east-1
+```
+
+**2. Aplicar Permissões S3 (Fins Didáticos):**
+```bash
+# Anexar policy AmazonS3FullAccess ao usuário
+aws iam attach-user-policy \
+  --user-name fundamentos \
+  --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 
 # Testar acesso
 aws s3 ls --profile fundamentos
 ```
 
-**Script s3.sh para VM Externa:**
+**3. Script s3.sh para VM Externa:**
 ```bash
 function envio_s3() {
     aws s3 sync ./bia/client/build/ s3://SEU-BUCKET-NAME --profile fundamentos
@@ -315,27 +322,17 @@ because no identity-based policy allows the s3:ListBucket action
 
 **Causa:** Usuário IAM `fundamentos` não tem permissões S3
 
-**Solução para VM Externa:**
+**Solução para VM Externa (Conforme Vídeo Henrylle):**
 ```bash
-# 1. Criar policy S3 para o usuário
-aws iam put-user-policy \
-  --user-name fundamentos \
-  --policy-name S3FullAccess \
-  --policy-document '{
-    "Version": "2012-10-17",
-    "Statement": [{
-      "Effect": "Allow",
-      "Action": "s3:*",
-      "Resource": "*"
-    }]
-  }'
-
-# 2. OU anexar policy gerenciada
+# Aplicar policy AmazonS3FullAccess (fins didáticos)
 aws iam attach-user-policy \
   --user-name fundamentos \
   --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 
-# 3. Verificar permissões
+# Verificar se foi aplicada
+aws iam list-attached-user-policies --user-name fundamentos
+
+# Testar acesso
 aws s3 ls --profile fundamentos
 ```
 
