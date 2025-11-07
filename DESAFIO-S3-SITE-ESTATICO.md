@@ -16,7 +16,7 @@ Criar bucket S3, configurar hospedagem de site estático, aplicar permissões p�
 ### **🔧 Pré-requisito Obrigatório:**
 ```bash
 # 1. Clonar o repositório do projeto BIA
-git clone https://github.com/felipeqga/bia.git
+git clone https://github.com/henrylle/bia.git
 
 # 2. Entrar no diretório clonado
 cd bia
@@ -380,7 +380,7 @@ cd ..
 
 ### **Deploy Completo:**
 ```bash
-git clone https://github.com/felipeqga/bia.git
+git clone https://github.com/henrylle/bia.git
 cd bia
 cd client && npm install && cd ..
 ./deploys3.sh hom
