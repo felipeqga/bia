@@ -391,11 +391,11 @@ API_URL="https://api.seudominio.com.br"                          # Domínio cust
 5. ✅ **Deploy executado:** `./deploys3.sh hom`
 6. ✅ **Site testado:** Endpoint S3 acessível
 
-## 🚨 **CASO REAL - ERRO DO COLEGA MOISES**
+## 🚨 **CASO REAL - ERRO REPORTADO POR USUÁRIO**
 
 ### **Situação Real Reportada:**
 ```
-moises@vm-formacaoaws:~/formacaoaws/desafios-fundamentais$ ./react.sh 
+usuario@vm-formacaoaws:~/formacaoaws/desafios-fundamentais$ ./react.sh 
 257 packages are looking for funding
 run `npm fund` for details
 
@@ -418,12 +418,12 @@ Build do React realizado com sucesso!  ← MENTIRA! Build falhou
 3. **vite não encontrado** no PATH do script
 4. **Script mentiu** sobre sucesso ("Build realizado com sucesso!")
 
-### **💡 SOLUÇÃO PARA O MOISES:**
+### **💡 SOLUÇÃO PARA ESTE CASO:**
 
 **Passo 1: Verificar estrutura atual**
 ```bash
 pwd
-# Deve mostrar: /home/moises/formacaoaws/desafios-fundamentais
+# Deve mostrar: /home/usuario/formacaoaws/desafios-fundamentais
 
 ls -la
 # Verificar se existe pasta com projeto React
@@ -716,7 +716,7 @@ echo "🚀 Executando deploy..."
 
 ## 🔍 **TROUBLESHOOTING**
 
-### **Problema: vite: not found (Caso do Moises)**
+### **Problema: vite: not found (Caso Real Reportado)**
 **Sintomas:**
 ```
 sh: 1: vite: not found
