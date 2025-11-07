@@ -114,6 +114,138 @@ aws ecr get-login-password --region us-east-1 | docker login --username AWS --pa
 
 ---
 
+## 📅 **DIA 4 - PARTE 6: PORTEIRO (BASTION HOST)**
+
+### **🎯 Objetivos do Dia 4 - Parte 6:**
+1. ✅ **Script para lançar porteiro** na zona b (subnet default)
+2. ✅ **Script para túnel RDS** na porta local 5433
+3. ✅ **Comunicação com banco** e inserir 1 registro manualmente
+4. ✅ **Túnel para BIA** na porta 3002 para ver registro
+5. ✅ **Script para máquina porteiro**
+
+### **🔧 Implementação Dia 4 - Parte 6:**
+
+**1. Script para Lançar Porteiro:**
+```bash
+#!/bin/bash
+# launch-porteiro.sh
+echo "🚀 Lançando máquina porteiro na zona b..."
+
+aws ec2 run-instances \
+  --image-id ami-0e86e20dae90224e1 \
+  --instance-type t3.micro \
+  --key-name sua-key \
+  --security-group-ids sg-porteiro \
+  --subnet-id subnet-zona-b \
+  --associate-public-ip-address \
+  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=porteiro}]' \
+  --user-data '#!/bin/bash
+    apt update
+    apt install -y postgresql-client
+    apt install -y curl'
+
+echo "✅ Porteiro lançado na zona b"
+```
+
+**2. Script para Túnel RDS:**
+```bash
+#!/bin/bash
+# tunnel-rds.sh
+PORTEIRO_IP="IP-DO-PORTEIRO"
+RDS_ENDPOINT="bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com"
+
+echo "🔗 Criando túnel SSH para RDS na porta 5433..."
+
+ssh -i sua-key.pem -L 5433:$RDS_ENDPOINT:5432 ubuntu@$PORTEIRO_IP -N &
+TUNNEL_PID=$!
+
+echo "✅ Túnel RDS ativo na porta 5433 (PID: $TUNNEL_PID)"
+echo "💡 Para conectar: psql -h localhost -p 5433 -U postgres -d bia"
+echo "🛑 Para parar: kill $TUNNEL_PID"
+```
+
+**3. Script para Inserir Registro:**
+```bash
+#!/bin/bash
+# insert-record.sh
+echo "📝 Inserindo registro no banco via túnel..."
+
+PGPASSWORD=Kgegwlaj6mAIxzHaEqgo psql -h localhost -p 5433 -U postgres -d bia -c "
+INSERT INTO usuarios (nome, email, created_at) 
+VALUES ('Usuario Teste', 'teste@porteiro.com', NOW());
+"
+
+echo "✅ Registro inserido com sucesso"
+```
+
+**4. Script para Túnel BIA:**
+```bash
+#!/bin/bash
+# tunnel-bia.sh
+PORTEIRO_IP="IP-DO-PORTEIRO"
+ALB_ENDPOINT="bia-549844302.us-east-1.elb.amazonaws.com"
+
+echo "🔗 Criando túnel SSH para BIA na porta 3002..."
+
+ssh -i sua-key.pem -L 3002:$ALB_ENDPOINT:80 ubuntu@$PORTEIRO_IP -N &
+TUNNEL_PID=$!
+
+echo "✅ Túnel BIA ativo na porta 3002 (PID: $TUNNEL_PID)"
+echo "💡 Acesse: http://localhost:3002"
+echo "🛑 Para parar: kill $TUNNEL_PID"
+```
+
+**5. Script Completo da Máquina Porteiro:**
+```bash
+#!/bin/bash
+# porteiro-manager.sh
+
+function launch_porteiro() {
+    echo "🚀 Lançando porteiro..."
+    # Código do launch-porteiro.sh aqui
+}
+
+function setup_rds_tunnel() {
+    echo "🔗 Configurando túnel RDS..."
+    # Código do tunnel-rds.sh aqui
+}
+
+function setup_bia_tunnel() {
+    echo "🔗 Configurando túnel BIA..."
+    # Código do tunnel-bia.sh aqui
+}
+
+function insert_test_record() {
+    echo "📝 Inserindo registro teste..."
+    # Código do insert-record.sh aqui
+}
+
+case $1 in
+    "launch") launch_porteiro ;;
+    "rds") setup_rds_tunnel ;;
+    "bia") setup_bia_tunnel ;;
+    "insert") insert_test_record ;;
+    *) echo "Uso: $0 {launch|rds|bia|insert}" ;;
+esac
+```
+
+### **🔐 Security Group Necessário:**
+```bash
+# Criar SG para porteiro
+aws ec2 create-security-group \
+  --group-name porteiro-sg \
+  --description "Security group para bastion host porteiro"
+
+# Permitir SSH
+aws ec2 authorize-security-group-ingress \
+  --group-name porteiro-sg \
+  --protocol tcp \
+  --port 22 \
+  --cidr 0.0.0.0/0
+```
+
+---
+
 ## 📅 **DIA 2: BUILD E PUSH**
 
 ### **🎯 Objetivos do Dia 2:**
@@ -157,6 +289,8 @@ DIA 1 - PARTE 7: VM bia-dev + IAM + ECR
     ↓
 DIA 2: Build + Push ECR
     ↓
+DIA 4 - PARTE 6: Porteiro (Bastion Host)
+    ↓
 DESAFIO S3: Site Estático → API (Dia 2) → RDS
 ```
 
@@ -171,11 +305,14 @@ DESAFIO S3: Site Estático → API (Dia 2) → RDS
 │ • IAM User      │    │ • Static hosting │    │                  │
 └─────────────────┘    └─────────────────┘    └──────────────────┘
                                                         │
-                                                        ▼
-                                               ┌──────────────────┐
-                                               │   RDS Database   │
-                                               │   (PostgreSQL)   │
-                                               └──────────────────┘
+        ┌──────────────────┐                           ▼
+        │   Porteiro       │                  ┌──────────────────┐
+        │   (Bastion)      │                  │   RDS Database   │
+        │                  │                  │   (PostgreSQL)   │
+        │ • SSH Tunnels    │◀─────────────────│                  │
+        │ • RDS :5433      │                  │ • Private subnet │
+        │ • BIA :3002      │                  │ • Zona A/B       │
+        └──────────────────┘                  └──────────────────┘
 ```
 
 ---
@@ -192,6 +329,7 @@ DESAFIO S3: Site Estático → API (Dia 2) → RDS
 - **DIA 1 - PARTE 6:** VM Ubuntu + Ferramentas
 - **DIA 1 - PARTE 7:** Lançar bia-dev + IAM User + ECR
 - **DIA 2:** Build local + Push ECR
+- **DIA 4 - PARTE 6:** Porteiro (Bastion Host) + Túneis SSH
 
 ---
 
@@ -201,7 +339,8 @@ DESAFIO S3: Site Estático → API (Dia 2) → RDS
 1. **Implementar Dia 1 - Parte 6:** VM Ubuntu + Ferramentas
 2. **Implementar Dia 1 - Parte 7:** VM bia-dev com IAM User
 3. **Implementar Dia 2:** Build e Push local
-4. **Integrar tudo:** VM → ECR → ECS → S3 → RDS
+4. **Implementar Dia 4 - Parte 6:** Porteiro + Túneis SSH
+5. **Integrar tudo:** VM → ECR → ECS → S3 → RDS (via Porteiro)
 
 ### **Benefícios da Implementação Completa:**
 - ✅ **Ciclo completo:** Desenvolvimento → Build → Deploy → Frontend
