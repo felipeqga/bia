@@ -4,10 +4,88 @@
 **O endpoint e IPs mencionados nesta documentação são temporários e específicos para este teste/desafio. Em implementações reais, você terá seus próprios endpoints e endereços IP conforme sua infraestrutura AWS.**
 
 ## 📋 **RESUMO DO DESAFIO**
-Criar bucket S3, configurar hospedagem de site estático, aplicar permissões públicas e implementar scripts de deploy automatizado para aplicação React.
+
+### **🎯 REQUISITOS OFICIAIS:**
+1. ✅ **Criar bucket S3** para servir site da BIA de forma estática
+2. ✅ **Criar script shell** para gerar assets do React da BIA
+3. ✅ **Endereço da API** deve ser passado por argumento
+4. ✅ **Fazer sync** do diretório local com bucket S3
+5. ✅ **Rodar desafio da BIA no dia 2** para servir como API
+6. ✅ **Salvar registro em banco** por esse site
+
+### **🔗 INTEGRAÇÃO COMPLETA:**
+- **Frontend:** Site estático no S3
+- **Backend:** API do desafio dia 2 (ALB + ECS + RDS)
+- **Comunicação:** Frontend chama API via VITE_API_URL
+- **Persistência:** Dados salvos no banco via API
 
 **Data de Implementação:** 07/11/2025  
 **Status:** ✅ CONCLUÍDO COM SUCESSO  
+
+---
+
+## 🔗 **INTEGRAÇÃO COM DESAFIO DIA 2 (API)**
+
+### **📋 Pré-requisito: API Funcionando**
+
+**Antes de executar o DESAFIO S3, certifique-se que o DESAFIO DIA 2 está rodando:**
+
+```bash
+# Verificar se API está online
+curl http://SEU-ALB-ENDPOINT/api/versao
+# Deve retornar: {"version":"Bia 4.2.0"}
+
+# Testar endpoint de usuários
+curl http://SEU-ALB-ENDPOINT/api/usuarios
+# Deve retornar JSON com usuários
+```
+
+### **🎯 Arquitetura Completa:**
+
+```
+┌─────────────────┐    HTTP Request    ┌──────────────────┐
+│   Site S3       │ ──────────────────▶│   API (Dia 2)    │
+│   (Frontend)    │                    │   ALB + ECS      │
+│                 │◀────────────────── │                  │
+└─────────────────┘    JSON Response   └──────────────────┘
+                                                │
+                                                ▼
+                                       ┌──────────────────┐
+                                       │   RDS Database   │
+                                       │   (PostgreSQL)   │
+                                       └──────────────────┘
+```
+
+### **🔧 Configuração da Integração:**
+
+**No script deploys3.sh:**
+```bash
+# Usar endpoint do ALB do desafio dia 2
+API_URL="http://SEU-ALB-ENDPOINT"  # ← Endpoint do desafio dia 2
+```
+
+**Exemplo real:**
+```bash
+API_URL="http://bia-549844302.us-east-1.elb.amazonaws.com"
+```
+
+### **✅ Teste de Integração:**
+
+**1. Site S3 carrega:**
+```bash
+curl http://SEU-BUCKET.s3-website-us-east-1.amazonaws.com
+```
+
+**2. Site chama API:**
+- Abrir site no browser
+- Verificar Network tab (F12)
+- Confirmar chamadas para `/api/usuarios`
+- Verificar dados carregados na tela
+
+**3. Dados salvos no banco:**
+- Criar/editar usuário no site
+- Verificar se dados persistem no RDS
+- Confirmar via API: `curl http://ALB/api/usuarios`
 
 ---
 
