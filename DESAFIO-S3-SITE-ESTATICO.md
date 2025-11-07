@@ -391,6 +391,118 @@ API_URL="https://api.seudominio.com.br"                          # Domínio cust
 5. ✅ **Deploy executado:** `./deploys3.sh hom`
 6. ✅ **Site testado:** Endpoint S3 acessível
 
+## 🚨 **CASO REAL - ERRO DO COLEGA MOISES**
+
+### **Situação Real Reportada:**
+```
+moises@vm-formacaoaws:~/formacaoaws/desafios-fundamentais$ ./react.sh 
+257 packages are looking for funding
+run `npm fund` for details
+
+55 vulnerabilities (9 low, 29 moderate, 16 high, 1 critical)
+
+> react-task-tracker@0.1.0 build
+> vite build
+
+sh: 1: vite: not found
+Build do React realizado com sucesso!  ← MENTIRA! Build falhou
+```
+
+### **Análise do Problema:**
+
+**❌ ERRO IDENTIFICADO:** `sh: 1: vite: not found`
+
+**🔍 CAUSA RAIZ:**
+1. **npm install executou** (257 packages found)
+2. **Dependências instaladas** no diretório errado
+3. **vite não encontrado** no PATH do script
+4. **Script mentiu** sobre sucesso ("Build realizado com sucesso!")
+
+### **💡 SOLUÇÃO PARA O MOISES:**
+
+**Passo 1: Verificar estrutura atual**
+```bash
+pwd
+# Deve mostrar: /home/moises/formacaoaws/desafios-fundamentais
+
+ls -la
+# Verificar se existe pasta com projeto React
+```
+
+**Passo 2: Entrar na pasta do client React**
+```bash
+# Encontrar a pasta do projeto React
+find . -name "package.json" -type f
+
+# Entrar na pasta correta (exemplo)
+cd bia/client  # ou onde estiver o package.json do React
+```
+
+**Passo 3: Instalar dependências no local correto**
+```bash
+npm install
+# Verificar se vite foi instalado
+ls node_modules/.bin/vite
+```
+
+**Passo 4: Executar build manualmente**
+```bash
+# Com VITE_API_URL configurado
+VITE_API_URL=http://SEU-ENDPOINT npm run build
+
+# Verificar se build foi criado
+ls -la build/
+```
+
+### **🔧 CORREÇÃO DO SCRIPT react.sh**
+
+**Problema:** Script não verifica se vite existe antes de usar
+
+**Script corrigido:**
+```bash
+#!/bin/bash
+function build() {
+    API_URL=$1
+    echo $API_URL
+    
+    # Verificar se estamos no diretório correto
+    if [ ! -f "bia/client/package.json" ]; then
+        echo "❌ ERRO: package.json não encontrado em bia/client/"
+        echo "💡 Execute do diretório pai da pasta bia"
+        exit 1
+    fi
+    
+    cd bia/client
+    
+    # Instalar dependências se necessário
+    if [ ! -d "node_modules" ]; then
+        echo "📦 Instalando dependências..."
+        npm install
+    fi
+    
+    # Verificar se vite existe
+    if [ ! -f "node_modules/.bin/vite" ]; then
+        echo "❌ ERRO: vite não encontrado após npm install"
+        echo "💡 Tente: npm install --force"
+        exit 1
+    fi
+    
+    echo "🚀 Iniciando build..."
+    VITE_API_URL=$API_URL npm run build
+    
+    # Verificar se build foi criado
+    if [ ! -d "build" ]; then
+        echo "❌ ERRO: Build falhou - pasta build não criada"
+        exit 1
+    fi
+    
+    echo "✅ Build realizado com sucesso!"
+    cd ../..
+}
+```
+
+---
+
 ## 🧪 **SIMULAÇÃO DE ERROS REAIS - CASOS TESTADOS**
 
 ### **CENÁRIO 1: Execução do Diretório Errado (/home/ec2-user/bia)**
@@ -603,6 +715,33 @@ echo "🚀 Executando deploy..."
 ```
 
 ## 🔍 **TROUBLESHOOTING**
+
+### **Problema: vite: not found (Caso do Moises)**
+**Sintomas:**
+```
+sh: 1: vite: not found
+Build do React realizado com sucesso!  ← Script mente sobre sucesso
+```
+
+**Causa:** npm install executado mas vite não acessível no PATH
+
+**Solução Imediata:**
+```bash
+# 1. Ir para pasta do client React
+cd bia/client  # ou onde estiver package.json
+
+# 2. Verificar se vite foi instalado
+ls node_modules/.bin/vite
+
+# 3. Se não existir, reinstalar
+npm install --force
+
+# 4. Build manual com verificação
+VITE_API_URL=http://SEU-ENDPOINT npm run build && echo "✅ Build OK" || echo "❌ Build falhou"
+
+# 5. Verificar resultado
+ls -la build/index.html
+```
 
 ### **Problema: Script não encontra pasta bia**
 **Verificações:**
