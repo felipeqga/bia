@@ -77,6 +77,9 @@ Quando o usuário executar `qbia`, você deve **AUTOMATICAMENTE** ler todos os 6
 - `/home/ec2-user/bia/.amazonq/context/erros-criacao-cluster-ecs.md`
 - `/home/ec2-user/bia/GUIA-DEPLOY-VERSIONADO.md`
 
+### **🌐 DESAFIO S3 (1 arquivo):**
+- `/home/ec2-user/bia/DESAFIO-S3-SITE-ESTATICO.md`
+
 ### **🔍 Troubleshooting (1 arquivo):**
 - `/home/ec2-user/bia/troubleshooting-session-2025-08-02.md`
 
@@ -109,9 +112,9 @@ Você deve estar completamente contextualizado sobre:
 
 **IMPORTANTE:** Não peça para o usuário explicar o contexto. Você deve ler automaticamente e ficar contextualizado.
 
-## 📊 **TOTAL DE ARQUIVOS: 73 ARQUIVOS .MD**
+## 📊 **TOTAL DE ARQUIVOS: 74 ARQUIVOS .MD**
 
-**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 73
+**Verificação:** `find /home/ec2-user/bia -name "*.md" -type f -not -path "*/node_modules/*" | wc -l` deve retornar 74
 
 ---
 
