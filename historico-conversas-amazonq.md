@@ -107,6 +107,26 @@ aws iam put-role-policy --role-name role-acesso-ssm --policy-name S3_FullAccess
 - HTTPS via ACM
 - Integração com CodePipeline
 
+#### Correções e Melhorias da Documentação
+
+**Reorganização Estrutural:**
+- ✅ **Ordem lógica:** Clone → Scripts → AWS → Deploy → Troubleshooting
+- ✅ **Pré-requisitos claros:** GitHub clone em destaque
+- ✅ **Scripts originais:** Conforme especificação do desafio
+- ✅ **PLUS otimizado:** Versão com validações adicionais
+
+**Correções Técnicas:**
+- ✅ **Repositório oficial:** github.com/henrylle/bia.git
+- ✅ **Script original:** cd bia + NODE_OPTIONS + VITE_API_URL
+- ✅ **Simplificação:** Removida instalação manual (scripts fazem automaticamente)
+- ✅ **Casos reais:** Erro "vite: not found" documentado
+
+**Melhorias de Usabilidade:**
+- ✅ **Processo simplificado:** 3 comandos (clone → cd → deploy)
+- ✅ **Validações opcionais:** Script PLUS com verificações
+- ✅ **Troubleshooting completo:** Casos reais testados
+- ✅ **Documentação profissional:** Sem nomes específicos
+
 #### Limpeza de Recursos
 
 **Recursos Deletados para Evitar Custos:**
@@ -124,7 +144,9 @@ aws iam put-role-policy --role-name role-acesso-ssm --policy-name S3_FullAccess
 
 **✅ DESAFIO S3 COMPLETO:**
 - **Implementação:** 100% funcional testada
-- **Documentação:** Completa com casos reais de erro
+- **Documentação:** Reorganizada e otimizada
+- **Scripts:** Original + versão PLUS
+- **Casos reais:** Erros documentados e solucionados
 - **Recursos:** Limpos para evitar custos
 - **Conhecimento:** Preservado para reutilização
 
