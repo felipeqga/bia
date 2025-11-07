@@ -140,6 +140,46 @@ aws iam put-role-policy --role-name role-acesso-ssm --policy-name S3_FullAccess
 - ✅ **Conhecimento técnico** preservado
 - ✅ **Casos de erro reais** documentados
 
+#### Estrutura Completa dos Desafios Fundamentais
+
+**Contexto Identificado - Sequência Completa:**
+
+**DIA 1 - PARTE 6: Preparação da VM**
+- ✅ **VM Ubuntu 24.04:** Criar máquina base de desenvolvimento
+- ✅ **Ferramentas:** VS Code, DBeaver, Git, Docker, AWS CLI, SAM
+- ✅ **GitHub:** Extensão Pull Request + autenticação
+- ✅ **Workspace:** Pasta `~/formacaoaws` na home
+
+**DIA 1 - PARTE 7: Máquina BIA-DEV**
+- ✅ **VM bia-dev:** Lançar máquina específica para BIA
+- ✅ **IAM User:** Configurar permissões via usuário (não role)
+- ✅ **ECR:** Testar comunicação com registry
+
+**DIA 2: Build e Push**
+- ✅ **Build local:** Construir imagem BIA na VM
+- ✅ **Push ECR:** Enviar para registry da VM
+
+**DESAFIO S3: Site Estático (Implementado)**
+- ✅ **Bucket S3:** Para servir site estaticamente
+- ✅ **Scripts:** Para gerar assets React
+- ✅ **Integração:** Site S3 → API (Dia 2) → RDS
+
+**Fluxo Sequencial Documentado:**
+```
+PARTE 6: Ubuntu + Tools → PARTE 7: bia-dev + IAM → DIA 2: Build + Push → S3: Site
+```
+
+**Arquitetura End-to-End:**
+```
+VM (Desenvolvimento) → ECR (Registry) → ECS (API) → S3 (Frontend) → RDS (Database)
+```
+
+**Documentação Criada:**
+- ✅ **ESTRUTURA-DESAFIOS-FUNDAMENTAIS.md** - Visão completa
+- ✅ **Comandos de instalação** para cada ferramenta
+- ✅ **Status de cada desafio** documentado
+- ✅ **Próximos passos** organizados
+
 #### Finalização Completa do Desafio
 
 **Requisitos Oficiais Identificados e Cumpridos:**
@@ -173,6 +213,12 @@ Site S3 (Frontend) → API Dia 2 (Backend) → RDS (Database)
 - **Ambientes:** VM externa e EC2 cobertos
 - **Recursos:** Limpos para evitar custos
 - **Conhecimento:** Preservado para reutilização
+
+**✅ ESTRUTURA COMPLETA DOCUMENTADA:**
+- **Sequência:** Dia 1 Parte 6 → Dia 1 Parte 7 → Dia 2 → S3
+- **Ferramentas:** Todas as instalações documentadas
+- **Fluxo:** Desenvolvimento → Build → Deploy → Frontend
+- **Arquitetura:** VM → ECR → ECS → S3 → RDS
 
 **🎯 Próximos Desafios Possíveis:**
 - CloudFront + S3 para CDN
