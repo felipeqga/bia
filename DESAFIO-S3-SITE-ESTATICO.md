@@ -304,7 +304,42 @@ ls -la *.sh
 
 ## 🚨 **PROBLEMAS COMUNS E SOLUÇÕES**
 
-### **ERRO 1: Permissões IAM Insuficientes**
+### **ERRO 1: AccessDenied - VM Externa sem Permissões**
+**Sintoma:**
+```
+fatal error: An error occurred (AccessDenied) when calling the ListObjectsV2 operation: 
+User: arn:aws:iam::194722436911:user/fundamentos is not authorized to perform: 
+s3:ListBucket on resource: arn:aws:s3:::desafios-fundamentais-bia 
+because no identity-based policy allows the s3:ListBucket action
+```
+
+**Causa:** Usuário IAM `fundamentos` não tem permissões S3
+
+**Solução para VM Externa:**
+```bash
+# 1. Criar policy S3 para o usuário
+aws iam put-user-policy \
+  --user-name fundamentos \
+  --policy-name S3FullAccess \
+  --policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Action": "s3:*",
+      "Resource": "*"
+    }]
+  }'
+
+# 2. OU anexar policy gerenciada
+aws iam attach-user-policy \
+  --user-name fundamentos \
+  --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
+
+# 3. Verificar permissões
+aws s3 ls --profile fundamentos
+```
+
+### **ERRO 2: Permissões IAM Insuficientes - EC2**
 **Sintoma:**
 ```
 AccessDenied: User is not authorized to perform: s3:CreateBucket
@@ -430,6 +465,63 @@ cd ..
 3. **HTTPS:** Certificado SSL via ACM
 4. **CI/CD:** Integração com CodePipeline
 5. **Versionamento:** Deploy com tags de versão
+
+---
+
+---
+
+## 🚨 **TROUBLESHOOTING ESPECÍFICO POR AMBIENTE**
+
+### **🖥️ Problemas em VM Externa:**
+
+**ERRO: AccessDenied - User fundamentos not authorized**
+```
+fatal error: An error occurred (AccessDenied) when calling the ListObjectsV2 operation: 
+User: arn:aws:iam::194722436911:user/fundamentos is not authorized to perform: 
+s3:ListBucket on resource: arn:aws:s3:::desafios-fundamentais-bia
+```
+
+**Solução:**
+```bash
+# 1. Verificar usuário atual
+aws sts get-caller-identity --profile fundamentos
+
+# 2. Adicionar permissões S3 ao usuário
+aws iam attach-user-policy \
+  --user-name fundamentos \
+  --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
+
+# 3. Testar acesso
+aws s3 ls --profile fundamentos
+
+# 4. Atualizar script s3.sh
+function envio_s3() {
+    aws s3 sync ./bia/client/build/ s3://SEU-BUCKET-NAME --profile fundamentos
+}
+```
+
+### **☁️ Problemas em EC2:**
+
+**ERRO: AccessDenied - Role sem permissões**
+```
+AccessDenied: User is not authorized to perform: s3:CreateBucket
+```
+
+**Solução:**
+```bash
+# Adicionar permissões à role da instância
+aws iam put-role-policy \
+  --role-name SUA-ROLE \
+  --policy-name S3_FullAccess \
+  --policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Action": "s3:*",
+      "Resource": "*"
+    }]
+  }'
+```
 
 ---
 
