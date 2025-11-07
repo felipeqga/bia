@@ -239,6 +239,78 @@ aws s3 ls s3://desafios-fundamentais-bia-1762481467/
 
 ---
 
+---
+
+## 🔍 **COMO OBTER O ENDPOINT DO SITE**
+
+### **Método 1: Via AWS CLI**
+```bash
+# Obter endpoint do website
+echo "http://$(aws s3api get-bucket-location --bucket desafios-fundamentais-bia-1762481467 --query 'LocationConstraint' --output text | sed 's/null/us-east-1/').s3-website-$(aws s3api get-bucket-location --bucket desafios-fundamentais-bia-1762481467 --query 'LocationConstraint' --output text | sed 's/null/us-east-1/').amazonaws.com"
+
+# Método mais simples (padrão us-east-1):
+echo "http://desafios-fundamentais-bia-1762481467.s3-website-us-east-1.amazonaws.com"
+```
+
+### **Método 2: Via Console AWS**
+1. **AWS Console** → **S3** → **Buckets**
+2. Clique no bucket `desafios-fundamentais-bia-1762481467`
+3. Aba **Properties** → Role até **Static website hosting**
+4. **Bucket website endpoint** será exibido
+
+### **Método 3: Verificar após configuração**
+```bash
+# Verificar se website hosting está habilitado
+aws s3api get-bucket-website --bucket desafios-fundamentais-bia-1762481467
+
+# Testar acesso
+curl -I http://desafios-fundamentais-bia-1762481467.s3-website-us-east-1.amazonaws.com
+```
+
+---
+
+## ⚙️ **CONFIGURAÇÕES DE ARQUIVOS NECESSÁRIAS**
+
+### **❌ NÃO É NECESSÁRIO ALTERAR:**
+- ✅ **Dockerfile:** Não precisa modificar
+- ✅ **docker-compose.yml:** Não precisa modificar  
+- ✅ **Arquivos de configuração:** Não precisa modificar
+
+### **✅ CONFIGURAÇÃO AUTOMÁTICA:**
+O **VITE_API_URL** é configurado automaticamente pelos scripts:
+
+**No script `deploys3.sh`:**
+```bash
+API_URL="http://bia-549844302.us-east-1.elb.amazonaws.com"  # ← ALTERE AQUI
+```
+
+**No script `reacts3.sh`:**
+```bash
+VITE_API_URL=$API_URL npm run build --prefix client  # ← Usa a variável
+```
+
+### **🔧 ONDE ALTERAR O API_URL:**
+
+**Arquivo:** `/home/ec2-user/bia/deploys3.sh`
+```bash
+# LINHA 3 - ALTERE CONFORME SEU AMBIENTE:
+API_URL="http://SEU-ALB-OU-EC2-ENDPOINT"
+
+# Exemplos:
+API_URL="http://bia-549844302.us-east-1.elb.amazonaws.com"        # ALB
+API_URL="http://34.239.240.133"                                   # EC2 IP
+API_URL="https://api.seudominio.com.br"                          # Domínio customizado
+```
+
+### **📋 CHECKLIST DE CONFIGURAÇÃO:**
+
+1. ✅ **Bucket criado** e configurado
+2. ✅ **Scripts criados** (reacts3.sh, s3.sh, deploys3.sh)
+3. ✅ **API_URL configurado** no deploys3.sh
+4. ✅ **Permissões IAM** (S3FullAccess)
+5. ✅ **Deploy executado:** `./deploys3.sh hom`
+6. ✅ **Site testado:** Endpoint S3 acessível
+
 ## 🔍 **TROUBLESHOOTING**
 
 ### **Problema: Site não carrega**
