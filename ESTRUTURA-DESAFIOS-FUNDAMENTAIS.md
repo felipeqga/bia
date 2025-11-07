@@ -2,9 +2,9 @@
 
 ## 📋 **VISÃO GERAL DOS DESAFIOS**
 
-### **🔄 DESAFIOS FUNDAMENTAIS: DIA 2 - PARTE 7**
+### **🔄 DESAFIOS FUNDAMENTAIS - CRONOLOGIA COMPLETA**
 
-**Objetivo:** Fazer os desafios do dia 1 e 2 da BIA da sua VM
+**Objetivo:** Implementar todos os desafios fundamentais da BIA em sequência cronológica
 
 ---
 
@@ -111,6 +111,47 @@ aws iam attach-user-policy \
 # 3. Testar comunicação ECR
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ACCOUNT.dkr.ecr.us-east-1.amazonaws.com
 ```
+
+---
+
+## 📅 **DIA 2: BUILD E PUSH**
+
+### **🎯 Objetivos do Dia 2:**
+1. ✅ **Fazer build da sua VM**
+2. ✅ **Fazer push para o ECR da sua VM**
+
+### **🔧 Implementação Dia 2:**
+```bash
+# 1. Build da aplicação BIA
+cd bia
+docker build -t bia:latest .
+
+# 2. Tag para ECR
+docker tag bia:latest ACCOUNT.dkr.ecr.us-east-1.amazonaws.com/bia:latest
+
+# 3. Push para ECR
+docker push ACCOUNT.dkr.ecr.us-east-1.amazonaws.com/bia:latest
+```
+
+---
+
+## 📅 **DIA 3 - PARTE 5: SITE ESTÁTICO S3 ✅ CONCLUÍDO**
+
+### **🎯 Objetivos do Dia 3 - Parte 5:**
+1. ✅ **Criar bucket S3** para servir site da BIA estaticamente
+2. ✅ **Script shell** para gerar assets do React da BIA
+3. ✅ **API por argumento** (endereço passado por parâmetro)
+4. ✅ **Sync com S3** (diretório local → bucket)
+5. ✅ **Integração com Dia 2** (usar API como backend)
+6. ✅ **Registro em banco** (dados persistidos via API)
+
+### **🔧 Implementação Dia 3 - Parte 5:**
+**✅ IMPLEMENTADO 100% - Ver documentação completa:**
+- **DESAFIO-S3-SITE-ESTATICO.md** - Implementação detalhada
+- **Scripts criados:** deploys3.sh, reacts3.sh, s3.sh
+- **Site funcionando:** React hospedado no S3
+- **Integração:** Site S3 → API → RDS
+- **Troubleshooting:** Casos reais documentados
 
 ---
 
@@ -229,59 +270,11 @@ case $1 in
 esac
 ```
 
-### **🔐 Security Group Necessário:**
-```bash
-# Criar SG para porteiro
-aws ec2 create-security-group \
-  --group-name porteiro-sg \
-  --description "Security group para bastion host porteiro"
-
-# Permitir SSH
-aws ec2 authorize-security-group-ingress \
-  --group-name porteiro-sg \
-  --protocol tcp \
-  --port 22 \
-  --cidr 0.0.0.0/0
-```
-
----
-
-## 📅 **DIA 2: BUILD E PUSH**
-
-### **🎯 Objetivos do Dia 2:**
-1. ✅ **Fazer build da sua VM**
-2. ✅ **Fazer push para o ECR da sua VM**
-
-### **🔧 Implementação Dia 2:**
-```bash
-# 1. Build da aplicação BIA
-cd bia
-docker build -t bia:latest .
-
-# 2. Tag para ECR
-docker tag bia:latest ACCOUNT.dkr.ecr.us-east-1.amazonaws.com/bia:latest
-
-# 3. Push para ECR
-docker push ACCOUNT.dkr.ecr.us-east-1.amazonaws.com/bia:latest
-```
-
----
-
-## 🌐 **DESAFIO S3: SITE ESTÁTICO (NOSSO FOCO)**
-
-### **🎯 Objetivos do Desafio S3:**
-1. ✅ **Criar bucket S3** para servir site da BIA estaticamente
-2. ✅ **Script shell** para gerar assets do React
-3. ✅ **API por argumento** (endereço passado por parâmetro)
-4. ✅ **Sync com S3** (diretório local → bucket)
-5. ✅ **Integração com Dia 2** (usar API como backend)
-6. ✅ **Registro em banco** (dados persistidos via API)
-
 ---
 
 ## 🔗 **INTEGRAÇÃO ENTRE DESAFIOS**
 
-### **📊 Fluxo Completo:**
+### **📊 Fluxo Cronológico Completo:**
 ```
 DIA 1 - PARTE 6: VM Ubuntu + Ferramentas
     ↓
@@ -289,30 +282,36 @@ DIA 1 - PARTE 7: VM bia-dev + IAM + ECR
     ↓
 DIA 2: Build + Push ECR
     ↓
-DIA 4 - PARTE 6: Porteiro (Bastion Host)
+DIA 3 - PARTE 5: Site Estático S3 ✅ CONCLUÍDO
     ↓
-DESAFIO S3: Site Estático → API (Dia 2) → RDS
+DIA 4 - PARTE 6: Porteiro (Bastion Host)
 ```
 
-### **🏗️ Arquitetura Final:**
+### **🏗️ Arquitetura Final Completa:**
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌──────────────────┐
-│   VM bia-dev    │    │   Site S3        │    │   API (Dia 2)    │
-│   (Dia 1 + 2)   │    │   (Frontend)     │    │   ALB + ECS      │
+│   VM Ubuntu     │    │   VM bia-dev     │    │   Site S3        │
+│   (Dia 1-P6)    │    │   (Dia 1-P7+2)   │    │   (Dia 3-P5)     │
 │                 │    │                  │    │                  │
-│ • Build local   │───▶│ • React build    │───▶│ • Container ECR  │
-│ • Push ECR      │    │ • VITE_API_URL   │    │ • Backend API    │
-│ • IAM User      │    │ • Static hosting │    │                  │
+│ • VS Code       │───▶│ • Build local    │───▶│ • React build    │
+│ • Docker        │    │ • Push ECR       │    │ • VITE_API_URL   │
+│ • AWS CLI       │    │ • IAM User       │    │ • Static hosting │
 └─────────────────┘    └─────────────────┘    └──────────────────┘
                                                         │
         ┌──────────────────┐                           ▼
         │   Porteiro       │                  ┌──────────────────┐
-        │   (Bastion)      │                  │   RDS Database   │
-        │                  │                  │   (PostgreSQL)   │
+        │   (Dia 4-P6)     │                  │   API (ECS)      │
+        │                  │                  │   (Dia 2)        │
         │ • SSH Tunnels    │◀─────────────────│                  │
-        │ • RDS :5433      │                  │ • Private subnet │
-        │ • BIA :3002      │                  │ • Zona A/B       │
+        │ • RDS :5433      │                  │ • Container ECR  │
+        │ • BIA :3002      │                  │ • Backend API    │
         └──────────────────┘                  └──────────────────┘
+                                                        │
+                                                        ▼
+                                               ┌──────────────────┐
+                                               │   RDS Database   │
+                                               │   (PostgreSQL)   │
+                                               └──────────────────┘
 ```
 
 ---
@@ -320,14 +319,11 @@ DESAFIO S3: Site Estático → API (Dia 2) → RDS
 ## 📋 **STATUS DOS DESAFIOS**
 
 ### **✅ CONCLUÍDOS:**
-- **DESAFIO S3:** 100% implementado e documentado
-- **Integração:** Site S3 → API → RDS funcionando
-- **Scripts:** Criados e testados
-- **Troubleshooting:** Casos reais documentados
+- **DIA 3 - PARTE 5 (Site S3):** 100% implementado e documentado
 
 ### **📝 PENDENTES (Para Referência):**
 - **DIA 1 - PARTE 6:** VM Ubuntu + Ferramentas
-- **DIA 1 - PARTE 7:** Lançar bia-dev + IAM User + ECR
+- **DIA 1 - PARTE 7:** VM bia-dev + IAM User + ECR
 - **DIA 2:** Build local + Push ECR
 - **DIA 4 - PARTE 6:** Porteiro (Bastion Host) + Túneis SSH
 
@@ -335,29 +331,30 @@ DESAFIO S3: Site Estático → API (Dia 2) → RDS
 
 ## 🎯 **PRÓXIMOS PASSOS SUGERIDOS**
 
-### **Para Completar Todos os Desafios:**
+### **Para Completar Todos os Desafios (Ordem Cronológica):**
 1. **Implementar Dia 1 - Parte 6:** VM Ubuntu + Ferramentas
 2. **Implementar Dia 1 - Parte 7:** VM bia-dev com IAM User
 3. **Implementar Dia 2:** Build e Push local
-4. **Implementar Dia 4 - Parte 6:** Porteiro + Túneis SSH
-5. **Integrar tudo:** VM → ECR → ECS → S3 → RDS (via Porteiro)
+4. **Dia 3 - Parte 5:** ✅ JÁ CONCLUÍDO (Site S3)
+5. **Implementar Dia 4 - Parte 6:** Porteiro + Túneis SSH
 
 ### **Benefícios da Implementação Completa:**
-- ✅ **Ciclo completo:** Desenvolvimento → Build → Deploy → Frontend
-- ✅ **Boas práticas:** IAM Users, ECR, S3, RDS
+- ✅ **Ciclo completo:** Desenvolvimento → Build → Deploy → Frontend → Acesso
+- ✅ **Boas práticas:** IAM Users, ECR, S3, RDS, Bastion Host
 - ✅ **Arquitetura real:** Separação de responsabilidades
 - ✅ **Experiência completa:** Todos os serviços AWS integrados
+- ✅ **Segurança:** Acesso ao RDS via bastion host
 
 ---
 
 ## 📚 **DOCUMENTAÇÃO RELACIONADA**
 
-- **DESAFIO-S3-SITE-ESTATICO.md** - Implementação completa do site estático
+- **DESAFIO-S3-SITE-ESTATICO.md** - Implementação completa do Dia 3 - Parte 5
 - **historico-conversas-amazonq.md** - Histórico de todas as implementações
 - **troubleshooting-*.md** - Soluções para problemas específicos
 
 ---
 
 *Documentação criada em: 07/11/2025*  
-*Contexto: Estrutura completa dos Desafios Fundamentais BIA*  
-*Status: Desafio S3 concluído, Dias 1 e 2 documentados para referência*
+*Contexto: Estrutura cronológica completa dos Desafios Fundamentais BIA*  
+*Status: Dia 3 - Parte 5 (S3) concluído, demais dias documentados para referência*
