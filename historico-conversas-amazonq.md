@@ -107,6 +107,32 @@ aws iam put-role-policy --role-name role-acesso-ssm --policy-name S3_FullAccess
 - HTTPS via ACM
 - Integração com CodePipeline
 
+#### Limpeza de Recursos
+
+**Recursos Deletados para Evitar Custos:**
+- ✅ **Bucket S3:** `desafios-fundamentais-bia-1762481467` removido
+- ✅ **Arquivos S3:** 10 arquivos deletados
+- ✅ **Scripts locais:** deploys3.sh, reacts3.sh, s3.sh removidos
+- ✅ **Economia:** $0.00/mês (sem recursos ativos)
+
+**Documentação Preservada:**
+- ✅ **DESAFIO-S3-SITE-ESTATICO.md** mantido para referência
+- ✅ **Conhecimento técnico** preservado
+- ✅ **Casos de erro reais** documentados
+
+#### Resultado Final
+
+**✅ DESAFIO S3 COMPLETO:**
+- **Implementação:** 100% funcional testada
+- **Documentação:** Completa com casos reais de erro
+- **Recursos:** Limpos para evitar custos
+- **Conhecimento:** Preservado para reutilização
+
+**🎯 Próximos Desafios Possíveis:**
+- CloudFront + S3 para CDN
+- Route 53 + ACM para domínio customizado
+- CodePipeline + S3 para CI/CD
+
 ---
 
 ## Data: 07/08/2025
