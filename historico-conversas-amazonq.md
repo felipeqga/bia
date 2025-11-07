@@ -2552,6 +2552,59 @@ Testar ambos templates ECS (v1 YAML vs v2 JSON) para validar funcionamento e doc
 - `task-definition-desafio3.json` - Task definition otimizada
 - `guia-escolha-templates-ecs.md` - Guia de escolha entre templates
 
+#### Integração das Anotações Reais
+
+**Anotações Pessoais Integradas aos Desafios Fundamentais:**
+
+**Configurações Reais Identificadas:**
+- ✅ **ECR Registry:** 557772028142.dkr.ecr.us-east-1.amazonaws.com/bia:latest
+- ✅ **RDS Database:** database-1.ctcq4u628ebj.us-east-1.rds.amazonaws.com
+- ✅ **Credenciais RDS:** postgres/GjIPOyL4vcuf5h1VHmeh
+- ✅ **ALB Endpoint:** bia-549844302.us-east-1.elb.amazonaws.com
+- ✅ **Keys:** KEY-RSA-PEM-LINUX-BIA, KEY-RSA-PEM-BASTION
+
+**Security Groups e Nomenclaturas:**
+- ✅ **bia-dev:** Security group para desenvolvimento
+- ✅ **porteiro-sg:** Security group para bastion host
+- ✅ **endpoint-sg:** Security group para VPC endpoints
+- ✅ **Instâncias:** bia-dev, porteiro (nomenclatura padronizada)
+
+**Comandos AWS CLI Reais Integrados:**
+```bash
+# Listagem de instâncias (query real testada)
+aws ec2 describe-instances \
+    --query 'Reservations[*].Instances[*].{ID_Instancia:InstanceId,Estado:State.Name,Nome:Tags[?Key==`Name`]|[0].Value}' \
+    --output table
+
+# Túneis SSH (configurações reais)
+ssh -f -N -i "KEY-RSA-PEM-BASTION.pem" -L 5433:database-1.ctcq4u628ebj.us-east-1.rds.amazonaws.com:5432 ec2-user@porteiro-ip
+
+# SSM (comandos testados)
+aws ssm start-session --target i-054666af8593890b9 --profile bia-serverless
+```
+
+**Docker e Desenvolvimento (anotações reais):**
+```bash
+# Workflow de desenvolvimento testado
+git clone https://github.com/henrylle/bia
+docker compose up -d
+docker compose down -v;docker compose build server;docker compose up -d
+docker compose exec server bash -c 'npx sequelize db:create'
+docker compose exec server bash -c 'npx sequelize db:migrate'
+```
+
+**Conectividade Avançada (métodos testados):**
+- ✅ **SSH Tunnels:** RDS porta 5433, BIA porta 3002
+- ✅ **SSM + VPC Endpoints:** Conexão sem IP público
+- ✅ **EC2 Instance Connect:** Chaves temporárias
+- ✅ **Túneis mistos:** SSH + SSM combinados
+
+**Aproveitamento das Coincidências:**
+- ✅ **DIA 1-6:** git clone + docker compose (anotações diretas)
+- ✅ **DIA 1-7:** Security groups + ECR (configurações reais)
+- ✅ **DIA 2:** Build + Push + RDS (credenciais reais)
+- ✅ **DIA 4:** Porteiro + túneis (comandos testados)
+
 ### **🎯 Resultado Final:**
 **DESAFIO-3 100% COMPLETO** com ambos templates validados e funcionando. Documentação criada para futuras implementações com escolha informada entre v1 (estável/educacional) e v2 (moderno/produção).
 
