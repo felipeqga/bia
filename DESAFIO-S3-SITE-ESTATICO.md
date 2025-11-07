@@ -1,5 +1,8 @@
 # 🌐 DESAFIO S3: SITE ESTÁTICO - DOCUMENTAÇÃO COMPLETA
 
+## ⚠️ **OBSERVAÇÃO IMPORTANTE**
+**O endpoint e IPs mencionados nesta documentação são temporários e específicos para este teste/desafio. Em implementações reais, você terá seus próprios endpoints e endereços IP conforme sua infraestrutura AWS.**
+
 ## 📋 **RESUMO DO DESAFIO**
 Criar bucket S3, configurar hospedagem de site estático, aplicar permissões públicas e implementar scripts de deploy automatizado para aplicação React.
 
