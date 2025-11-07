@@ -12,6 +12,49 @@ Criar bucket S3, configurar hospedagem de site estático, aplicar permissões p�
 
 ---
 
+## 📋 **PRÉ-REQUISITOS E ESTRUTURA**
+
+### **🗂️ Estrutura de Diretórios Obrigatória:**
+```
+/home/ec2-user/          ← EXECUTAR SCRIPTS AQUI
+├── bia/                 ← Pasta do projeto
+│   ├── client/          ← Aplicação React
+│   │   ├── package.json
+│   │   ├── src/
+│   │   └── build/       ← Criado após npm run build
+│   ├── deploys3.sh      ← Script principal
+│   ├── reacts3.sh       ← Script de build
+│   └── s3.sh           ← Script de upload
+```
+
+### **⚠️ ERRO COMUM - Diretório Incorreto:**
+```bash
+# ❌ ERRADO - Executar dentro da pasta bia:
+cd /home/ec2-user/bia
+./deploys3.sh hom  # ← FALHA: cd bia não encontra pasta
+
+# ✅ CORRETO - Executar do diretório pai:
+cd /home/ec2-user
+./bia/deploys3.sh hom  # ← SUCESSO
+```
+
+### **🔧 Verificação Antes de Executar:**
+```bash
+# 1. Confirmar diretório atual
+pwd
+# Resultado esperado: /home/ec2-user
+
+# 2. Confirmar estrutura
+ls -la bia/
+# Deve mostrar: client/, deploys3.sh, reacts3.sh, s3.sh
+
+# 3. Confirmar React app
+ls -la bia/client/
+# Deve mostrar: package.json, src/, node_modules/ (após npm install)
+```
+
+---
+
 ## 🎯 **OBJETIVOS ALCANÇADOS**
 
 1. ✅ **Bucket S3 criado:** `desafios-fundamentais-bia-1762481467`
@@ -63,7 +106,41 @@ BucketAlreadyExists: The requested bucket name is not available
 aws s3api create-bucket --bucket desafios-fundamentais-bia-$(date +%s)
 ```
 
-### **ERRO 3: Build do React Falhando**
+### **ERRO 3: Diretório Incorreto - npm install Falha**
+**Sintoma:**
+```
+cd: bia: No such file or directory
+npm: command not found
+npm install falha
+```
+
+**Causa:** Script executado fora da pasta correta
+
+**Solução:**
+```bash
+# SEMPRE executar os scripts a partir do diretório pai da pasta bia
+cd /home/ec2-user  # ← IMPORTANTE: Estar no diretório pai
+./bia/deploys3.sh hom
+
+# OU se estiver dentro da pasta bia:
+cd ..  # Voltar para o diretório pai
+./bia/deploys3.sh hom
+
+# Verificar estrutura de pastas:
+ls -la  # Deve mostrar a pasta "bia" listada
+```
+
+**Estrutura correta:**
+```
+/home/ec2-user/          ← EXECUTAR SCRIPTS AQUI
+├── bia/                 ← Pasta do projeto
+│   ├── client/          ← Aplicação React
+│   ├── deploys3.sh      ← Scripts de deploy
+│   ├── reacts3.sh
+│   └── s3.sh
+```
+
+### **ERRO 4: Build do React Falhando**
 **Sintoma:**
 ```
 vite: command not found
@@ -315,6 +392,34 @@ API_URL="https://api.seudominio.com.br"                          # Domínio cust
 6. ✅ **Site testado:** Endpoint S3 acessível
 
 ## 🔍 **TROUBLESHOOTING**
+
+### **Problema: Script não encontra pasta bia**
+**Verificações:**
+```bash
+# 1. Verificar diretório atual
+pwd
+# Deve retornar: /home/ec2-user
+
+# 2. Verificar se pasta bia existe
+ls -la | grep bia
+# Deve mostrar: drwxrwxr-x ... bia
+
+# 3. Verificar estrutura interna
+ls -la bia/
+# Deve mostrar: client/, deploys3.sh, reacts3.sh, s3.sh
+```
+
+**Solução:**
+```bash
+# Se estiver em local errado:
+cd /home/ec2-user
+./bia/deploys3.sh hom
+
+# Se pasta bia não existir:
+git clone <seu-repositorio>
+cd <nome-do-repositorio>
+./deploys3.sh hom
+```
 
 ### **Problema: Site não carrega**
 **Verificações:**
