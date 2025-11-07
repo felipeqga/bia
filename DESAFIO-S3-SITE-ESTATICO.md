@@ -54,39 +54,11 @@ cd ..
 function build() {
     API_URL=$1
     echo $API_URL
-    
-    # Verificar se estamos no diretório correto
-    if [ ! -f "client/package.json" ]; then
-        echo "❌ ERRO: package.json não encontrado em client/"
-        echo "💡 Execute do diretório raiz do projeto bia"
-        exit 1
-    fi
-    
-    cd client
-    
-    # Instalar dependências se necessário
-    if [ ! -d "node_modules" ]; then
-        echo "📦 Instalando dependências..."
-        npm install
-    fi
-    
-    # Verificar se vite existe
-    if [ ! -f "node_modules/.bin/vite" ]; then
-        echo "❌ ERRO: vite não encontrado após npm install"
-        echo "💡 Tente: npm install --force"
-        exit 1
-    fi
-    
-    echo "🚀 Iniciando build..."
-    VITE_API_URL=$API_URL npm run build
-    
-    # Verificar se build foi criado
-    if [ ! -d "build" ]; then
-        echo "❌ ERRO: Build falhou - pasta build não criada"
-        exit 1
-    fi
-    
-    echo "✅ Build realizado com sucesso!"
+    cd bia
+    npm install
+    echo " Iniciando build..."
+    NODE_OPTIONS=--openssl-legacy-provider VITE_API_URL=$API_URL SKIP_PREFLIGHT_CHECK=true npm run build --prefix client
+    echo " Build finalizado..."
     cd ..
 }
 ```
@@ -422,6 +394,65 @@ aws s3api delete-bucket --bucket SEU-BUCKET-NAME
 - ✅ **Processo replicável:** Documentação completa
 
 ---
+
+---
+
+## 🚀 **PLUS: SCRIPT OTIMIZADO COM VALIDAÇÕES**
+
+### **reacts3.sh - Versão Otimizada:**
+```bash
+#!/bin/bash
+function build() {
+    API_URL=$1
+    echo $API_URL
+    
+    # Verificar se estamos no diretório correto
+    if [ ! -f "client/package.json" ]; then
+        echo "❌ ERRO: package.json não encontrado em client/"
+        echo "💡 Execute do diretório raiz do projeto bia"
+        exit 1
+    fi
+    
+    cd client
+    
+    # Instalar dependências se necessário
+    if [ ! -d "node_modules" ]; then
+        echo "📦 Instalando dependências..."
+        npm install
+    fi
+    
+    # Verificar se vite existe
+    if [ ! -f "node_modules/.bin/vite" ]; then
+        echo "❌ ERRO: vite não encontrado após npm install"
+        echo "💡 Tente: npm install --force"
+        exit 1
+    fi
+    
+    echo "🚀 Iniciando build..."
+    VITE_API_URL=$API_URL npm run build
+    
+    # Verificar se build foi criado
+    if [ ! -d "build" ]; then
+        echo "❌ ERRO: Build falhou - pasta build não criada"
+        exit 1
+    fi
+    
+    echo "✅ Build realizado com sucesso!"
+    cd ..
+}
+```
+
+### **🎯 Vantagens da Versão Otimizada:**
+- ✅ **Validação de estrutura:** Verifica se package.json existe
+- ✅ **Detecção de erros:** Para execução se algo falhar
+- ✅ **Verificação de dependências:** Confirma se vite foi instalado
+- ✅ **Validação de build:** Confirma se pasta build foi criada
+- ✅ **Mensagens claras:** Indica exatamente onde está o problema
+- ✅ **Prevenção de erros:** Evita problemas comuns documentados
+
+### **📋 Quando Usar Cada Versão:**
+- **Script Original:** Para seguir exatamente o desafio proposto
+- **Script Otimizado:** Para ambientes de produção ou quando houver problemas
 
 *Documentação criada em: 07/11/2025*  
 *Implementação: Amazon Q + Projeto BIA*  
