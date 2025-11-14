@@ -542,11 +542,46 @@ curl -s -o /dev/null -w "%{http_code}" \
 
 ## 📊 **RECURSOS CRIADOS**
 
-### **🪣 Amazon S3:**
-- **Bucket:** `desafios-fundamentais-bia-1763144658`
-- **Website Hosting:** Habilitado
-- **Public Access:** Configurado
-- **URL:** http://desafios-fundamentais-bia-1763144658.s3-website-us-east-1.amazonaws.com
+#### **🌐 URL do Site S3: `http://desafios-fundamentais-bia-1763144658.s3-website-us-east-1.amazonaws.com`**
+
+### **🔍 ORIGEM DA URL ESPECÍFICA:**
+
+**📊 Decomposição da URL:**
+```
+http://desafios-fundamentais-bia-1763144658.s3-website-us-east-1.amazonaws.com/
+  ↑           ↑                    ↑              ↑         ↑
+  |           |                    |              |         └── Domínio AWS
+  |           |                    |              └── Região (us-east-1)
+  |           |                    └── Timestamp Unix (1763144658)
+  |           └── Prefixo do projeto
+  └── Protocolo S3 website hosting
+```
+
+**🧩 Como foi gerada:**
+```bash
+# No script s3.sh:
+BUCKET_NAME="desafios-fundamentais-bia-$(date +%s)"
+#                                        ↑
+#                                   Timestamp Unix no momento da criação
+```
+
+**🎯 Para descobrir SUA URL:**
+```bash
+# Método 1: Construir manualmente
+BUCKET_NAME="desafios-fundamentais-bia-$(date +%s)"
+echo "Sua URL: http://$BUCKET_NAME.s3-website-us-east-1.amazonaws.com"
+
+# Método 2: AWS CLI
+aws s3api get-bucket-website --bucket SEU_BUCKET_NAME
+
+# Método 3: Console AWS
+# S3 → Bucket → Properties → Static website hosting
+```
+
+**💡 Valores que mudam para você:**
+- **Timestamp:** Será diferente (momento atual)
+- **Prefixo:** Pode personalizar "desafios-fundamentais-bia"
+- **Região:** Pode usar outra região
 
 ### **🗄️ Amazon RDS:**
 - **Identifier:** `bia`
