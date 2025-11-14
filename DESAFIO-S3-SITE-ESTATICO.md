@@ -243,14 +243,31 @@ docker exec bia-test-rds npx sequelize-cli db:migrate
 
 #### **2.4 - Testar API:**
 ```bash
-# Testar versão
+# ⚠️ IMPORTANTE: localhost só funciona dentro da EC2!
+
+# Teste LOCAL (dentro da EC2):
 curl -s http://localhost:3004/api/versao
 # Resultado esperado: "Bia 4.2.0"
 
-# Testar tarefas
-curl -s http://localhost:3004/api/tarefas
+# Teste EXTERNO (de qualquer lugar):
+curl -s http://44.200.33.169:3004/api/versao
+# Resultado esperado: "Bia 4.2.0"
+
+# Teste genérico (substitua pelo seu IP):
+PUBLIC_IP=$(aws ec2 describe-instances \
+  --query 'Reservations[*].Instances[*].PublicIpAddress' \
+  --output text --region us-east-1)
+
+curl -s http://$PUBLIC_IP:3004/api/versao
+
+# Testar tarefas:
+curl -s http://$PUBLIC_IP:3004/api/tarefas
 # Resultado esperado: []
 ```
+
+**📍 Diferença importante:**
+- **`localhost:3004`** → Só funciona **dentro da EC2**
+- **`IP_PUBLICO:3004`** → Funciona de **qualquer lugar** (inclusive Site S3)
 
 ### **PASSO 3: Atualizar Site S3 ✅**
 
@@ -413,13 +430,25 @@ sleep 10
 echo "🔧 Executando migrations..."
 docker exec bia-test-rds npx sequelize-cli db:migrate
 
+# Obter IP público para teste
+PUBLIC_IP=$(aws ec2 describe-instances \
+  --query 'Reservations[*].Instances[*].PublicIpAddress' \
+  --output text --region us-east-1)
+
 # Testar API
 echo "🧪 Testando API..."
+echo "📍 Testando localmente (dentro da EC2):"
 curl -s http://localhost:3004/api/versao
 
 echo ""
+echo "📍 Testando externamente (IP público):"
+curl -s http://$PUBLIC_IP:3004/api/versao
+
+echo ""
 echo "✅ Teste concluído!"
-echo "🌐 Container rodando em: http://localhost:3004"
+echo "🌐 Container acessível em:"
+echo "  - Localmente: http://localhost:3004"
+echo "  - Externamente: http://$PUBLIC_IP:3004"
 echo "📊 Para parar: docker stop bia-test-rds && docker rm bia-test-rds"
 ```
 
@@ -434,12 +463,16 @@ aws rds describe-db-instances --db-instance-identifier bia \
   --query 'DBInstances[0].DBInstanceStatus' --output text
 # Resultado: available
 
-# 2. Container funcionando
-curl -s http://44.200.33.169:3004/api/versao
+# 2. Container funcionando (substitua pelo seu IP)
+PUBLIC_IP=$(aws ec2 describe-instances \
+  --query 'Reservations[*].Instances[*].PublicIpAddress' \
+  --output text --region us-east-1)
+
+curl -s http://$PUBLIC_IP:3004/api/versao
 # Resultado: Bia 4.2.0
 
 # 3. Banco conectado
-curl -s http://44.200.33.169:3004/api/tarefas
+curl -s http://$PUBLIC_IP:3004/api/tarefas
 # Resultado: [{"uuid":"cbc665b0-c18a-11f0-8ba5-a35e7f453767","titulo":"TESTE MIGRATIONS",...}]
 
 # 4. Site S3 funcionando
