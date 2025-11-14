@@ -192,7 +192,7 @@ services:
   #   ...
 ```
 
-**2.2 - Alterar Dockerfile para build com IP correto:**
+**2.2 - Alterar Dockerfile para build com API correta:**
 ```dockerfile
 # Editar arquivo: Dockerfile
 # Linha ~23: Alterar VITE_API_URL
@@ -200,6 +200,83 @@ RUN cd client && VITE_API_URL=http://44.200.33.169:3004 npm run build
 #                              ↑
 #                              Seu IP público da EC2
 ```
+
+### **🌐 VALORES POSSÍVEIS PARA VITE_API_URL:**
+
+**⚠️ IMPORTANTE:** `VITE_API_URL` pode receber diferentes tipos de endpoints dependendo da sua arquitetura:
+
+#### **📊 OPÇÕES DE ENDPOINT:**
+
+| **Tipo** | **Exemplo** | **Quando Usar** |
+|----------|-------------|-----------------|
+| **IP Público EC2** | `http://44.200.33.169:3004` | Container em EC2 (nosso método) |
+| **Domínio Personalizado** | `https://api.meusite.com.br` | Produção com domínio próprio |
+| **ALB Endpoint** | `https://bia-alb-123456789.us-east-1.elb.amazonaws.com` | ECS com Application Load Balancer |
+| **API Gateway** | `https://abc123def.execute-api.us-east-1.amazonaws.com` | Arquitetura Serverless (Lambda) |
+| **App Runner** | `https://abc123def.us-east-1.awsapprunner.com` | AWS App Runner |
+| **CloudFront** | `https://d123456789.cloudfront.net` | CDN com cache |
+
+#### **🔧 EXEMPLOS PRÁTICOS:**
+
+**Método atual (Container + EC2):**
+```bash
+# Build com IP público da EC2
+VITE_API_URL=http://44.200.33.169:3004 npm run build
+```
+
+**Método original (ECS + ALB):**
+```bash
+# Build com endpoint do ALB
+VITE_API_URL=https://desafio3.eletroboards.com.br npm run build
+```
+
+**Método Serverless (Lambda):**
+```bash
+# Build com API Gateway
+VITE_API_URL=https://abc123def.execute-api.us-east-1.amazonaws.com npm run build
+```
+
+**Desenvolvimento local:**
+```bash
+# Build para teste local
+VITE_API_URL=http://localhost:3001 npm run build
+```
+
+### **🎯 COMO ESCOLHER O VALOR CORRETO:**
+
+#### **1. Identifique sua arquitetura:**
+- **Container em EC2:** Use IP público + porta
+- **ECS com ALB:** Use endpoint do ALB
+- **Lambda:** Use endpoint do API Gateway
+- **Domínio próprio:** Use seu domínio
+
+#### **2. Obtenha o endpoint:**
+```bash
+# Para IP público da EC2:
+aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text
+
+# Para ALB:
+aws elbv2 describe-load-balancers --query 'LoadBalancers[0].DNSName' --output text
+
+# Para API Gateway:
+aws apigateway get-rest-apis --query 'items[0].id' --output text
+```
+
+#### **3. Teste o endpoint:**
+```bash
+# Sempre teste antes de fazer build:
+curl -s http://SEU_ENDPOINT/api/versao
+# Deve retornar: "Bia 4.2.0"
+```
+
+### **⚠️ OBSERVAÇÕES IMPORTANTES:**
+
+- **HTTPS vs HTTP:** Use HTTPS em produção, HTTP apenas para testes
+- **Porta:** Inclua a porta se não for padrão (80/443)
+- **Path:** Não inclua `/api` no VITE_API_URL (será adicionado pelo código)
+- **CORS:** Endpoint deve permitir requisições do domínio S3
+
+**O `VITE_API_URL` é flexível - aponta para onde sua API estiver rodando! 🎯**
 
 **2.3 - Executar com docker-compose (método do curso):**
 ```bash
