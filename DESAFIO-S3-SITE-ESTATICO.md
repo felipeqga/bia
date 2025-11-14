@@ -618,6 +618,8 @@ curl -s -o /dev/null -w "%{http_code}" \
 
 ## 📊 **RECURSOS CRIADOS**
 
+**⚠️ ALERTA DE SEGURANÇA:** O Security Group foi configurado com `0.0.0.0/0` apenas para simplificar o tutorial. **EM PRODUÇÃO, SEMPRE use Security Group referenciando Security Group da EC2!**
+
 #### **🌐 URL do Site S3: `http://desafios-fundamentais-bia-1763144658.s3-website-us-east-1.amazonaws.com`**
 
 ### **🔍 ORIGEM DA URL ESPECÍFICA:**
@@ -669,7 +671,10 @@ aws s3api get-bucket-website --bucket SEU_BUCKET_NAME
 ### **🔒 Security Group:**
 - **Name:** `bia-db`
 - **ID:** `sg-0f23c63547cd1b4c3`
-- **Rules:** TCP 5432 from 0.0.0.0/0
+- **Rules:** ❌ **TCP 5432 from 0.0.0.0/0** (INSEGURO - usado apenas para tutorial)
+- **Correção necessária:** ✅ **TCP 5432 from sg-[EC2_SECURITY_GROUP_ID]** (SEGURO)
+
+**⚠️ IMPORTANTE:** A regra `0.0.0.0/0` é uma **falha crítica de segurança**. Em produção, sempre use Security Group referenciando Security Group da EC2!
 
 ### **🐳 Container Docker:**
 - **Name:** `bia-test-rds`
