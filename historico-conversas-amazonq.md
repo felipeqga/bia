@@ -100,6 +100,19 @@
 - **Explicação:** Site S3 precisa IP público, não localhost
 - **Resultado:** Comandos corrigidos para ambos os cenários
 
+**12. Esclarecimento EC2 vs VM Local**
+- **Questionamento:** EC2 está substituindo VM local?
+- **Correção:** Documentado que EC2 é nossa "VM na nuvem"
+- **Explicação:** Tabela comparativa curso vs implementação AWS
+- **Resultado:** Contexto claro sobre substituições realizadas
+
+**13. Análise de Alternativas à EC2**
+- **Questionamento:** Como eliminar dependência da EC2 completamente?
+- **Análise:** 3 opções detalhadas (ECS+ALB, Lambda, App Runner)
+- **Comparação:** Custos, complexidade, recursos necessários
+- **Conclusão:** Para não depender da EC2 precisa de infraestrutura adicional
+- **Resultado:** Seção completa sobre alternativas arquiteturais
+
 #### Validação Final
 
 **Teste Completo Realizado:**
@@ -154,6 +167,9 @@ HTTP Status: 200 OK
 6. **Documentação iterativa:** Questionamentos do usuário melhoraram muito a documentação
 7. **Método pedagógico vs prático:** Importante mostrar ambas as abordagens
 8. **Reprodutibilidade:** Documentação deve explicar origem de todos os valores
+9. **Contexto é fundamental:** Esclarecer ambiente (AWS vs local) evita confusões
+10. **Análise arquitetural:** Importante documentar alternativas e trade-offs
+11. **Dependências devem ser explícitas:** EC2 como ponto único de falha deve ser documentado
 
 #### Documentação Final
 
@@ -170,6 +186,8 @@ HTTP Status: 200 OK
 5. `a8db0ba` - Explicação das portas 5432, 3004 e 8080
 6. `6752173` - Método do curso vs método alternativo
 7. `8aab862` - Correção localhost vs IP público
+8. `0e03e40` - Atualização completa do histórico
+9. `9e00145` - Esclarecimento EC2 substitui VM local
 
 #### Resultado Final
 

@@ -984,6 +984,125 @@ aws s3 rb s3://desafios-fundamentais-bia-1763144658 --force
 
 ---
 
+## 🚀 **ALTERNATIVAS PARA NÃO DEPENDER DA EC2**
+
+### **🤔 PROBLEMA ATUAL:**
+- ✅ **Dependemos da EC2** para rodar o container
+- ⚠️ **Ponto único de falha:** Se EC2 parar → Container para → Site S3 offline
+- ⚠️ **Manutenção manual:** Precisa gerenciar EC2, Docker, atualizações
+
+### **💡 SOLUÇÕES PARA ELIMINAR DEPENDÊNCIA DA EC2:**
+
+#### **OPÇÃO 1: ECS COMPLETO (Infraestrutura Robusta)**
+
+**Recursos necessários:**
+```bash
+✅ Security Groups (já temos: bia-db)
+✅ RDS PostgreSQL (já temos: bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com)
+✅ ECR (já temos: 387678648422.dkr.ecr.us-east-1.amazonaws.com/bia)
+❌ ALB (Application Load Balancer) - CRIAR
+❌ ECS Cluster - CRIAR
+❌ ECS Service - CRIAR  
+❌ Task Definition - CRIAR
+❌ Target Group - CRIAR
+```
+
+**Arquitetura:**
+```
+┌─────────────┐    HTTPS     ┌─────────────┐    HTTP     ┌─────────────┐    SQL     ┌─────────────┐
+│   Site S3   │ ──────────▶  │     ALB     │ ──────────▶ │ ECS Fargate │ ─────────▶ │     RDS     │
+│ (Frontend)  │              │ (Balancer)  │             │ (Container) │            │ (Database)  │
+└─────────────┘              └─────────────┘             └─────────────┘            └─────────────┘
+```
+
+**Vantagens:**
+- ✅ **Zero dependência de EC2**
+- ✅ **Alta disponibilidade** (Multi-AZ automático)
+- ✅ **Auto-scaling** baseado em CPU/memória
+- ✅ **Gerenciado pela AWS** (patches, atualizações)
+
+**Desvantagens:**
+- ❌ **Custo alto:** ~$32/mês (ALB $16 + ECS $8 + outros $8)
+- ❌ **Complexidade alta:** Muitos recursos para gerenciar
+
+#### **OPÇÃO 2: LAMBDA + API GATEWAY (Serverless)**
+
+**Recursos necessários:**
+```bash
+✅ RDS PostgreSQL (já temos)
+❌ API Gateway - CRIAR
+❌ Lambda Functions - CRIAR (uma para cada endpoint)
+❌ IAM Roles - CRIAR
+```
+
+**Arquitetura:**
+```
+┌─────────────┐    HTTPS     ┌─────────────┐    Invoke   ┌─────────────┐    SQL     ┌─────────────┐
+│   Site S3   │ ──────────▶  │ API Gateway │ ──────────▶ │   Lambda    │ ─────────▶ │     RDS     │
+│ (Frontend)  │              │   (Proxy)   │             │ (Functions) │            │ (Database)  │
+└─────────────┘              └─────────────┘             └─────────────┘            └─────────────┘
+```
+
+**Vantagens:**
+- ✅ **100% Serverless** (zero servidores para gerenciar)
+- ✅ **Paga só por uso** (~$5/mês para uso baixo)
+- ✅ **Escala infinitamente** (0 a milhões de requests)
+- ✅ **Alta disponibilidade** automática
+
+**Desvantagens:**
+- ❌ **Cold start:** Primeira request pode ser lenta
+- ❌ **Refatoração:** Precisa converter API Node.js para functions
+
+#### **OPÇÃO 3: APP RUNNER (Meio Termo)**
+
+**Recursos necessários:**
+```bash
+✅ RDS PostgreSQL (já temos)
+✅ ECR (já temos)
+❌ App Runner Service - CRIAR
+```
+
+**Vantagens:**
+- ✅ **Mais simples que ECS** (um comando só)
+- ✅ **Gerenciado pela AWS** (auto-scaling, load balancing)
+- ✅ **Usa mesma imagem** Docker (zero refatoração)
+
+**Desvantagens:**
+- ❌ **Custo médio:** ~$15/mês
+
+### **📊 COMPARAÇÃO COMPLETA:**
+
+| **Opção** | **Dependência EC2** | **Recursos Extras** | **Custo/mês** | **Complexidade** |
+|-----------|-------------------|-------------------|---------------|------------------|
+| **Atual (Container + EC2)** | ✅ Sim | Nenhum | $8 | Baixa |
+| **ECS + ALB** | ❌ Não | ALB + ECS + Tasks | $32 | Alta |
+| **Lambda + API Gateway** | ❌ Não | API Gateway + Functions | $5 | Média |
+| **App Runner** | ❌ Não | App Runner Service | $15 | Baixa |
+
+### **🎯 RECOMENDAÇÕES:**
+
+#### **Para Aprendizado/Teste:**
+- ✅ **Manter atual** (Container + EC2) - Mais simples e barato
+
+#### **Para Produção Real:**
+- ✅ **Lambda + API Gateway** - Serverless, barato, escalável
+- ✅ **ECS + ALB** - Robusto para aplicações grandes
+- ✅ **App Runner** - Meio termo (simples + gerenciado)
+
+### **💡 CONCLUSÃO SOBRE DEPENDÊNCIAS:**
+
+**Sim, para eliminar completamente a dependência da EC2, precisaríamos de:**
+
+**Mínimo (ECS):** Security Groups + RDS + ECR + ECS Cluster + ALB + Task Definition + Service
+
+**Alternativa (Lambda):** RDS + API Gateway + Lambda Functions + IAM Roles
+
+**Alternativa (App Runner):** RDS + ECR + App Runner Service
+
+**A escolha depende do cenário:** aprendizado (manter atual), produção barata (Lambda), ou produção robusta (ECS).
+
+---
+
 ## 🏆 **CONCLUSÃO**
 
 ### **✅ DESAFIO S3 100% CONCLUÍDO:**
