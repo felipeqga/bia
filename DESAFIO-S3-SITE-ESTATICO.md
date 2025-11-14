@@ -567,55 +567,113 @@ echo "Seu IP público: $PUBLIC_IP"
 ```
 **⚠️ IMPORTANTE:** Este IP muda a cada reinicialização da EC2!
 
-#### **🔌 Portas: `5432` vs `3004` - EXPLICAÇÃO COMPLETA**
+#### **🔌 Portas: `5432` vs `3004` vs `8080` - EXPLICAÇÃO COMPLETA**
 
 **⚠️ IMPORTANTE:** São portas diferentes para serviços diferentes!
 
-**📊 MAPEAMENTO DE PORTAS:**
+### **📊 MAPEAMENTO DE PORTAS NO COMANDO:**
 
-```
-┌─────────────────┐    HTTP:3004     ┌──────────────────┐    SQL:5432     ┌─────────────────┐
-│   Site S3       │ ──────────────▶  │   Container      │ ──────────────▶ │   RDS PostgreSQL│
-│   (Frontend)    │                  │   EC2:3004       │                 │   AWS:5432      │
-│                 │                  │   ↓              │                 │                 │
-│                 │                  │   Container:8080 │                 │                 │
-└─────────────────┘                  └──────────────────┘                 └─────────────────┘
-```
-
-**🎯 DETALHAMENTO DAS PORTAS:**
-
-#### **Porta 5432 - PostgreSQL (RDS)**
 ```bash
-# Security Group para RDS
-aws ec2 authorize-security-group-ingress \
-  --group-id sg-0f23c63547cd1b4c3 \
-  --protocol tcp \
-  --port 5432 \              # ← PORTA PADRÃO POSTGRESQL
-  --cidr 0.0.0.0/0
-```
-**Função:** Permite que o container acesse o banco RDS  
-**Padrão:** PostgreSQL sempre usa porta 5432  
-**Direção:** Container → RDS
-
-#### **Porta 3004 - API HTTP (Container)**
-```bash
-# Mapeamento no docker run
 docker run -d \
   --name bia-test-rds \
-  -p 3004:8080 \            # ← MAPEAMENTO: Externa:Interna
+  -p 3004:8080 \        # ← MAPEAMENTO: Externa:Interna
+  -e DB_HOST=bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com \
+  -e DB_PORT=5432 \     # ← PORTA DO BANCO
 ```
-**Função:** Permite que o site S3 acesse a API  
-**Escolha:** Porta livre na EC2 (evita conflitos)  
-**Direção:** Site S3 → Container
 
-#### **Porta 8080 - Interna do Container**
+### **🔍 DETALHAMENTO DE CADA PORTA:**
+
+#### **Porta 3004 (Externa - EC2):**
 ```bash
-# Definida no Dockerfile da aplicação BIA
-EXPOSE 8080
+-p 3004:8080
+   ↑
+   └── Porta EXTERNA da EC2 (acesso público)
 ```
-**Função:** Porta onde a aplicação Node.js escuta dentro do container  
-**Fixa:** Definida no código da aplicação  
-**Não acessível:** Só dentro do container
+- **Função:** Site S3 acessa a API HTTP
+- **Protocolo:** HTTP
+- **Quem usa:** Browsers, Site S3, testes externos
+- **Exemplo:** `curl http://44.200.33.169:3004/api/tarefas`
+
+#### **Porta 8080 (Interna - Container):**
+```bash
+-p 3004:8080
+        ↑
+        └── Porta INTERNA do container (aplicação)
+```
+- **Função:** Aplicação Node.js escuta dentro do container
+- **Protocolo:** HTTP
+- **Quem usa:** Só o Docker (mapeamento interno)
+- **Definida:** No código da aplicação BIA (`server.listen(8080)`)
+
+#### **Porta 5432 (RDS - PostgreSQL):**
+```bash
+-e DB_PORT=5432
+```
+- **Função:** Container acessa o banco RDS
+- **Protocolo:** SQL/PostgreSQL
+- **Quem usa:** Aplicação Node.js para queries SQL
+- **Padrão:** PostgreSQL sempre usa 5432
+
+### **🌐 FLUXO COMPLETO DE COMUNICAÇÃO:**
+
+```
+┌─────────────┐   HTTP:3004   ┌─────────────┐   :8080   ┌─────────────┐   SQL:5432   ┌─────────────┐
+│   Site S3   │ ────────────▶ │     EC2     │ ────────▶ │  Container  │ ────────────▶ │     RDS     │
+│ (Frontend)  │               │ (Servidor)  │           │ (Aplicação) │               │ (Database)  │
+│             │               │             │           │             │               │             │
+│ JavaScript  │               │ Port 3004   │           │ Port 8080   │               │ Port 5432   │
+└─────────────┘               └─────────────┘           └─────────────┘               └─────────────┘
+      │                              │                         │                            │
+      │                              │                         │                            │
+   HTTP Request              Docker Port Mapping        Node.js Application         PostgreSQL Query
+   (API calls)               (3004 → 8080)              (Express server)           (SQL commands)
+```
+
+### **💡 ANALOGIA SIMPLES:**
+
+**Imagine um prédio comercial:**
+- **Porta 3004:** Entrada principal do prédio (visitantes chegam aqui)
+- **Porta 8080:** Porta do escritório interno (onde o trabalho acontece)
+- **Porta 5432:** Porta do arquivo/banco (onde os dados ficam)
+
+### **❌ ERROS COMUNS:**
+
+#### **Erro 1: Confundir API com Banco**
+```bash
+# ❌ ERRADO: Tentar acessar banco via HTTP
+curl http://44.200.33.169:5432
+
+# ✅ CORRETO: Acessar API via HTTP
+curl http://44.200.33.169:3004/api/tarefas
+```
+
+#### **Erro 2: Usar porta interna externamente**
+```bash
+# ❌ ERRADO: Tentar acessar porta interna
+curl http://44.200.33.169:8080
+
+# ✅ CORRETO: Usar porta externa mapeada
+curl http://44.200.33.169:3004
+```
+
+#### **Erro 3: Mapear porta do banco**
+```bash
+# ❌ ERRADO: Mapear porta do banco
+-p 5432:8080
+
+# ✅ CORRETO: Mapear porta da API
+-p 3004:8080
+```
+
+### **🎯 RESUMO DAS PORTAS:**
+
+| **Porta** | **Tipo** | **Protocolo** | **Função** | **Quem Acessa** |
+|-----------|----------|---------------|------------|-----------------|
+| **3004** | Externa | HTTP | API pública | Site S3, Browsers |
+| **8080** | Interna | HTTP | Aplicação Node.js | Docker (mapeamento) |
+| **5432** | RDS | SQL | Banco PostgreSQL | Container (queries) |
+
+**Não confunda: API usa HTTP, Banco usa SQL! 🎯**
 
 ### **🔗 FLUXO COMPLETO DE COMUNICAÇÃO:**
 
