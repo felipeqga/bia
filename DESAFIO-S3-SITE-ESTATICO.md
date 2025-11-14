@@ -106,29 +106,106 @@ aws rds describe-db-instances \
 
 ### **PASSO 2: Executar Container com RDS ✅**
 
-#### **2.1 - Obter endpoint do RDS:**
+#### **📚 MÉTODO DO CURSO (Alterando Arquivos):**
+
+**2.1 - Alterar compose.yml para apontar para RDS:**
+```yaml
+# Editar arquivo: compose.yml
+services:
+  server:
+    build: .
+    container_name: bia
+    ports:
+      - 3004:8080  # Mudança: porta externa
+    # links:         # Remover: não temos container de banco
+    #   - database
+    environment:
+      DB_USER: postgres
+      DB_PWD: Kgegwlaj6mAIxzHaEqgo                           # ← ALTERAR: senha RDS
+      DB_HOST: bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com  # ← ALTERAR: endpoint RDS
+      DB_PORT: 5432
+  # database:      # Remover: usamos RDS externo
+  #   image: postgres:16.1
+  #   ...
+```
+
+**2.2 - Alterar Dockerfile para build com IP correto:**
+```dockerfile
+# Editar arquivo: Dockerfile
+# Linha ~23: Alterar VITE_API_URL
+RUN cd client && VITE_API_URL=http://44.200.33.169:3004 npm run build
+#                              ↑
+#                              Seu IP público da EC2
+```
+
+**2.3 - Executar com docker-compose (método do curso):**
+```bash
+# Comandos do curso adaptados para RDS:
+docker compose down -v
+docker compose build server
+docker compose up -d
+docker compose exec server bash -c 'npx sequelize db:migrate'
+```
+
+#### **🚀 MÉTODO ALTERNATIVO (Comando Direto - Usado na Implementação):**
+
+**Por que usamos método alternativo:**
+- ✅ **Mais rápido** para teste
+- ✅ **Não altera** arquivos do projeto
+- ✅ **Usa imagem** já pronta do ECR
+
+**2.1 - Obter valores dinâmicos:**
 ```bash
 ENDPOINT=$(aws rds describe-db-instances \
   --db-instance-identifier bia \
   --query 'DBInstances[0].Endpoint.Address' \
-  --output text \
-  --region us-east-1)
+  --output text --region us-east-1)
 
-echo "Endpoint RDS: $ENDPOINT"
+PUBLIC_IP=$(aws ec2 describe-instances \
+  --query 'Reservations[*].Instances[*].PublicIpAddress' \
+  --output text --region us-east-1)
 ```
 
-#### **2.2 - Executar container apontando para RDS:**
+**2.2 - Executar container com variáveis diretas:**
 ```bash
 docker run -d \
   --name bia-test-rds \
   -p 3004:8080 \
   -e NODE_ENV=production \
-  -e DB_HOST=bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com \
+  -e DB_HOST=$ENDPOINT \
   -e DB_USER=postgres \
   -e DB_PWD=Kgegwlaj6mAIxzHaEqgo \
   -e DB_PORT=5432 \
   387678648422.dkr.ecr.us-east-1.amazonaws.com/bia:latest
 ```
+
+**2.3 - Executar migrations:**
+```bash
+docker exec bia-test-rds npx sequelize-cli db:migrate
+```
+
+#### **📊 COMPARAÇÃO DOS MÉTODOS:**
+
+| **Aspecto** | **Método Curso** | **Método Alternativo** |
+|-------------|------------------|------------------------|
+| **Arquivos** | ✅ Altera compose.yml e Dockerfile | ❌ Não altera arquivos |
+| **Build** | ✅ Rebuilda imagem com novos valores | ❌ Usa imagem pronta |
+| **Comando** | `docker compose up` | `docker run` |
+| **Variáveis** | Hardcoded nos arquivos | Passadas via `-e` |
+| **Flexibilidade** | ❌ Precisa rebuild para mudar | ✅ Muda variáveis facilmente |
+| **Aprendizado** | ✅ Ensina estrutura Docker | ❌ Comando "mágico" |
+
+#### **🎯 RECOMENDAÇÃO:**
+
+**Para aprendizado (seguir o curso):**
+- ✅ Use o **Método do Curso** alterando arquivos
+- ✅ Entenda como `compose.yml` e `Dockerfile` funcionam
+- ✅ Pratique o ciclo completo: alterar → build → deploy
+
+**Para produção/teste rápido:**
+- ✅ Use o **Método Alternativo** com variáveis
+- ✅ Mais flexível para diferentes ambientes
+- ✅ Não "suja" os arquivos do projeto
 
 #### **2.3 - Executar migrations:**
 
@@ -706,34 +783,38 @@ VITE_API_URL=http://44.200.33.169:3004
 - **`DESAFIO-S3-SITE-ESTATICO.md`** - Este arquivo
 - **`historico-conversas-amazonq.md`** - Nova sessão documentada
 
-### **❌ ARQUIVOS NÃO MODIFICADOS (Importante!):**
+### **❌ ARQUIVOS NÃO MODIFICADOS (Na Nossa Implementação):**
 
-#### **Dockerfile - NÃO ALTERADO:**
+**⚠️ IMPORTANTE:** O curso ensina a alterar estes arquivos, mas usamos método alternativo.
+
+#### **Dockerfile - DEVERIA SER ALTERADO (método do curso):**
 ```dockerfile
-# Mantido como estava - build hardcoded para produção
-RUN cd client && VITE_API_URL=https://desafio3.eletroboards.com.br npm run build
+# Linha que DEVERIA ser alterada:
+# DE: RUN cd client && VITE_API_URL=https://desafio3.eletroboards.com.br npm run build
+# PARA: RUN cd client && VITE_API_URL=http://SEU_IP:3004 npm run build
 ```
-**Por quê?** O container usa a imagem já buildada do ECR, não rebuilda.
+**Por que não alteramos:** Usamos build local em vez de rebuild da imagem.
 
-#### **compose.yml - NÃO ALTERADO:**
+#### **compose.yml - DEVERIA SER ALTERADO (método do curso):**
 ```yaml
-# Mantido como estava - configuração para banco local
+# Seção que DEVERIA ser alterada:
 environment:
   DB_USER: postgres
-  DB_PWD: postgres
-  DB_HOST: database  # Aponta para container local
+  DB_PWD: Kgegwlaj6mAIxzHaEqgo                           # ← Senha RDS
+  DB_HOST: bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com  # ← Endpoint RDS
   DB_PORT: 5432
+# E remover seção database (container PostgreSQL)
 ```
-**Por quê?** Não usamos docker-compose, usamos `docker run` direto.
+**Por que não alteramos:** Usamos `docker run` direto em vez de `docker compose`.
 
-#### **config/database.js - NÃO ALTERADO:**
+#### **config/database.js - NÃO PRECISA ALTERAR:**
 ```javascript
-// Mantido como estava - já suporta variáveis de ambiente
+// Já estava preparado para variáveis de ambiente
 username: process.env.DB_USER || "postgres",
 password: process.env.DB_PWD || "postgres", 
 host: process.env.DB_HOST || "127.0.0.1",
 ```
-**Por quê?** Já estava preparado para receber variáveis de ambiente.
+**Por quê?** Código já suporta variáveis de ambiente automaticamente.
 
 ### **🔧 COMO AS VARIÁVEIS FORAM PASSADAS:**
 
