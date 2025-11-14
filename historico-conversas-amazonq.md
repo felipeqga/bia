@@ -106,12 +106,47 @@
 - **Explicação:** Tabela comparativa curso vs implementação AWS
 - **Resultado:** Contexto claro sobre substituições realizadas
 
-**13. Análise de Alternativas à EC2**
-- **Questionamento:** Como eliminar dependência da EC2 completamente?
-- **Análise:** 3 opções detalhadas (ECS+ALB, Lambda, App Runner)
-- **Comparação:** Custos, complexidade, recursos necessários
-- **Conclusão:** Para não depender da EC2 precisa de infraestrutura adicional
-- **Resultado:** Seção completa sobre alternativas arquiteturais
+**14. Análise de Dependências e Alternativas**
+- **Questionamento:** Precisamos do container? Como eliminar dependência da EC2?
+- **Análise:** 3 alternativas (ECS+ALB, Lambda, App Runner) vs método atual
+- **Documentação:** Diagramas arquiteturais, custos, trade-offs
+- **Resultado:** Seção completa sobre alternativas para produção
+
+**15. Diagramas de Arquitetura Comparativos**
+- **Solicitação:** Desenhar arquitetura complexa vs simplificada
+- **Implementação:** Diagramas visuais detalhados
+- **Comparação:** 3 componentes vs 12+ componentes
+- **Resultado:** Visualização clara das diferenças arquiteturais
+
+**16. Alertas Críticos sobre Produção**
+- **Questionamento:** "Mais simples" não é vantagem para produção crítica
+- **Correção:** Alertas sobre riscos, pontos únicos de falha
+- **Especificação:** Onde NÃO usar vs onde usar
+- **Resultado:** Documentação responsável sobre limitações
+
+**17. Explicação Detalhada das Portas**
+- **Questionamento:** Confusão sobre portas 3004:8080 serem do banco
+- **Esclarecimento:** 3004 (externa), 8080 (interna), 5432 (banco)
+- **Fluxo visual:** Site S3 → EC2:3004 → Container:8080 → RDS:5432
+- **Resultado:** Analogia do prédio, erros comuns, tabela resumo
+
+**18. Observação sobre Máquinas Lentas**
+- **Sugestão:** EC2 ideal para computadores com poucos recursos
+- **Adição:** Benefícios para PCs com 4GB RAM ou menos
+- **Vantagem:** Não sobrecarrega máquina local
+- **Resultado:** Contexto claro sobre quando usar EC2
+
+**19. Valores Possíveis para VITE_API_URL**
+- **Questionamento:** Documentação não explica tipos de endpoint
+- **Correção:** Tabela com IP, domínio, ALB, API Gateway, App Runner
+- **Exemplos:** Comandos para cada arquitetura
+- **Resultado:** Flexibilidade do VITE_API_URL documentada
+
+**20. Correção de Falha de Segurança**
+- **Questionamento:** 0.0.0.0/0 é inseguro, poderia usar Security Group?
+- **Correção:** Método seguro SG→SG vs método inseguro usado
+- **Documentação:** Comparação, vantagens, comandos de correção
+- **Resultado:** Documentação responsável sobre segurança
 
 #### Validação Final
 
@@ -159,7 +194,7 @@ HTTP Status: 200 OK
 
 #### Lições Aprendidas
 
-1. **Simplicidade funciona:** Container + RDS é mais eficiente que ECS + ALB
+1. **Simplicidade funciona para aprendizado:** Container + RDS é mais eficiente que ECS + ALB
 2. **Insight valioso:** Usuário identificou abordagem mais simples
 3. **Mesmo código:** Não precisa alterar aplicação, só variáveis
 4. **Economia significativa:** $32/mês de economia mantendo funcionalidade
@@ -170,6 +205,11 @@ HTTP Status: 200 OK
 9. **Contexto é fundamental:** Esclarecer ambiente (AWS vs local) evita confusões
 10. **Análise arquitetural:** Importante documentar alternativas e trade-offs
 11. **Dependências devem ser explícitas:** EC2 como ponto único de falha deve ser documentado
+12. **Alertas de segurança:** Simplicidade não deve comprometer segurança em produção
+13. **Explicações técnicas detalhadas:** Portas, protocolos e fluxos devem ser claros
+14. **Acessibilidade:** Considerar limitações de hardware dos usuários
+15. **Flexibilidade de configuração:** VITE_API_URL funciona com qualquer arquitetura
+16. **Segurança por design:** Security Groups devem referenciar outros SGs, não liberar 0.0.0.0/0
 
 #### Documentação Final
 
@@ -188,6 +228,13 @@ HTTP Status: 200 OK
 7. `8aab862` - Correção localhost vs IP público
 8. `0e03e40` - Atualização completa do histórico
 9. `9e00145` - Esclarecimento EC2 substitui VM local
+10. `1992c77` - Análise completa de alternativas à EC2
+11. `b7a326f` - Diagramas de arquitetura complexa vs simplificada
+12. `8a84651` - Alertas críticos sobre riscos para produção
+13. `0b2a922` - Explicação detalhada sobre portas 3004, 8080 e 5432
+14. `2cab7d0` - Observação sobre máquinas lentas/recursos limitados
+15. `f7d7935` - Explicação valores possíveis para VITE_API_URL
+16. `14690bb` - Correção falha de segurança Security Group método seguro
 
 #### Resultado Final
 
@@ -196,11 +243,26 @@ HTTP Status: 200 OK
 - **Status:** Dados sendo persistidos e consultados
 - **Economia:** 80% em custos AWS
 - **Método:** Simplificado e eficiente
-- **Documentação:** Completa, reproduzível e pedagogicamente correta
+- **Documentação:** Completa, reproduzível, segura e pedagogicamente correta
+
+**Estatísticas da sessão:**
+- **20 iterações** de melhoria documentadas
+- **16 commits** realizados
+- **16 lições** aprendidas
+- **100% reproduzível** - qualquer pessoa pode seguir
+- **Segurança corrigida** - método inseguro identificado e corrigido
+
+**Qualidade da documentação:** Evoluiu através de questionamentos precisos do usuário, resultando em documentação completa que aborda:
+- Implementação técnica detalhada
+- Análise de alternativas arquiteturais  
+- Alertas de segurança e produção
+- Explicações técnicas profundas
+- Considerações de acessibilidade
+- Correções de falhas de segurança
 
 **Fluxo validado:** Frontend estático → API containerizada → Banco gerenciado
 
-**Qualidade da documentação:** Evoluiu através de questionamentos precisos do usuário, resultando em documentação 100% reproduzível e educativa.
+**Método educacional responsável:** Ensina tanto simplicidade quanto limitações, preparando para decisões arquiteturais conscientes.
 
 ---
 
