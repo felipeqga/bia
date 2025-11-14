@@ -749,15 +749,43 @@ aws s3 sync client/build/ s3://SEU-BUCKET-NOME/ --delete
 
 ### **📍 ONDE ESTAMOS EXECUTANDO:**
 
-**Ambiente Real:**
-- ✅ **EC2 Instance** na AWS (não VM local)
-- ✅ **Amazon Linux** como sistema operacional
-- ✅ **RDS PostgreSQL** gerenciado (não container)
-- ✅ **Container Docker** único (não docker-compose)
+**⚠️ IMPORTANTE: EC2 SUBSTITUI VM LOCAL**
 
-**Diferenças do ambiente do curso:**
-- **Curso:** Desenvolvimento local com docker-compose
-- **Nossa implementação:** Produção na AWS com serviços gerenciados
+**Ambiente do Curso (Local):**
+- 🖥️ **VM/Computador local** com Docker
+- 🐳 **Docker Compose** com containers locais
+- 🗄️ **PostgreSQL container** como banco
+- 🌐 **Acesso via localhost**
+
+**Nossa Implementação (AWS):**
+- ☁️ **EC2 Instance** substitui a VM local
+- 🐳 **Container Docker único** (não compose)
+- 🗄️ **RDS PostgreSQL** substitui container de banco
+- 🌐 **Acesso via IP público**
+
+### **🔄 SUBSTITUIÇÕES REALIZADAS:**
+
+| **Curso (Local)** | **Nossa Implementação (AWS)** | **Motivo** |
+|-------------------|-------------------------------|------------|
+| VM/PC Local | **EC2 Instance** | Ambiente na nuvem |
+| Container PostgreSQL | **RDS PostgreSQL** | Banco gerenciado |
+| docker-compose | **docker run** | Container único |
+| localhost | **IP Público EC2** | Acesso externo |
+| Desenvolvimento | **Produção** | Ambiente real |
+
+### **🎯 VANTAGENS DA SUBSTITUIÇÃO:**
+
+#### **VM Local → EC2:**
+- ✅ **Sempre disponível** (não depende do seu PC)
+- ✅ **IP público** (acessível de qualquer lugar)
+- ✅ **Recursos dedicados** (não compete com outras aplicações)
+- ✅ **Backup automático** (snapshots EBS)
+
+#### **Container PostgreSQL → RDS:**
+- ✅ **Gerenciado pela AWS** (backups, patches, monitoramento)
+- ✅ **Alta disponibilidade** (Multi-AZ opcional)
+- ✅ **Escalabilidade** (pode aumentar recursos)
+- ✅ **Segurança** (encryption, VPC, security groups)
 
 ### **🔧 IMPLICAÇÕES NOS COMANDOS:**
 
