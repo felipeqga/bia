@@ -872,27 +872,32 @@ aws s3 sync client/build/ s3://SEU-BUCKET-NOME/ --delete
 
 **⚠️ IMPORTANTE: EC2 SUBSTITUI VM LOCAL**
 
+**💡 IDEAL PARA MÁQUINAS LENTAS:** Se você tem um computador com poucos recursos, pouca RAM ou dificuldade para rodar VMs locais, usar EC2 é uma excelente alternativa! A EC2 oferece recursos dedicados na nuvem sem sobrecarregar sua máquina local.
+
 **Ambiente do Curso (Local):**
 - 🖥️ **VM/Computador local** com Docker
 - 🐳 **Docker Compose** com containers locais
 - 🗄️ **PostgreSQL container** como banco
 - 🌐 **Acesso via localhost**
+- ⚠️ **Limitação:** Precisa de máquina com recursos suficientes
 
 **Nossa Implementação (AWS):**
 - ☁️ **EC2 Instance** substitui a VM local
 - 🐳 **Container Docker único** (não compose)
 - 🗄️ **RDS PostgreSQL** substitui container de banco
 - 🌐 **Acesso via IP público**
+- ✅ **Vantagem:** Não sobrecarrega sua máquina local
 
 ### **🔄 SUBSTITUIÇÕES REALIZADAS:**
 
 | **Curso (Local)** | **Nossa Implementação (AWS)** | **Motivo** |
 |-------------------|-------------------------------|------------|
-| VM/PC Local | **EC2 Instance** | Ambiente na nuvem |
+| VM/PC Local | **EC2 Instance** | Ambiente na nuvem + Não sobrecarrega máquina local |
 | Container PostgreSQL | **RDS PostgreSQL** | Banco gerenciado |
 | docker-compose | **docker run** | Container único |
 | localhost | **IP Público EC2** | Acesso externo |
 | Desenvolvimento | **Produção** | Ambiente real |
+| **Recursos locais limitados** | **Recursos dedicados AWS** | **Ideal para PCs lentos/antigos** |
 
 ### **🎯 VANTAGENS DA SUBSTITUIÇÃO:**
 
@@ -901,6 +906,8 @@ aws s3 sync client/build/ s3://SEU-BUCKET-NOME/ --delete
 - ✅ **IP público** (acessível de qualquer lugar)
 - ✅ **Recursos dedicados** (não compete com outras aplicações)
 - ✅ **Backup automático** (snapshots EBS)
+- ✅ **Ideal para PCs lentos** (não sobrecarrega máquina local com 4GB RAM ou menos)
+- ✅ **Sem travamentos** (Docker roda na nuvem, não no seu computador)
 
 #### **Container PostgreSQL → RDS:**
 - ✅ **Gerenciado pela AWS** (backups, patches, monitoramento)
