@@ -354,7 +354,101 @@ curl -s -o /dev/null -w "%{http_code}" \
 
 ---
 
-## 💰 **COMPARAÇÃO DE CUSTOS**
+## 📁 **ARQUIVOS MODIFICADOS vs NÃO MODIFICADOS**
+
+### **✅ ARQUIVOS CRIADOS/MODIFICADOS:**
+
+#### **Scripts Criados:**
+- **`reacts3.sh`** - Build React com VITE_API_URL dinâmico
+- **`s3.sh`** - Sincronização com S3
+- **`deploys3.sh`** - Deploy completo
+- **`test-rds-container.sh`** - Teste automatizado Container + RDS
+- **`bucket-policy.json`** - Policy S3 para acesso público
+
+#### **Documentação Atualizada:**
+- **`DESAFIO-S3-SITE-ESTATICO.md`** - Este arquivo
+- **`historico-conversas-amazonq.md`** - Nova sessão documentada
+
+### **❌ ARQUIVOS NÃO MODIFICADOS (Importante!):**
+
+#### **Dockerfile - NÃO ALTERADO:**
+```dockerfile
+# Mantido como estava - build hardcoded para produção
+RUN cd client && VITE_API_URL=https://desafio3.eletroboards.com.br npm run build
+```
+**Por quê?** O container usa a imagem já buildada do ECR, não rebuilda.
+
+#### **compose.yml - NÃO ALTERADO:**
+```yaml
+# Mantido como estava - configuração para banco local
+environment:
+  DB_USER: postgres
+  DB_PWD: postgres
+  DB_HOST: database  # Aponta para container local
+  DB_PORT: 5432
+```
+**Por quê?** Não usamos docker-compose, usamos `docker run` direto.
+
+#### **config/database.js - NÃO ALTERADO:**
+```javascript
+// Mantido como estava - já suporta variáveis de ambiente
+username: process.env.DB_USER || "postgres",
+password: process.env.DB_PWD || "postgres", 
+host: process.env.DB_HOST || "127.0.0.1",
+```
+**Por quê?** Já estava preparado para receber variáveis de ambiente.
+
+### **🔧 COMO AS VARIÁVEIS FORAM PASSADAS:**
+
+#### **Método Usado - Docker Run:**
+```bash
+docker run -d \
+  --name bia-test-rds \
+  -p 3004:8080 \
+  -e NODE_ENV=production \
+  -e DB_HOST=bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com \  # ← AQUI
+  -e DB_USER=postgres \                                        # ← AQUI  
+  -e DB_PWD=Kgegwlaj6mAIxzHaEqgo \                            # ← AQUI
+  -e DB_PORT=5432 \                                           # ← AQUI
+  387678648422.dkr.ecr.us-east-1.amazonaws.com/bia:latest
+```
+
+#### **Variáveis de Ambiente Passadas:**
+| **Variável** | **Valor** | **Função** |
+|--------------|-----------|------------|
+| `DB_HOST` | `bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com` | Endpoint do RDS |
+| `DB_USER` | `postgres` | Usuário do banco |
+| `DB_PWD` | `Kgegwlaj6mAIxzHaEqgo` | Senha do RDS |
+| `DB_PORT` | `5432` | Porta PostgreSQL |
+| `NODE_ENV` | `production` | Ambiente de execução |
+
+### **🎯 RESUMO - O QUE MUDOU:**
+
+#### **Infraestrutura AWS:**
+- ✅ **Security Group criado:** `bia-db` (sg-0f23c63547cd1b4c3)
+- ✅ **RDS criado:** `bia` com endpoint específico
+- ✅ **Bucket S3 criado:** `desafios-fundamentais-bia-1763144658`
+
+#### **Execução do Container:**
+- ✅ **Comando:** `docker run` em vez de `docker-compose`
+- ✅ **Variáveis:** Passadas via `-e` no comando
+- ✅ **Porta:** 3004:8080 em vez de 3001:8080
+
+#### **Build do Frontend:**
+- ✅ **Método:** Build local com `npm run build`
+- ✅ **Variável:** `VITE_API_URL=http://44.200.33.169:3004`
+- ✅ **Upload:** Direto para S3 via `aws s3 sync`
+
+### **💡 POR QUE NÃO PRECISOU ALTERAR ARQUIVOS:**
+
+1. **`config/database.js`** já estava preparado para variáveis de ambiente
+2. **Container existente** já tinha todas as dependências
+3. **Dockerfile** não foi usado (usamos imagem pronta do ECR)
+4. **compose.yml** não foi usado (usamos `docker run`)
+
+**A beleza da solução:** Aproveitou toda a infraestrutura existente, só mudou onde o container busca o banco! 🎯
+
+---
 
 | **Recurso** | **Método Original** | **Método Simplificado** | **Economia** |
 |-------------|-------------------|------------------------|--------------|
