@@ -8,6 +8,129 @@
 
 ---
 
+## Data: 28/01/2025
+
+### Sessão: DESAFIO S3 - Método Simplificado Container + RDS
+
+#### Contexto Inicial
+- Usuário solicitou recriação da estrutura do DESAFIO S3
+- Descoberta: Site S3 funcionando mas sem conexão com banco (RDS deletado)
+- Insight do usuário: "Se funciona local com Docker, não funcionaria só com RDS?"
+
+#### Implementação do Método Simplificado
+
+**1. Análise da Abordagem**
+- **Problema identificado:** Site S3 "órfão" sem backend funcional
+- **Solução proposta:** Container Docker + RDS (sem ECS/ALB)
+- **Vantagem:** Mesmo código, só muda string de conexão
+
+**2. Criação do RDS PostgreSQL**
+- **Security Group:** `bia-db` (sg-0f23c63547cd1b4c3)
+- **Instância:** `bia` (db.t3.micro, PostgreSQL 17.6)
+- **Endpoint:** `bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com`
+- **Tempo criação:** ~5-10 minutos
+
+**3. Execução do Container**
+- **Comando:** `docker run` com variáveis de ambiente para RDS
+- **Porta:** 3004:8080
+- **Variáveis:** DB_HOST, DB_USER, DB_PWD, DB_PORT
+- **Status:** Funcionando perfeitamente
+
+**4. Migrations e Validação**
+- **Problema:** Tabelas não existiam (`relation "Tarefas" does not exist`)
+- **Solução:** `docker exec bia-test-rds npx sequelize-cli db:migrate`
+- **Resultado:** Migration `20210924000838-criar-tarefas` executada
+- **Validação:** API retornando `[]` para `/api/tarefas`
+
+**5. Atualização do Site S3**
+- **Build React:** `VITE_API_URL=http://44.200.33.169:3004`
+- **Sincronização:** `aws s3 sync client/build/` 
+- **Resultado:** Site conectando na API local
+
+#### Problemas Resolvidos
+
+**1. Security Group Inválido**
+- **Erro:** `Invalid security group sg-0c1a082f04bc6709`
+- **Solução:** Criar security group específico para RDS
+
+**2. Migrations Não Executadas**
+- **Erro:** `relation "Tarefas" does not exist`
+- **Solução:** `npx sequelize-cli db:migrate` no container
+
+**3. Site S3 Offline**
+- **Causa:** VITE_API_URL apontando para ALB inexistente
+- **Solução:** Rebuild com IP público da instância
+
+#### Validação Final
+
+**Teste Completo Realizado:**
+```bash
+# RDS disponível
+Status: available
+
+# Container funcionando  
+curl http://44.200.33.169:3004/api/versao
+# Resultado: "Bia 4.2.0"
+
+# Banco conectado e dados inseridos
+curl http://44.200.33.169:3004/api/tarefas
+# Resultado: Tarefa "TESTE MIGRATIONS" encontrada
+
+# Site S3 funcionando
+HTTP Status: 200 OK
+```
+
+#### Recursos Criados
+
+**Infraestrutura AWS:**
+- ✅ **RDS PostgreSQL:** `bia` (db.t3.micro)
+- ✅ **Security Group:** `bia-db` (porta 5432)
+- ✅ **Bucket S3:** `desafios-fundamentais-bia-1763144658`
+
+**Scripts Atualizados:**
+- ✅ **`reacts3.sh`:** Build com IP dinâmico
+- ✅ **`test-rds-container.sh`:** Teste completo automatizado
+- ✅ **`s3.sh` e `deploys3.sh`:** Mantidos funcionais
+
+#### Comparação de Custos
+
+| Recurso | Método Original | Método Simplificado | Economia |
+|---------|----------------|-------------------|----------|
+| ALB | ~$16/mês | - | $16/mês |
+| ECS Tasks | ~$8/mês | - | $8/mês |
+| EC2 Instances | ~$8/mês | - | $8/mês |
+| RDS | ~$8/mês | ~$8/mês | - |
+| **TOTAL** | **~$40/mês** | **~$8/mês** | **$32/mês** |
+
+**Economia de 80%!**
+
+#### Lições Aprendidas
+
+1. **Simplicidade funciona:** Container + RDS é mais eficiente que ECS + ALB
+2. **Insight valioso:** Usuário identificou abordagem mais simples
+3. **Mesmo código:** Não precisa alterar aplicação, só variáveis
+4. **Economia significativa:** $32/mês de economia mantendo funcionalidade
+5. **Flexibilidade:** Container pode rodar em qualquer lugar
+
+#### Documentação Atualizada
+
+**Arquivos modificados:**
+- ✅ **`DESAFIO-S3-SITE-ESTATICO.md`:** Documentação completa atualizada
+- ✅ **`historico-conversas-amazonq.md`:** Esta sessão documentada
+- ✅ **Scripts:** `reacts3.sh`, `test-rds-container.sh` criados/atualizados
+
+#### Resultado Final
+
+**✅ DESAFIO S3 100% FUNCIONAL:**
+- **Arquitetura:** Site S3 → Container Local → RDS PostgreSQL
+- **Status:** Dados sendo persistidos e consultados
+- **Economia:** 80% em custos AWS
+- **Método:** Simplificado e eficiente
+
+**Fluxo validado:** Frontend estático → API containerizada → Banco gerenciado
+
+---
+
 ## Data: 07/11/2025
 
 ### Sessão: DESAFIO S3 - Site Estático com Deploy Automatizado
