@@ -131,13 +131,38 @@ docker run -d \
 ```
 
 #### **2.3 - Executar migrations:**
-```bash
-# Aguardar container inicializar
-sleep 10
 
-# Executar migrations do Sequelize
+**⚠️ IMPORTANTE - DIFERENÇA DE COMANDOS:**
+
+**Comando da documentação do curso (Docker Compose local):**
+```bash
+docker compose exec server bash -c 'npx sequelize db:create'
+docker compose exec server bash -c 'npx sequelize db:migrate'
+```
+
+**Comando usado nesta implementação (Container único + RDS):**
+```bash
+# Não precisamos criar DB (RDS já existe)
+# Só executamos as migrations
 docker exec bia-test-rds npx sequelize-cli db:migrate
 ```
+
+**📊 Diferenças:**
+
+| **Aspecto** | **Curso (Local)** | **Nossa Implementação** |
+|-------------|-------------------|-------------------------|
+| **Ambiente** | Docker Compose | EC2 + Container único |
+| **Banco** | Container PostgreSQL | RDS PostgreSQL |
+| **Comando** | `docker compose exec` | `docker exec` |
+| **Container** | `server` | `bia-test-rds` |
+| **Criar DB** | ✅ Necessário | ❌ RDS já existe |
+| **Pacote** | `sequelize` | `sequelize-cli` |
+
+**🎯 Por que a diferença:**
+- **Curso:** Ambiente local com docker-compose
+- **Nossa implementação:** EC2 na AWS + RDS externo
+- **Container único:** Não temos orquestração, só um container
+- **RDS gerenciado:** Banco já existe, só precisamos das tabelas
 
 #### **2.4 - Testar API:**
 ```bash
@@ -354,7 +379,63 @@ curl -s -o /dev/null -w "%{http_code}" \
 
 ---
 
-## 📁 **ARQUIVOS MODIFICADOS vs NÃO MODIFICADOS**
+## 🌍 **CONTEXTO DE EXECUÇÃO**
+
+### **📍 ONDE ESTAMOS EXECUTANDO:**
+
+**Ambiente Real:**
+- ✅ **EC2 Instance** na AWS (não VM local)
+- ✅ **Amazon Linux** como sistema operacional
+- ✅ **RDS PostgreSQL** gerenciado (não container)
+- ✅ **Container Docker** único (não docker-compose)
+
+**Diferenças do ambiente do curso:**
+- **Curso:** Desenvolvimento local com docker-compose
+- **Nossa implementação:** Produção na AWS com serviços gerenciados
+
+### **🔧 IMPLICAÇÕES NOS COMANDOS:**
+
+#### **Docker Compose vs Docker Run:**
+```bash
+# Curso (Local)
+docker compose up -d
+docker compose exec server bash -c 'comando'
+
+# Nossa implementação (AWS)
+docker run -d --name container comando
+docker exec container comando
+```
+
+#### **Banco Local vs RDS:**
+```bash
+# Curso (Container PostgreSQL)
+docker compose exec server bash -c 'npx sequelize db:create'  # Cria DB
+docker compose exec server bash -c 'npx sequelize db:migrate' # Cria tabelas
+
+# Nossa implementação (RDS)
+# DB já existe no RDS, só criamos tabelas
+docker exec bia-test-rds npx sequelize-cli db:migrate
+```
+
+#### **Rede Local vs AWS:**
+```bash
+# Curso (Localhost)
+VITE_API_URL=http://localhost:3001
+
+# Nossa implementação (IP público AWS)
+VITE_API_URL=http://44.200.33.169:3004
+```
+
+### **💡 POR QUE OS COMANDOS SÃO DIFERENTES:**
+
+1. **Não estamos em VM local** - Estamos em EC2 na AWS
+2. **Não usamos docker-compose** - Usamos container único
+3. **Não temos banco em container** - Usamos RDS gerenciado
+4. **Não é desenvolvimento** - É implementação em produção
+
+**A documentação do curso é para ambiente local. Nossa implementação é para AWS! 🎯**
+
+---
 
 ### **✅ ARQUIVOS CRIADOS/MODIFICADOS:**
 
