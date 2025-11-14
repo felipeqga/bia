@@ -89,6 +89,29 @@
 - ✅ **Só muda** a string de conexão do banco
 - ✅ **Mais econômico** (~$8/mês vs ~$32/mês)
 
+**⚠️ ALERTAS CRÍTICOS - NÃO RECOMENDADO PARA PRODUÇÃO:**
+- 🚨 **PONTO ÚNICO DE FALHA:** Se EC2 falhar → Aplicação completamente offline
+- 🚨 **SEM ALTA DISPONIBILIDADE:** Não há redundância, failover ou Multi-AZ
+- 🚨 **SEM AUTO-SCALING:** Não escala automaticamente sob carga alta
+- 🚨 **MANUTENÇÃO MANUAL:** Atualizações, patches, monitoramento são manuais
+- 🚨 **SEM BACKUP AUTOMÁTICO:** Container pode perder estado se EC2 falhar
+- 🚨 **SEM MONITORAMENTO:** Não há alertas automáticos de falhas
+
+**❌ NÃO USAR EM:**
+- 🏢 **Ambientes corporativos críticos**
+- 💰 **Aplicações que geram receita**
+- 👥 **Sistemas com muitos usuários simultâneos**
+- 🔒 **Dados sensíveis ou regulamentados (LGPD, SOX, etc.)**
+- ⏰ **Aplicações 24/7 com SLA rigoroso**
+- 🌍 **Sistemas de missão crítica**
+
+**✅ USAR APENAS EM:**
+- 🎓 **Aprendizado e experimentação**
+- 🧪 **Protótipos e POCs (Proof of Concept)**
+- 👤 **Projetos pessoais de baixo tráfego**
+- 🔬 **Ambiente de desenvolvimento/teste**
+- 📚 **Demonstrações técnicas**
+
 ---
 
 ## 📊 **IMPLEMENTAÇÃO PASSO-A-PASSO**
@@ -1157,10 +1180,12 @@ aws s3 rb s3://desafios-fundamentais-bia-1763144658 --force
 
 ### **🎯 Lições Aprendidas:**
 
-1. **Simplicidade funciona:** Container + RDS é mais simples que ECS + ALB
-2. **Mesmo código:** Não precisa alterar aplicação, só variáveis de ambiente
-3. **Economia significativa:** $32/mês de economia mantendo funcionalidade
-4. **Flexibilidade:** Pode rodar em qualquer lugar (local, EC2, etc.)
+1. **Simplicidade funciona para aprendizado:** Container + RDS é mais simples que ECS + ALB
+2. **⚠️ MAS NÃO para produção crítica:** Ponto único de falha é inaceitável em ambientes corporativos
+3. **Mesmo código:** Não precisa alterar aplicação, só variáveis de ambiente
+4. **Economia significativa:** $32/mês de economia mantendo funcionalidade
+5. **Flexibilidade:** Pode rodar em qualquer lugar (local, EC2, etc.)
+6. **Trade-off importante:** Simplicidade vs Confiabilidade - escolha consciente necessária
 
 ### **🚀 Próximos Passos Possíveis:**
 
