@@ -142,11 +142,26 @@
 - **Exemplos:** Comandos para cada arquitetura
 - **Resultado:** Flexibilidade do VITE_API_URL documentada
 
-**20. Correção de Falha de Segurança**
-- **Questionamento:** 0.0.0.0/0 é inseguro, poderia usar Security Group?
-- **Correção:** Método seguro SG→SG vs método inseguro usado
-- **Documentação:** Comparação, vantagens, comandos de correção
-- **Resultado:** Documentação responsável sobre segurança
+**21. Explicação da URL S3 Específica**
+- **Questionamento:** De onde veio URL http://desafios-fundamentais-bia-1763144658...?
+- **Esclarecimento:** Decomposição da URL (protocolo, prefixo, timestamp Unix, região)
+- **Origem:** Script s3.sh com date +%s para nome único do bucket
+- **Comandos:** Como descobrir própria URL (manual, CLI, console)
+- **Resultado:** Origem de valores específicos documentada
+
+**22. Console vs CLI na Criação de Recursos**
+- **Observação:** Documentação deve esclarecer que recursos podem ser criados via Console ou CLI
+- **Adição:** Seção comparativa Console (visual) vs CLI (reproduzível)
+- **Exemplo:** Criação do RDS via ambos os métodos
+- **Recomendação:** Console para aprendizado, CLI para produção
+- **Resultado:** Flexibilidade de métodos documentada
+
+**23. Limpeza de Recursos para Evitar Custos**
+- **Ação:** Deleção de todos os recursos que geram custo
+- **Container:** Parado e removido (bia-test-rds)
+- **RDS:** Deletado sem snapshot final (~$8/mês economizados)
+- **Security Group:** Removido (sg-0f23c63547cd1b4c3)
+- **Resultado:** Custos evitados, recursos limpos
 
 #### Validação Final
 
@@ -235,22 +250,25 @@ HTTP Status: 200 OK
 14. `2cab7d0` - Observação sobre máquinas lentas/recursos limitados
 15. `f7d7935` - Explicação valores possíveis para VITE_API_URL
 16. `14690bb` - Correção falha de segurança Security Group método seguro
+17. `f899d72` - Atualização histórico com 7 melhorias finais
+18. `e495d24` - Explicação origem da URL específica do S3
 
 #### Resultado Final
 
 **✅ DESAFIO S3 100% FUNCIONAL E DOCUMENTADO:**
 - **Arquitetura:** Site S3 → Container Local → RDS PostgreSQL
-- **Status:** Dados sendo persistidos e consultados
-- **Economia:** 80% em custos AWS
-- **Método:** Simplificado e eficiente
+- **Status:** Implementado, testado e **recursos limpos**
+- **Economia:** 80% em custos AWS durante implementação
+- **Método:** Simplificado, eficiente e **responsável**
 - **Documentação:** Completa, reproduzível, segura e pedagogicamente correta
 
 **Estatísticas da sessão:**
-- **20 iterações** de melhoria documentadas
-- **16 commits** realizados
-- **16 lições** aprendidas
+- **23 iterações** de melhoria documentadas
+- **18 commits** realizados
+- **17 lições** aprendidas
 - **100% reproduzível** - qualquer pessoa pode seguir
 - **Segurança corrigida** - método inseguro identificado e corrigido
+- **Recursos limpos** - custos evitados após implementação
 
 **Qualidade da documentação:** Evoluiu através de questionamentos precisos do usuário, resultando em documentação completa que aborda:
 - Implementação técnica detalhada
@@ -259,10 +277,14 @@ HTTP Status: 200 OK
 - Explicações técnicas profundas
 - Considerações de acessibilidade
 - Correções de falhas de segurança
+- Flexibilidade de métodos (Console vs CLI)
+- Gestão responsável de recursos
 
 **Fluxo validado:** Frontend estático → API containerizada → Banco gerenciado
 
-**Método educacional responsável:** Ensina tanto simplicidade quanto limitações, preparando para decisões arquiteturais conscientes.
+**Método educacional responsável:** Ensina tanto simplicidade quanto limitações, preparando para decisões arquiteturais conscientes e gestão adequada de custos.
+
+**Próximos passos sugeridos:** Implementação da arquitetura completa (RDS + ECR + ECS + ALB) para comparação prática.
 
 ---
 

@@ -114,6 +114,82 @@
 
 ---
 
+---
+
+## 🛠️ **MÉTODOS DE CRIAÇÃO DOS RECURSOS**
+
+### **⚠️ IMPORTANTE: CONSOLE vs CLI**
+
+**Todos os recursos AWS podem ser criados de 2 formas:**
+
+#### **📱 AWS Console (Interface Web):**
+- ✅ **Mais visual** e intuitivo
+- ✅ **Ideal para iniciantes**
+- ✅ **Wizards** que guiam o processo
+- ❌ **Mais lento** para recursos múltiplos
+- ❌ **Difícil de reproduzir** exatamente
+
+#### **💻 AWS CLI (Linha de Comando):**
+- ✅ **Mais rápido** para automação
+- ✅ **Reproduzível** (scripts)
+- ✅ **Ideal para DevOps**
+- ❌ **Curva de aprendizado** maior
+- ❌ **Menos visual**
+
+### **🎯 NOSSA ESCOLHA: CLI**
+
+**Por que usamos CLI nesta documentação:**
+- 📋 **Reproduzível:** Comandos exatos para copiar
+- 🚀 **Automação:** Pode virar script
+- 📚 **Aprendizado:** Entende parâmetros específicos
+- 🔄 **Versionamento:** Comandos no Git
+
+### **🔄 EQUIVALÊNCIA CONSOLE ↔ CLI:**
+
+#### **Exemplo: Criação do RDS**
+
+**Via Console:**
+```
+1. AWS Console → RDS → Create Database
+2. Engine: PostgreSQL
+3. Version: 17.6
+4. Instance: db.t3.micro
+5. Database name: bia
+6. Username: postgres
+7. Password: [sua senha]
+8. VPC Security Group: [selecionar]
+9. Create Database
+```
+
+**Via CLI (usado na documentação):**
+```bash
+aws rds create-db-instance \
+  --db-instance-identifier bia \
+  --db-instance-class db.t3.micro \
+  --engine postgres \
+  --engine-version 17.6 \
+  --master-username postgres \
+  --master-user-password SuaSenha \
+  --allocated-storage 20 \
+  --vpc-security-group-ids sg-0f23c63547cd1b4c3 \
+  --db-name bia \
+  --region us-east-1
+```
+
+### **💡 RECOMENDAÇÃO:**
+
+#### **Para Aprendizado:**
+- 🎓 **Use Console primeiro** (entender opções)
+- 💻 **Depois CLI** (automatizar)
+
+#### **Para Produção:**
+- 🏗️ **Use CLI/CloudFormation** (Infrastructure as Code)
+- 📋 **Documente comandos** (reproduzibilidade)
+
+**Ambos os métodos criam exatamente os mesmos recursos! 🎯**
+
+---
+
 ## 📊 **IMPLEMENTAÇÃO PASSO-A-PASSO**
 
 ### **PASSO 1: Criar RDS PostgreSQL ✅**
