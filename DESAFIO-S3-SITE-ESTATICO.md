@@ -128,14 +128,88 @@ aws ec2 create-security-group \
 ```
 
 #### **1.2 - Permitir acesso PostgreSQL:**
+
+**⚠️ MÉTODO USADO (INSEGURO - APENAS PARA TESTE):**
 ```bash
 aws ec2 authorize-security-group-ingress \
   --group-id sg-0f23c63547cd1b4c3 \
   --protocol tcp \
   --port 5432 \
-  --cidr 0.0.0.0/0 \
+  --cidr 0.0.0.0/0 \    # ← LIBERA PARA O MUNDO INTEIRO!
   --region us-east-1
 ```
+
+**✅ MÉTODO RECOMENDADO (SEGURO - PARA PRODUÇÃO):**
+```bash
+# 1. Identificar Security Group da EC2
+EC2_SG=$(aws ec2 describe-instances \
+  --query 'Reservations[*].Instances[*].SecurityGroups[*].GroupId' \
+  --output text --region us-east-1)
+
+echo "Security Group da EC2: $EC2_SG"
+
+# 2. Permitir apenas EC2s deste Security Group
+aws ec2 authorize-security-group-ingress \
+  --group-id sg-0f23c63547cd1b4c3 \
+  --protocol tcp \
+  --port 5432 \
+  --source-group $EC2_SG \    # ← SÓ EC2s DESTE SG!
+  --region us-east-1
+```
+
+### **🔒 COMPARAÇÃO DE SEGURANÇA:**
+
+| **Método** | **Regra** | **Segurança** | **Quando Usar** |
+|------------|-----------|---------------|-----------------|
+| **--cidr 0.0.0.0/0** | Todo mundo | 🚨 Muito baixa | ❌ Nunca em produção |
+| **--cidr IP/32** | IP específico | ⚠️ Boa | 🧪 Teste temporário |
+| **--source-group SG** | Security Group | ✅ Excelente | ✅ Produção recomendada |
+
+### **🎯 VANTAGENS DO MÉTODO SEGURO:**
+
+#### **🔒 Security Group → Security Group:**
+- ✅ **Apenas EC2s específicas** podem acessar RDS
+- ✅ **IP dinâmico não importa** (EC2 pode mudar IP público)
+- ✅ **Escala automaticamente** (novas EC2s no mesmo SG têm acesso)
+- ✅ **Zero exposição externa** (nenhum IP externo consegue acessar)
+- ✅ **Auditoria fácil** (rastrear quem tem acesso)
+- ✅ **Compliance** (atende requisitos corporativos)
+
+### **🏗️ ARQUITETURA SEGURA:**
+
+```
+┌─────────────────┐                    ┌─────────────────┐
+│   EC2 Instance  │                    │   RDS Instance  │
+│                 │                    │                 │
+│ Security Group: │ ──── Permite ────▶ │ Security Group: │
+│ sg-0abc123def   │      Porta 5432    │ sg-0f23c63547   │
+│ (EC2-SG)        │                    │ (RDS-SG)        │
+└─────────────────┘                    └─────────────────┘
+```
+
+### **🚨 CORREÇÃO PARA AMBIENTE SEGURO:**
+
+```bash
+# Se você usou o método inseguro, corrija:
+
+# 1. Remover regra insegura
+aws ec2 revoke-security-group-ingress \
+  --group-id sg-0f23c63547cd1b4c3 \
+  --protocol tcp \
+  --port 5432 \
+  --cidr 0.0.0.0/0 \
+  --region us-east-1
+
+# 2. Adicionar regra segura
+aws ec2 authorize-security-group-ingress \
+  --group-id sg-0f23c63547cd1b4c3 \
+  --protocol tcp \
+  --port 5432 \
+  --source-group SEU_EC2_SECURITY_GROUP \
+  --region us-east-1
+```
+
+**⚠️ IMPORTANTE:** O método 0.0.0.0/0 foi usado apenas para simplificar o tutorial. **EM PRODUÇÃO, SEMPRE use Security Group referenciando Security Group!**
 
 #### **1.3 - Criar instância RDS:**
 ```bash
