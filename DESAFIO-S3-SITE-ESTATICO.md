@@ -394,15 +394,147 @@ echo "Seu IP público: $PUBLIC_IP"
 ```
 **⚠️ IMPORTANTE:** Este IP muda a cada reinicialização da EC2!
 
-#### **🔌 Porta: `3004`**
-```bash
-# Mapeamento escolhido no docker run:
--p 3004:8080
-#  ↑     ↑
-#  |     └── Porta interna do container (fixa)
-#  └── Porta externa escolhida (você define)
+#### **🔌 Portas: `5432` vs `3004` - EXPLICAÇÃO COMPLETA**
+
+**⚠️ IMPORTANTE:** São portas diferentes para serviços diferentes!
+
+**📊 MAPEAMENTO DE PORTAS:**
+
 ```
-**Por que 3004?** Evitar conflito com outras aplicações (3000, 3001 já usadas).
+┌─────────────────┐    HTTP:3004     ┌──────────────────┐    SQL:5432     ┌─────────────────┐
+│   Site S3       │ ──────────────▶  │   Container      │ ──────────────▶ │   RDS PostgreSQL│
+│   (Frontend)    │                  │   EC2:3004       │                 │   AWS:5432      │
+│                 │                  │   ↓              │                 │                 │
+│                 │                  │   Container:8080 │                 │                 │
+└─────────────────┘                  └──────────────────┘                 └─────────────────┘
+```
+
+**🎯 DETALHAMENTO DAS PORTAS:**
+
+#### **Porta 5432 - PostgreSQL (RDS)**
+```bash
+# Security Group para RDS
+aws ec2 authorize-security-group-ingress \
+  --group-id sg-0f23c63547cd1b4c3 \
+  --protocol tcp \
+  --port 5432 \              # ← PORTA PADRÃO POSTGRESQL
+  --cidr 0.0.0.0/0
+```
+**Função:** Permite que o container acesse o banco RDS  
+**Padrão:** PostgreSQL sempre usa porta 5432  
+**Direção:** Container → RDS
+
+#### **Porta 3004 - API HTTP (Container)**
+```bash
+# Mapeamento no docker run
+docker run -d \
+  --name bia-test-rds \
+  -p 3004:8080 \            # ← MAPEAMENTO: Externa:Interna
+```
+**Função:** Permite que o site S3 acesse a API  
+**Escolha:** Porta livre na EC2 (evita conflitos)  
+**Direção:** Site S3 → Container
+
+#### **Porta 8080 - Interna do Container**
+```bash
+# Definida no Dockerfile da aplicação BIA
+EXPOSE 8080
+```
+**Função:** Porta onde a aplicação Node.js escuta dentro do container  
+**Fixa:** Definida no código da aplicação  
+**Não acessível:** Só dentro do container
+
+### **🔗 FLUXO COMPLETO DE COMUNICAÇÃO:**
+
+```bash
+# 1. Site S3 chama API
+curl http://44.200.33.169:3004/api/tarefas
+
+# 2. EC2 recebe na porta 3004 e repassa para container porta 8080
+# (mapeamento -p 3004:8080)
+
+# 3. Container processa e precisa acessar banco
+# Usa variável: DB_HOST=bia.cgxkkc8ecg1q.us-east-1.rds.amazonaws.com
+# Usa variável: DB_PORT=5432
+
+# 4. Security Group permite acesso do container ao RDS na porta 5432
+
+# 5. RDS PostgreSQL responde na porta 5432
+
+# 6. Container retorna JSON via porta 8080 → 3004 → Site S3
+```
+
+### **🛡️ SECURITY GROUPS - POR QUE CADA PORTA:**
+
+#### **Security Group `bia-db` (RDS):**
+```bash
+# Regra: TCP 5432 from 0.0.0.0/0
+# Por quê: RDS PostgreSQL precisa receber conexões SQL
+# Quem acessa: Container na EC2
+```
+
+#### **Security Group padrão EC2:**
+```bash
+# Regra: TCP 3004 from 0.0.0.0/0 (implícita)
+# Por quê: Site S3 precisa fazer requests HTTP
+# Quem acessa: Browsers dos usuários
+```
+
+### **🔍 COMO DESCOBRIR AS PORTAS:**
+
+#### **Porta 5432 - PostgreSQL:**
+```bash
+# Padrão mundial do PostgreSQL
+# Verificar no RDS:
+aws rds describe-db-instances \
+  --db-instance-identifier bia \
+  --query 'DBInstances[0].Endpoint.Port'
+# Resultado: 5432
+```
+
+#### **Porta 3004 - Escolha nossa:**
+```bash
+# Verificar portas em uso na EC2:
+netstat -tlnp | grep :300
+# Escolhemos 3004 por estar livre
+```
+
+#### **Porta 8080 - Aplicação BIA:**
+```bash
+# Definida no código da aplicação
+# Verificar no container:
+docker exec bia-test-rds netstat -tlnp
+# Mostra: 0.0.0.0:8080
+```
+
+### **⚠️ ERROS COMUNS DE PORTA:**
+
+#### **Erro 1: Security Group errado**
+```bash
+# ❌ Errado: Abrir porta 3004 no RDS
+# ✅ Correto: Abrir porta 5432 no RDS
+
+# RDS só precisa da 5432 (SQL)
+# EC2 precisa da 3004 (HTTP)
+```
+
+#### **Erro 2: Mapeamento errado**
+```bash
+# ❌ Errado: -p 5432:8080
+# ✅ Correto: -p 3004:8080
+
+# 5432 é para banco, não para API HTTP
+```
+
+#### **Erro 3: VITE_API_URL errado**
+```bash
+# ❌ Errado: http://44.200.33.169:5432
+# ✅ Correto: http://44.200.33.169:3004
+
+# Site chama API HTTP, não banco SQL
+```
+
+**Agora está claro: 5432 é SQL (RDS), 3004 é HTTP (API), 8080 é interna (Container)! 🎯**
 
 #### **🗄️ Nome do Banco: `bia`**
 ```bash
