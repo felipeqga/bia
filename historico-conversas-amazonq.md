@@ -61,6 +61,45 @@
 - **Causa:** VITE_API_URL apontando para ALB inexistente
 - **Solução:** Rebuild com IP público da instância
 
+#### Melhorias na Documentação (Iterações Posteriores)
+
+**6. Esclarecimento sobre Arquivos Não Modificados**
+- **Questionamento:** Usuário perguntou sobre Dockerfile, compose.yml, variáveis
+- **Correção:** Documentado que arquivos NÃO foram alterados
+- **Explicação:** Variáveis passadas via `docker run -e` em vez de alterar arquivos
+- **Resultado:** Seção completa sobre arquivos modificados vs não modificados
+
+**7. Contexto AWS vs Ambiente Local**
+- **Questionamento:** Diferença entre comandos do curso vs implementação
+- **Correção:** Esclarecido que estamos em EC2 na AWS, não VM local
+- **Explicação:** Por que `docker exec` vs `docker compose exec`
+- **Resultado:** Seção sobre contexto de execução adicionada
+
+**8. Origem dos Valores Específicos**
+- **Questionamento:** De onde vem IP 44.200.33.169, porta 3004, nome bia-test-rds?
+- **Correção:** Explicado origem de cada valor usado
+- **Comandos:** Como obter próprios valores (IP público, endpoint RDS)
+- **Resultado:** Documentação 100% reproduzível
+
+**9. Explicação das Portas**
+- **Questionamento:** Relação entre porta 5432 (RDS) e 3004 (API)
+- **Correção:** Diagrama completo do fluxo de comunicação
+- **Explicação:** 5432=PostgreSQL, 3004=HTTP, 8080=interna
+- **Resultado:** Seção detalhada sobre portas e Security Groups
+
+**10. Método do Curso vs Método Alternativo**
+- **Questionamento:** Curso ensina alterar arquivos, não comandos diretos
+- **Correção:** Documentado ambos os métodos
+- **Método Curso:** Alterar compose.yml e Dockerfile
+- **Método Alternativo:** Comando direto com variáveis
+- **Resultado:** Comparação pedagógica vs prática
+
+**11. Localhost vs IP Público**
+- **Questionamento:** `localhost:3004` não funciona externamente
+- **Correção:** Documentado diferença entre acesso local e externo
+- **Explicação:** Site S3 precisa IP público, não localhost
+- **Resultado:** Comandos corrigidos para ambos os cenários
+
 #### Validação Final
 
 **Teste Completo Realizado:**
@@ -87,10 +126,11 @@ HTTP Status: 200 OK
 - ✅ **Security Group:** `bia-db` (porta 5432)
 - ✅ **Bucket S3:** `desafios-fundamentais-bia-1763144658`
 
-**Scripts Atualizados:**
+**Scripts Criados/Atualizados:**
 - ✅ **`reacts3.sh`:** Build com IP dinâmico
 - ✅ **`test-rds-container.sh`:** Teste completo automatizado
 - ✅ **`s3.sh` e `deploys3.sh`:** Mantidos funcionais
+- ✅ **`bucket-policy.json`:** Policy S3 para acesso público
 
 #### Comparação de Custos
 
@@ -111,23 +151,38 @@ HTTP Status: 200 OK
 3. **Mesmo código:** Não precisa alterar aplicação, só variáveis
 4. **Economia significativa:** $32/mês de economia mantendo funcionalidade
 5. **Flexibilidade:** Container pode rodar em qualquer lugar
+6. **Documentação iterativa:** Questionamentos do usuário melhoraram muito a documentação
+7. **Método pedagógico vs prático:** Importante mostrar ambas as abordagens
+8. **Reprodutibilidade:** Documentação deve explicar origem de todos os valores
 
-#### Documentação Atualizada
+#### Documentação Final
 
-**Arquivos modificados:**
-- ✅ **`DESAFIO-S3-SITE-ESTATICO.md`:** Documentação completa atualizada
+**Arquivos atualizados (7 commits):**
+- ✅ **`DESAFIO-S3-SITE-ESTATICO.md`:** Documentação completa e iterativa
 - ✅ **`historico-conversas-amazonq.md`:** Esta sessão documentada
-- ✅ **Scripts:** `reacts3.sh`, `test-rds-container.sh` criados/atualizados
+- ✅ **Scripts:** Criados e documentados
+
+**Commits realizados:**
+1. `2b94453` - Implementação inicial do método simplificado
+2. `00ecb74` - Esclarecimento sobre arquivos não modificados
+3. `c4cf78a` - Contexto AWS vs ambiente local
+4. `819e28a` - Origem dos valores específicos
+5. `a8db0ba` - Explicação das portas 5432, 3004 e 8080
+6. `6752173` - Método do curso vs método alternativo
+7. `8aab862` - Correção localhost vs IP público
 
 #### Resultado Final
 
-**✅ DESAFIO S3 100% FUNCIONAL:**
+**✅ DESAFIO S3 100% FUNCIONAL E DOCUMENTADO:**
 - **Arquitetura:** Site S3 → Container Local → RDS PostgreSQL
 - **Status:** Dados sendo persistidos e consultados
 - **Economia:** 80% em custos AWS
 - **Método:** Simplificado e eficiente
+- **Documentação:** Completa, reproduzível e pedagogicamente correta
 
 **Fluxo validado:** Frontend estático → API containerizada → Banco gerenciado
+
+**Qualidade da documentação:** Evoluiu através de questionamentos precisos do usuário, resultando em documentação 100% reproduzível e educativa.
 
 ---
 
