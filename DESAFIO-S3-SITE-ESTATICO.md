@@ -379,7 +379,131 @@ curl -s -o /dev/null -w "%{http_code}" \
 
 ---
 
-## 🌍 **CONTEXTO DE EXECUÇÃO**
+## 🔍 **ORIGEM DOS VALORES ESPECÍFICOS**
+
+### **📊 DE ONDE VÊM OS VALORES USADOS:**
+
+#### **🌐 IP Público: `44.200.33.169`**
+```bash
+# Como obter o IP público da sua instância EC2:
+PUBLIC_IP=$(aws ec2 describe-instances \
+  --query 'Reservations[*].Instances[*].PublicIpAddress' \
+  --output text --region us-east-1)
+
+echo "Seu IP público: $PUBLIC_IP"
+```
+**⚠️ IMPORTANTE:** Este IP muda a cada reinicialização da EC2!
+
+#### **🔌 Porta: `3004`**
+```bash
+# Mapeamento escolhido no docker run:
+-p 3004:8080
+#  ↑     ↑
+#  |     └── Porta interna do container (fixa)
+#  └── Porta externa escolhida (você define)
+```
+**Por que 3004?** Evitar conflito com outras aplicações (3000, 3001 já usadas).
+
+#### **🗄️ Nome do Banco: `bia`**
+```bash
+# Definido na criação do RDS:
+--db-name bia
+--db-instance-identifier bia
+```
+**Padrão do projeto:** Sempre usamos "bia" como nome.
+
+#### **🐳 Nome do Container: `bia-test-rds`**
+```bash
+# Definido no docker run:
+--name bia-test-rds
+```
+**Convenção:** `bia-test-rds` = projeto-propósito-banco
+
+#### **🔐 Senha RDS: `Kgegwlaj6mAIxzHaEqgo`**
+```bash
+# Definida na criação do RDS:
+--master-user-password Kgegwlaj6mAIxzHaEqgo
+```
+**⚠️ SEGURANÇA:** Em produção real, use AWS Secrets Manager!
+
+### **🎯 VALORES QUE VOCÊ DEVE SUBSTITUIR:**
+
+#### **Para reproduzir, substitua por seus valores:**
+
+```bash
+# 1. Obter SEU IP público
+MEU_IP=$(aws ec2 describe-instances \
+  --query 'Reservations[*].Instances[*].PublicIpAddress' \
+  --output text --region us-east-1)
+
+# 2. Obter SEU endpoint RDS (após criar)
+MEU_RDS=$(aws rds describe-db-instances \
+  --db-instance-identifier bia \
+  --query 'DBInstances[0].Endpoint.Address' \
+  --output text --region us-east-1)
+
+# 3. Usar SEUS valores no container
+docker run -d \
+  --name bia-test-rds \
+  -p 3004:8080 \
+  -e DB_HOST=$MEU_RDS \
+  -e DB_USER=postgres \
+  -e DB_PWD=SUA_SENHA_AQUI \
+  387678648422.dkr.ecr.us-east-1.amazonaws.com/bia:latest
+
+# 4. Usar SEU IP no build React
+cd client
+VITE_API_URL=http://$MEU_IP:3004 npm run build
+```
+
+### **📋 CHECKLIST PARA REPRODUÇÃO:**
+
+#### **Antes de começar, você precisa:**
+- [ ] **Instância EC2** rodando com Docker instalado
+- [ ] **Imagem BIA** disponível no ECR ou localmente
+- [ ] **AWS CLI** configurado com permissões
+- [ ] **Bucket S3** criado para o site estático
+
+#### **Valores que serão únicos para você:**
+- ✅ **IP público:** Diferente a cada EC2/reinicialização
+- ✅ **Endpoint RDS:** Gerado automaticamente pelo AWS
+- ✅ **Security Group ID:** Criado automaticamente
+- ✅ **Bucket S3:** Nome deve ser globalmente único
+
+#### **Valores que podem ser iguais:**
+- ✅ **Porta:** 3004 (ou escolha outra livre)
+- ✅ **Nome container:** bia-test-rds (ou escolha outro)
+- ✅ **Nome banco:** bia (padrão do projeto)
+- ✅ **Usuário:** postgres (padrão PostgreSQL)
+
+### **🔧 COMANDOS GENÉRICOS PARA REPRODUÇÃO:**
+
+```bash
+# 1. Obter seus valores dinâmicos
+export MEU_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text --region us-east-1)
+export MEU_RDS=$(aws rds describe-db-instances --db-instance-identifier bia --query 'DBInstances[0].Endpoint.Address' --output text --region us-east-1)
+export MINHA_SENHA="SuaSenhaSeguraAqui"
+
+# 2. Executar container com SEUS valores
+docker run -d \
+  --name bia-test-rds \
+  -p 3004:8080 \
+  -e DB_HOST=$MEU_RDS \
+  -e DB_USER=postgres \
+  -e DB_PWD=$MINHA_SENHA \
+  -e DB_PORT=5432 \
+  387678648422.dkr.ecr.us-east-1.amazonaws.com/bia:latest
+
+# 3. Build React com SEU IP
+cd client && VITE_API_URL=http://$MEU_IP:3004 npm run build && cd ..
+
+# 4. Upload para SEU bucket
+aws s3 sync client/build/ s3://SEU-BUCKET-NOME/ --delete
+```
+
+**Agora qualquer pessoa pode reproduzir substituindo pelos próprios valores! 🎯**
+
+---
 
 ### **📍 ONDE ESTAMOS EXECUTANDO:**
 
