@@ -1,0 +1,1767 @@
+desafio setembro
+desafio4 - 2a tentativa
+
+
+Desafio
+SERVIÇO: DESAFIO	Nat Gateway	
+OBJETIVO: Configurar a BIA para operar com o ECS numa subnet privada	
+
+VPC     desafio-set24-04-vpc    vpc-0f1190ad851599d3b 
+Subnet desafio-set24-04-subnet-public1-us-east-1a subnet-052d500cbd675ce3e 
+Subnet desafio-set24-04-subnet-public2-us-east-1b  subnet-0928680e3b92f1994 
+Subnet desafio-set24-04-subnet-private1-us-east-1a  subnet-004947513af56ed9b 
+Subnet desafio-set24-04-subnet-private2-us-east-1b  subnet-0389811397e58aff4 
+internet gateway  desafio-set24-04-igw  igw-0e182f16019971601 
+route table   desafio-set24-04-rtb-public  rtb-0eebdd49067233047 
+Allocate elastic IP: eipalloc-0123a73ce42fd0457 desafio-set24-04-eip-us-east-1a
+NAT gateway desafio-set24-04-nat-public1-us-east-1a    nat-00cc54a06c0ad5d14 
+route table desafio-set24-04-rtb-private1-us-east-1a rtb-08a7fdc3615528bfc 
+route table desafio-set24-04-rtb-private2-us-east-1b rtb-01d4d1bd512e51c5e 
+Associate S3 endpoint with private subnet route tables: vpce-09ab52b25d2e7ec7d 
+
+
+Security group para o Bastion host
+security group name: bh-desafio-set24-04
+description: acesso do bastion host
+vpc: desafio-set24-04-vpc
+
+INBOUND RULES
+TYPE: SSH, SOURCE: 187.86.214.17/32, DESCRIÇÃO: My IP
+TYPE: SSH, SOURCE: 179.116.42.117/32, DESCRIÇÃO: My IP 
+TYPE: custom, porta:3001, SOURCE: 187.86.214.17/32, DESCRIÇÃO: My IP
+TYPE: custom, porta:3001, SOURCE: 179.116.42.117/32, DESCRIÇÃO: My IP 
+
+
+security group name:bia-dev-desafio-set24-04
+description: acesso da bia-dev-desafio-set24-04
+vpc: desafio-set24-04-vpc
+
+INBOUND RULES
+TYPE: All Traffic, SOURCE: bh-desafio-set24-04, DESCRIÇÃO: Acesso vindo do bastion host
+
+
+
+Criar recursos
+
+Bastion Host na subnet publica
+Vamos chamar o bastion host de porteiro
+Name: bh-desafio-set24-04
+Amazon Linux
+T3.micro
+Keypair:  podemos utilizar chaves ou o instance connect (nesse caso usei)
+
+Network settings
+vpc:desafio-set24-04-vpc
+subnet:desafio-set24-04-subnet-public1-us-east-1a
+
+Auto-assign public IP: ENABLE
+Security group: bh-desafio-set24-04
+
+instance id bh-desafio-set24-04  i-0bc65106bd1edf215
+
+
+Lançando o servidor  bia-dev-desafio-set24-04
+Name: bia-dev-desafio-set24-04
+Amazon Linux
+t3.micro
+Key pair: chave_formacao_4_0_pem.pem
+vpc: desafio-set24-04-vpc
+subnet:desafio-set24-04-subnet-private1-us-east-1a
+auto assign public IP : disable
+security grupo: bia-dev-desafio-set24-04
+
+instance id bia-dev-desafio-set24-04 i-0ba4800646c854560
+
+Conectando aos recursos usando bastion host através de tunnel ssh
+O acesso aos recursos será via tunelamento
+Se posicionar na pasta onde estão  as keypairs
+Testar o acesso ao bastion-host 
+ip bastion: 3.215.135.55
+
+
+carlo@DESKTOP-80H0NV9 MINGW64 ~/Documents/formacao AWS 4_0/keypairs
+$ ssh -i "chave_formacao_4_0_pem.pem"  ec2-user@ec2-3-215-135-55.compute-1.amazonaws.com
+The authenticity of host 'ec2-3-215-135-55.compute-1.amazonaws.com (3.215.135.55)' can't be established.
+ED25519 key fingerprint is SHA256:KOUujiYdWcMdz4GjRPEPXwzX6afRh8WoOz8S1HQVmzY.
+This key is not known by any other names
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added 'ec2-3-215-135-55.compute-1.amazonaws.com' (ED25519) to the list of known hosts.
+   ,     #_
+   ~\_  ####_        Amazon Linux 2023
+  ~~  \_#####\
+  ~~     \###|
+  ~~       \#/ _
+   https://aws.amazon.com/linux/amazon-linux-2023
+   ~       V' '->
+    ~         /
+      ~~._.   _/
+         _/ _/
+       _/m/'
+[ec2-user@ip-10-0-1-188 ~]$
+
+
+
+série de comandos para criar os tuneis
+ssh -f -N -i <chave> - L porta-local:endereço_destino:porta_remota <endpoint com usuário do bastionhost>
+f - para o comand rodar em background
+N - para não rodar comando nenhum comando remoto
+-i - passar chave de segurança (key-pair)
+-L - mapeamento de porta
+
+acesso ao bia-dev-desafio-set24-04
+porta local: 2222
+porta remota: 22
+endereço_destino (bia-dev-desafio-set24-04):10.0.143.47 
+endpoint com usuário do bastionhost: ec2-user@3.215.135.55
+chave: chave_formacao_4_0_pem.pem
+ 
+Mapeando o túnel
+carlo@DESKTOP-80H0NV9 MINGW64 ~/Documents/formacao AWS 4_0/keypairs
+$ ssh -f -N -i chave_formacao_4_0_pem.pem -L 2222:10.0.143.47:22 ec2-user@3.215.135.55  
+
+carlo@DESKTOP-80H0NV9 MINGW64 ~/Documents/formacao AWS 4_0/keypairs
+
+
+Acessando o servidor
+
+carlo@DESKTOP-80H0NV9 MINGW64 ~/documents/formacao AWS 4_0/keypairs
+$ ssh -i chave_formacao_4_0_pem.pem  ec2-user@localhost -p 2222
+
+carlo@DESKTOP-80H0NV9 MINGW64 ~/Documents/formacao AWS 4_0/keypairs
+$ ssh -i chave_formacao_4_0_pem.pem  ec2-user@localhost -p 2222
+The authenticity of host '[localhost]:2222 ([::1]:2222)' can't be established.
+ED25519 key fingerprint is SHA256:e6LpPRHmYOGNsCCnfw0Mew1Y2pQ6iRh0O3YaVJqFPNg.
+This key is not known by any other names
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '[localhost]:2222' (ED25519) to the list of known hosts.
+   ,     #_
+   ~\_  ####_        Amazon Linux 2023
+  ~~  \_#####\
+  ~~     \###|
+  ~~       \#/ _   https://aws.amazon.com/linux/amazon-linux-2023
+   ~       V' '->
+    ~         /
+      ~~._.   _/
+         _/ _/
+       _/m/'
+[ec2-user@ip-10-0-143-47 ~]$
+
+
+Atualizar o servidor
+
+#Instalar Docker e Git
+sudo yum update -y
+sudo yum install git -y
+sudo yum install docker -y
+sudo usermod -a -G docker ec2-user
+sudo usermod -a -G docker ssm-user
+id ec2-user ssm-user
+sudo newgrp docker
+
+
+[ec2-user@ip-10-0-143-47 ~]$ sudo yum update -y
+Last metadata expiration check: 1:08:41 ago on Sat Oct  5 01:22:15 2024.
+Dependencies resolved.
+Nothing to do.
+Complete!
+[ec2-user@ip-10-0-143-47 ~]$ sudo yum install git -y
+Last metadata expiration check: 1:09:06 ago on Sat Oct  5 01:22:15 2024.
+Dependencies resolved.
+================================================================================
+ Package             Arch      Version                     Repository      Size
+================================================================================
+Installing:
+ git                 x86_64    2.40.1-1.amzn2023.0.3       amazonlinux     54 k
+Installing dependencies:
+ git-core            x86_64    2.40.1-1.amzn2023.0.3       amazonlinux    4.3 M
+ git-core-doc        noarch    2.40.1-1.amzn2023.0.3       amazonlinux    2.6 M
+ perl-Error          noarch    1:0.17029-5.amzn2023.0.2    amazonlinux     41 k
+ perl-File-Find      noarch    1.37-477.amzn2023.0.6       amazonlinux     26 k
+ perl-Git            noarch    2.40.1-1.amzn2023.0.3       amazonlinux     42 k
+ perl-TermReadKey    x86_64    2.38-9.amzn2023.0.2         amazonlinux     36 k
+ perl-lib            x86_64    0.65-477.amzn2023.0.6       amazonlinux     15 k
+
+Transaction Summary
+================================================================================
+Install  8 Packages
+
+Total download size: 7.1 M
+Installed size: 34 M
+Downloading Packages:
+(1/8): git-2.40.1-1.amzn2023.0.3.x86_64.rpm     887 kB/s |  54 kB     00:00
+(2/8): perl-Error-0.17029-5.amzn2023.0.2.noarch 1.9 MB/s |  41 kB     00:00
+(3/8): git-core-doc-2.40.1-1.amzn2023.0.3.noarc  24 MB/s | 2.6 MB     00:00
+(4/8): perl-File-Find-1.37-477.amzn2023.0.6.noa 914 kB/s |  26 kB     00:00
+(5/8): git-core-2.40.1-1.amzn2023.0.3.x86_64.rp  29 MB/s | 4.3 MB     00:00
+(6/8): perl-Git-2.40.1-1.amzn2023.0.3.noarch.rp 991 kB/s |  42 kB     00:00
+(7/8): perl-TermReadKey-2.38-9.amzn2023.0.2.x86 892 kB/s |  36 kB     00:00
+(8/8): perl-lib-0.65-477.amzn2023.0.6.x86_64.rp 732 kB/s |  15 kB     00:00
+--------------------------------------------------------------------------------
+Total                                            30 MB/s | 7.1 MB     00:00
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1
+  Installing       : git-core-2.40.1-1.amzn2023.0.3.x86_64                  1/8
+  Installing       : git-core-doc-2.40.1-1.amzn2023.0.3.noarch              2/8
+  Installing       : perl-lib-0.65-477.amzn2023.0.6.x86_64                  3/8
+  Installing       : perl-TermReadKey-2.38-9.amzn2023.0.2.x86_64            4/8
+  Installing       : perl-File-Find-1.37-477.amzn2023.0.6.noarch            5/8
+  Installing       : perl-Error-1:0.17029-5.amzn2023.0.2.noarch             6/8
+  Installing       : perl-Git-2.40.1-1.amzn2023.0.3.noarch                  7/8
+  Installing       : git-2.40.1-1.amzn2023.0.3.x86_64                       8/8
+  Running scriptlet: git-2.40.1-1.amzn2023.0.3.x86_64                       8/8
+  Verifying        : git-2.40.1-1.amzn2023.0.3.x86_64                       1/8
+  Verifying        : git-core-2.40.1-1.amzn2023.0.3.x86_64                  2/8
+  Verifying        : git-core-doc-2.40.1-1.amzn2023.0.3.noarch              3/8
+  Verifying        : perl-Error-1:0.17029-5.amzn2023.0.2.noarch             4/8
+  Verifying        : perl-File-Find-1.37-477.amzn2023.0.6.noarch            5/8
+  Verifying        : perl-Git-2.40.1-1.amzn2023.0.3.noarch                  6/8
+  Verifying        : perl-TermReadKey-2.38-9.amzn2023.0.2.x86_64            7/8
+  Verifying        : perl-lib-0.65-477.amzn2023.0.6.x86_64                  8/8
+
+Installed:
+  git-2.40.1-1.amzn2023.0.3.x86_64
+  git-core-2.40.1-1.amzn2023.0.3.x86_64
+  git-core-doc-2.40.1-1.amzn2023.0.3.noarch
+  perl-Error-1:0.17029-5.amzn2023.0.2.noarch
+  perl-File-Find-1.37-477.amzn2023.0.6.noarch
+  perl-Git-2.40.1-1.amzn2023.0.3.noarch
+  perl-TermReadKey-2.38-9.amzn2023.0.2.x86_64
+  perl-lib-0.65-477.amzn2023.0.6.x86_64
+
+Complete!
+[ec2-user@ip-10-0-143-47 ~]$ sudo yum install docker -y
+Last metadata expiration check: 1:09:25 ago on Sat Oct  5 01:22:15 2024.
+Dependencies resolved.
+================================================================================
+ Package                  Arch     Version                  Repository     Size
+================================================================================
+Installing:
+ docker                   x86_64   25.0.6-1.amzn2023.0.2    amazonlinux    44 M
+Installing dependencies:
+ containerd               x86_64   1.7.20-1.amzn2023.0.1    amazonlinux    35 M
+ iptables-libs            x86_64   1.8.8-3.amzn2023.0.2     amazonlinux   401 k
+ iptables-nft             x86_64   1.8.8-3.amzn2023.0.2     amazonlinux   183 k
+ libcgroup                x86_64   3.0-1.amzn2023.0.1       amazonlinux    75 k
+ libnetfilter_conntrack   x86_64   1.0.8-2.amzn2023.0.2     amazonlinux    58 k
+ libnfnetlink             x86_64   1.0.1-19.amzn2023.0.2    amazonlinux    30 k
+ libnftnl                 x86_64   1.2.2-2.amzn2023.0.2     amazonlinux    84 k
+ pigz                     x86_64   2.5-1.amzn2023.0.3       amazonlinux    83 k
+ runc                     x86_64   1.1.13-1.amzn2023.0.1    amazonlinux   3.2 M
+
+Transaction Summary
+================================================================================
+Install  10 Packages
+
+Total download size: 84 M
+Installed size: 317 M
+Downloading Packages:
+(1/10): iptables-libs-1.8.8-3.amzn2023.0.2.x86_ 5.6 MB/s | 401 kB     00:00
+(2/10): iptables-nft-1.8.8-3.amzn2023.0.2.x86_6 2.2 MB/s | 183 kB     00:00
+(3/10): libcgroup-3.0-1.amzn2023.0.1.x86_64.rpm 2.5 MB/s |  75 kB     00:00
+(4/10): libnetfilter_conntrack-1.0.8-2.amzn2023 2.6 MB/s |  58 kB     00:00
+(5/10): libnfnetlink-1.0.1-19.amzn2023.0.2.x86_ 1.6 MB/s |  30 kB     00:00
+(6/10): libnftnl-1.2.2-2.amzn2023.0.2.x86_64.rp 2.3 MB/s |  84 kB     00:00
+(7/10): pigz-2.5-1.amzn2023.0.3.x86_64.rpm      2.9 MB/s |  83 kB     00:00
+(8/10): runc-1.1.13-1.amzn2023.0.1.x86_64.rpm    45 MB/s | 3.2 MB     00:00
+(9/10): containerd-1.7.20-1.amzn2023.0.1.x86_64  60 MB/s |  35 MB     00:00
+(10/10): docker-25.0.6-1.amzn2023.0.2.x86_64.rp  54 MB/s |  44 MB     00:00
+--------------------------------------------------------------------------------
+Total                                            95 MB/s |  84 MB     00:00
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1
+  Installing       : runc-1.1.13-1.amzn2023.0.1.x86_64                     1/10
+  Installing       : containerd-1.7.20-1.amzn2023.0.1.x86_64               2/10
+  Running scriptlet: containerd-1.7.20-1.amzn2023.0.1.x86_64               2/10
+  Installing       : pigz-2.5-1.amzn2023.0.3.x86_64                        3/10
+  Installing       : libnftnl-1.2.2-2.amzn2023.0.2.x86_64                  4/10
+  Installing       : libnfnetlink-1.0.1-19.amzn2023.0.2.x86_64             5/10
+  Installing       : libnetfilter_conntrack-1.0.8-2.amzn2023.0.2.x86_64    6/10
+  Installing       : iptables-libs-1.8.8-3.amzn2023.0.2.x86_64             7/10
+  Installing       : iptables-nft-1.8.8-3.amzn2023.0.2.x86_64              8/10
+  Running scriptlet: iptables-nft-1.8.8-3.amzn2023.0.2.x86_64              8/10
+  Installing       : libcgroup-3.0-1.amzn2023.0.1.x86_64                   9/10
+  Running scriptlet: docker-25.0.6-1.amzn2023.0.2.x86_64                  10/10
+  Installing       : docker-25.0.6-1.amzn2023.0.2.x86_64                  10/10
+  Running scriptlet: docker-25.0.6-1.amzn2023.0.2.x86_64                  10/10
+Created symlink /etc/systemd/system/sockets.target.wants/docker.socket → /usr/lib/systemd/system/docker.socket.
+
+  Verifying        : containerd-1.7.20-1.amzn2023.0.1.x86_64               1/10
+  Verifying        : docker-25.0.6-1.amzn2023.0.2.x86_64                   2/10
+  Verifying        : iptables-libs-1.8.8-3.amzn2023.0.2.x86_64             3/10
+  Verifying        : iptables-nft-1.8.8-3.amzn2023.0.2.x86_64              4/10
+  Verifying        : libcgroup-3.0-1.amzn2023.0.1.x86_64                   5/10
+  Verifying        : libnetfilter_conntrack-1.0.8-2.amzn2023.0.2.x86_64    6/10
+  Verifying        : libnfnetlink-1.0.1-19.amzn2023.0.2.x86_64             7/10
+  Verifying        : libnftnl-1.2.2-2.amzn2023.0.2.x86_64                  8/10
+  Verifying        : pigz-2.5-1.amzn2023.0.3.x86_64                        9/10
+  Verifying        : runc-1.1.13-1.amzn2023.0.1.x86_64                    10/10
+
+Installed:
+  containerd-1.7.20-1.amzn2023.0.1.x86_64
+  docker-25.0.6-1.amzn2023.0.2.x86_64
+  iptables-libs-1.8.8-3.amzn2023.0.2.x86_64
+  iptables-nft-1.8.8-3.amzn2023.0.2.x86_64
+  libcgroup-3.0-1.amzn2023.0.1.x86_64
+  libnetfilter_conntrack-1.0.8-2.amzn2023.0.2.x86_64
+  libnfnetlink-1.0.1-19.amzn2023.0.2.x86_64
+  libnftnl-1.2.2-2.amzn2023.0.2.x86_64
+  pigz-2.5-1.amzn2023.0.3.x86_64
+  runc-1.1.13-1.amzn2023.0.1.x86_64
+
+Complete!
+[ec2-user@ip-10-0-143-47 ~]$ sudo usermod -a -G docker ec2-user
+[ec2-user@ip-10-0-143-47 ~]$ sudo usermod -a -G docker ssm-user
+usermod: user 'ssm-user' does not exist
+[ec2-user@ip-10-0-143-47 ~]$ id ec2-user ssm-user
+uid=1000(ec2-user) gid=1000(ec2-user) groups=1000(ec2-user),4(adm),10(wheel),190(systemd-journal),992(docker)
+id: ‘ssm-user’: no such user
+[ec2-user@ip-10-0-143-47 ~]$ sudo newgrp docker
+[root@ip-10-0-143-47 ec2-user]#
+
+
+
+
+
+#Ativar docker
+sudo systemctl enable docker.service
+sudo systemctl start docker.service
+
+
+
+[root@ip-10-0-143-47 ec2-user]# sudo systemctl enable docker.service
+Created symlink /etc/systemd/system/multi-user.target.wants/docker.service → /usr/lib/systemd/system/docker.service.
+[root@ip-10-0-143-47 ec2-user]# sudo systemctl start docker.service
+[root@ip-10-0-143-47 ec2-user]#
+
+
+
+#Instalar docker compose 2
+sudo mkdir -p /usr/local/lib/docker/cli-plugins
+sudo curl -SL https://github.com/docker/compose/releases/download/v2.23.3/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
+sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+
+[root@ip-10-0-143-47 ec2-user]# sudo mkdir -p /usr/local/lib/docker/cli-plugins
+[root@ip-10-0-143-47 ec2-user]# sudo curl -SL https://github.com/docker/compose/releases/download/v2.23.3/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100 56.9M  100 56.9M    0     0   214M      0 --:--:-- --:--:-- --:--:--  214M
+[root@ip-10-0-143-47 ec2-user]# sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+[root@ip-10-0-143-47 ec2-user]#
+
+
+#Adicionar swap
+sudo dd if=/dev/zero of=/swapfile bs=128M count=32
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+sudo echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
+
+
+[root@ip-10-0-143-47 ec2-user]# sudo dd if=/dev/zero of=/swapfile bs=128M count=32
+32+0 records in
+32+0 records out
+4294967296 bytes (4.3 GB, 4.0 GiB) copied, 31.3652 s, 137 MB/s
+[root@ip-10-0-143-47 ec2-user]# sudo chmod 600 /swapfile
+[root@ip-10-0-143-47 ec2-user]# sudo mkswap /swapfile
+Setting up swapspace version 1, size = 4 GiB (4294963200 bytes)
+no label, UUID=35944ebe-3555-41d1-98db-6cb8871e7756
+[root@ip-10-0-143-47 ec2-user]# sudo swapon /swapfile
+[root@ip-10-0-143-47 ec2-user]# sudo echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
+[root@ip-10-0-143-47 ec2-user]#
+
+
+#Instalar node e npm
+curl -fsSL https://rpm.nodesource.com/setup_21.x | sudo bash -
+sudo yum install -y nodejs
+
+
+
+[root@ip-10-0-143-47 ec2-user]# curl -fsSL https://rpm.nodesource.com/setup_21.x | sudo bash -
+2024-10-05 02:39:25 - Cleaning up old repositories...
+2024-10-05 02:39:25 - Old repositories removed
+2024-10-05 02:39:25 - Supported architecture: x86_64
+2024-10-05 02:39:25 - dnf available, updating...
+Error: Unknown repo: 'nodesource-nsolid'
+2024-10-05 02:39:26 - Repository is configured and updated.
+2024-10-05 02:39:26 - Run 'dnf install nodejs -y' to complete the installation.
+2024-10-05 02:39:26 - You can use N|solid Runtime as a node.js alternative
+2024-10-05 02:39:26 - To install N|solid Runtime, run: dnf install nsolid -y
+
+[root@ip-10-0-143-47 ec2-user]# dnf install nodejs -y
+Node.js Packages for Linux RPM based distros -  1.9 MB/s | 347 kB     00:00
+Dependencies resolved.
+================================================================================
+ Package     Arch        Version                   Repository              Size
+================================================================================
+Installing:
+ nodejs      x86_64      2:21.7.3-1nodesource      nodesource-nodejs       38 M
+
+Transaction Summary
+================================================================================
+Install  1 Package
+
+Total download size: 38 M
+Installed size: 108 M
+Downloading Packages:
+nodejs-21.7.3-1nodesource.x86_64.rpm             68 MB/s |  38 MB     00:00
+--------------------------------------------------------------------------------
+Total                                            67 MB/s |  38 MB     00:00
+Node.js Packages for Linux RPM based distros -   55 kB/s | 3.1 kB     00:00
+Importing GPG key 0x3AF28A14:
+ Userid     : "Nodesource Operations <operations@nodesource.com>"
+ Fingerprint: 242B 8138 31AF 0956 2B6C 46F7 6B88 DA4E 3AF2 8A14
+ From       : https://rpm.nodesource.com/gpgkey/ns-operations-public.key
+Key imported successfully
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1
+  Running scriptlet: nodejs-2:21.7.3-1nodesource.x86_64                     1/1
+  Installing       : nodejs-2:21.7.3-1nodesource.x86_64                     1/1
+  Running scriptlet: nodejs-2:21.7.3-1nodesource.x86_64                     1/1
+  Verifying        : nodejs-2:21.7.3-1nodesource.x86_64                     1/1
+
+Installed:
+  nodejs-2:21.7.3-1nodesource.x86_64
+
+Complete!
+[root@ip-10-0-143-47 ec2-user]# dnf install nsolid -y
+Last metadata expiration check: 0:00:21 ago on Sat Oct  5 02:40:17 2024.
+No match for argument: nsolid
+Error: Unable to find a match: nsolid
+[root@ip-10-0-143-47 ec2-user]#
+
+[root@ip-10-0-143-47 ec2-user]# sudo yum install -y nodejs
+Last metadata expiration check: 0:01:19 ago on Sat Oct  5 02:40:17 2024.
+Package nodejs-2:21.7.3-1nodesource.x86_64 is already installed.
+Dependencies resolved.
+Nothing to do.
+Complete!
+[root@ip-10-0-143-47 ec2-user]#
+
+
+[root@ip-10-0-143-47 ec2-user]# docker-compose --version
+bash: docker-compose: command not found
+[root@ip-10-0-143-47 ec2-user]# dockercompose --version
+bash: dockercompose: command not found
+[root@ip-10-0-143-47 ec2-user]# docker compose --version
+
+Usage:  docker compose [OPTIONS] COMMAND
+
+Define and run multi-container applications with Docker.
+
+Options:
+      --ansi string                Control when to print ANSI control
+                                   characters ("never"|"always"|"auto")
+                                   (default "auto")
+      --compatibility              Run compose in backward compatibility mode
+      --dry-run                    Execute command in dry run mode
+      --env-file stringArray       Specify an alternate environment file.
+  -f, --file stringArray           Compose configuration files
+      --parallel int               Control max parallelism, -1 for
+                                   unlimited (default -1)
+      --profile stringArray        Specify a profile to enable
+      --progress string            Set type of progress output (auto,
+                                   tty, plain, quiet) (default "auto")
+      --project-directory string   Specify an alternate working directory
+                                   (default: the path of the, first
+                                   specified, Compose file)
+  -p, --project-name string        Project name
+
+Commands:
+  build       Build or rebuild services
+  config      Parse, resolve and render compose file in canonical format
+  cp          Copy files/folders between a service container and the local filesystem
+  create      Creates containers for a service.
+  down        Stop and remove containers, networks
+  events      Receive real time events from containers.
+  exec        Execute a command in a running container.
+  images      List images used by the created containers
+  kill        Force stop service containers.
+  logs        View output from containers
+  ls          List running compose projects
+  pause       Pause services
+  port        Print the public port for a port binding.
+  ps          List containers
+  pull        Pull service images
+  push        Push service images
+  restart     Restart service containers
+  rm          Removes stopped service containers
+  run         Run a one-off command on a service.
+  scale       Scale services
+  start       Start services
+  stop        Stop services
+  top         Display the running processes
+  unpause     Unpause services
+  up          Create and start containers
+  version     Show the Docker Compose version information
+  wait        Block until the first service container stops
+  watch       Watch build context for service and rebuild/refresh containers when files are updated
+
+Run 'docker compose COMMAND --help' for more information on a command.
+[root@ip-10-0-143-47 ec2-user]# docker compose version
+Docker Compose version v2.23.3
+[root@ip-10-0-143-47 ec2-user]#
+
+
+
+[root@ip-10-0-143-47 ec2-user]# git -v
+git version 2.40.1
+[root@ip-10-0-143-47 ec2-user]#
+
+
+
+baixar o projeto da bia 
+# git clone https://github.com/henrylle/bia     #baixar o projeto: 
+
+[root@ip-10-0-143-47 ec2-user]# git clone https://github.com/henrylle/bia
+Cloning into 'bia'...
+remote: Enumerating objects: 1980, done.
+remote: Counting objects: 100% (408/408), done.
+remote: Compressing objects: 100% (117/117), done.
+remote: Total 1980 (delta 370), reused 302 (delta 291), pack-reused 1572 (from 1)
+Receiving objects: 100% (1980/1980), 3.83 MiB | 23.65 MiB/s, done.
+Resolving deltas: 100% (753/753), done.
+[root@ip-10-0-143-47 ec2-user]#
+
+
+[root@ip-10-0-143-47 ec2-user]# cd bia
+[root@ip-10-0-143-47 bia]# ls
+Dockerfile                       index.js
+Dockerfile_checkdisponibilidade  lib
+README.md                        package-lock.json
+api                              package.json
+buildspec.yml                    rodar_app_local_unix.sh
+client                           rodar_app_local_windows.bat
+config                           scripts
+database                         scripts_evento
+docker-compose.yml               server.js
+index.html                       tests
+[root@ip-10-0-143-47 bia]# docker compose up -d
+[+] Running 15/15
+ ✔ database 14 layers [⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿]      0B/0B      Pulled              9.2s
+   ✔ c57ee5000d61 Pull complete                                            0.8s
+   ✔ 81b575116500 Pull complete                                            0.1s
+   ✔ e12fff61d996 Pull complete                                            0.4s
+   ✔ 50a849db7317 Pull complete                                            0.2s
+   ✔ 432dd17f42df Pull complete                                            0.5s
+   ✔ a1f5bcbba6b6 Pull complete                                            0.5s
+   ✔ 6e501216828b Pull complete                                            0.6s
+   ✔ ea24c7671c3d Pull complete                                            0.6s
+   ✔ b7a5cd7c9b9a Pull complete                                            3.4s
+   ✔ db7d78d9f46e Pull complete                                            0.6s
+   ✔ 8c786fbf8634 Pull complete                                            0.7s
+   ✔ 2831031f2a0e Pull complete                                            0.7s
+   ✔ 75c5b068b243 Pull complete                                            0.8s
+   ✔ 9590d9e20e85 Pull complete                                            0.9s
+[+] Building 128.2s (15/15) FINISHED                             docker:default
+ => [server internal] load build definition from Dockerfile                0.0s
+ => => transferring dockerfile: 491B                                       0.0s
+ => [server internal] load metadata for public.ecr.aws/docker/library/nod  0.5s
+ => [server internal] load .dockerignore                                   0.0s
+ => => transferring context: 2B                                            0.0s
+ => [server  1/10] FROM public.ecr.aws/docker/library/node:21-slim@sha256  4.7s
+ => => resolve public.ecr.aws/docker/library/node:21-slim@sha256:dfc05dee  0.0s
+ => => sha256:44f5fe9df22b4c549ef3e662bd64e1e6edb8d373822 3.35kB / 3.35kB  0.1s
+ => => sha256:9f1c458e7f2d5d570229bfeedfc0b1701e008a3a2 42.25MB / 42.25MB  0.6s
+ => => sha256:dfc05dee209a1d7adf2ef189bd97396daad4e97c6ea 1.21kB / 1.21kB  0.0s
+ => => sha256:99afef5df7400a8d118e0504576d32ca700de5034c4 1.37kB / 1.37kB  0.0s
+ => => sha256:539323daf9223d688d5eecd825ec81810d5d8751240 7.69kB / 7.69kB  0.0s
+ => => sha256:09f376ebb190216b0459f470e71bec7b5dfa611d6 29.15MB / 29.15MB  0.5s
+ => => sha256:2e82ac84e1512655a99357cfdf7916a8f67a7d47c7c 1.71MB / 1.71MB  0.3s
+ => => sha256:30e51537f486caf3878e63f3dc6038db0a6abf5698ab86b 452B / 452B  0.5s
+ => => extracting sha256:09f376ebb190216b0459f470e71bec7b5dfa611d66bf0084  1.7s
+ => => extracting sha256:44f5fe9df22b4c549ef3e662bd64e1e6edb8d3738224047c  0.0s
+ => => extracting sha256:9f1c458e7f2d5d570229bfeedfc0b1701e008a3a2920e95d  2.1s
+ => => extracting sha256:2e82ac84e1512655a99357cfdf7916a8f67a7d47c7c2314b  0.1s
+ => => extracting sha256:30e51537f486caf3878e63f3dc6038db0a6abf5698ab86bd  0.0s
+ => [server internal] load build context                                   0.2s
+ => => transferring context: 7.24MB                                        0.1s
+ => [server  2/10] RUN npm install -g npm@latest --loglevel=error          5.3s
+ => [server  3/10] WORKDIR /usr/src/app                                    0.0s
+ => [server  4/10] COPY package*.json ./                                   0.0s
+ => [server  5/10] RUN npm install --loglevel=error                       48.9s
+ => [server  6/10] COPY . .                                                0.2s
+ => [server  7/10] RUN REACT_APP_API_URL=http://34.239.240.133 SKIP_PREF  24.7s
+ => [server  8/10] RUN mv client/build build                               0.8s
+ => [server  9/10] RUN rm  -rf client/*                                    0.4s
+ => [server 10/10] RUN mv build client/                                    0.4s
+ => [server] exporting to image                                           42.0s
+ => => exporting layers                                                   42.0s
+ => => writing image sha256:8da8d595461e925859459f2c783aee34c1aff8f66c081  0.0s
+ => => naming to docker.io/library/bia-server                              0.0s
+[+] Running 4/4
+ ✔ Network bia_default  Created                                            0.2s
+ ✔ Volume "bia_db"      Created                                            0.0s
+ ✔ Container database   Started                                            0.1s
+ ✔ Container bia        Started                                            0.0s
+[root@ip-10-0-143-47 bia]#
+
+
+
+Criar tunelamento para acessar a bia direto de minha maquina
+
+acesso ao Linux
+porta local: 3006 -> porta onde vou rodar a bia
+porta remota: 3001
+endereço_destino (bia-dev-desafio-set24-04):10.0.143.47
+endpoint com usuário do bastionhost: ec2-user@3.215.135.55
+chave: chave_formacao_4_0_pem.pem
+
+
+
+
+
+ 
+Mapeando o tunel ( na aula ele faz por dentro do VSCODE)
+carlo@DESKTOP-80H0NV9 MINGW64 ~/documents/formacao AWS 4_0/keypairs
+$ ssh -f -N -i chave_formacao_4_0_pem.pem -L 3006:10.0.143.47:3001 ec2-user@3.215.135.55
+
+carlo@DESKTOP-80H0NV9 MINGW64 ~/documents/formacao AWS 4_0/keypairs
+
+Acessar a bia via tunelamento:
+Abri o browser e digitar:  http://localhost:3006/
+
+
+PARA PERSISTIR
+
+carlo@DESKTOP-80H0NV9 MINGW64 ~/Documents/formacao AWS 4_0/keypairs
+$ ssh -i chave_formacao_4_0_pem.pem  ec2-user@localhost -p 2222                    ,     #_
+   ~\_  ####_        Amazon Linux 2023
+  ~~  \_#####\
+  ~~     \###|
+  ~~       \#/ ___   https://aws.amazon.com/linux/amazon-linux-2023
+   ~~       V~' '->
+    ~~~         /
+      ~~._.   _/
+         _/ _/
+       _/m/'
+Last login: Sat Oct  5 02:17:53 2024 from 10.0.1.188
+[ec2-user@ip-10-0-143-47 ~]$ docker compose exec server bash -c 'npx sequelize db:migrate'
+no configuration file provided: not found
+[ec2-user@ip-10-0-143-47 ~]$ pwd
+/home/ec2-user
+[ec2-user@ip-10-0-143-47 ~]$ ls
+bia
+[ec2-user@ip-10-0-143-47 ~]$ cd bia
+[ec2-user@ip-10-0-143-47 bia]$ ls
+Dockerfile                       index.js
+Dockerfile_checkdisponibilidade  lib
+README.md                        package-lock.json
+api                              package.json
+buildspec.yml                    rodar_app_local_unix.sh
+client                           rodar_app_local_windows.bat
+config                           scripts
+database                         scripts_evento
+docker-compose.yml               server.js
+index.html                       tests
+[ec2-user@ip-10-0-143-47 bia]$ docker compose exec server bash -c 'npx sequelize db:migrate'
+
+Sequelize CLI [Node: 21.7.3, CLI: 6.6.2, ORM: 6.37.0]
+
+Loaded configuration file "config/database.js".
+== 20210924000838-criar-tarefas: migrating =======
+== 20210924000838-criar-tarefas: migrated (0.019s)
+
+[ec2-user@ip-10-0-143-47 bia]$
+
+
+[ec2-user@ip-10-0-143-47 ~]$ docker compose down
+no configuration file provided: not found
+[ec2-user@ip-10-0-143-47 ~]$ cd bia
+[ec2-user@ip-10-0-143-47 bia]$ ls
+Dockerfile                       index.js
+Dockerfile_checkdisponibilidade  lib
+Dockerfile_original              package-lock.json
+README.md                        package.json
+api                              rodar_app_local_unix.sh
+buildspec.yml                    rodar_app_local_windows.bat
+client                           scripts
+config                           scripts_evento
+database                         server.js
+docker-compose.yml               tests
+index.html
+[ec2-user@ip-10-0-143-47 bia]$ vi Dockerfile
+[ec2-user@ip-10-0-143-47 bia]$ sudo vi Dockerfile
+[ec2-user@ip-10-0-143-47 bia]$ docker compose down
+[+] Running 3/3
+ ✔ Container bia        Removed                                            1.0s
+ ✔ Container database   Removed                                            0.5s
+ ✔ Network bia_default  Removed                                            0.5s
+[ec2-user@ip-10-0-143-47 bia]$ grep http Dockerfile
+RUN REACT_APP_API_URL=http://localhost:3001 SKIP_PREFLIGHT_CHECK=true npm run build --prefix client
+[ec2-user@ip-10-0-143-47 bia]$ docker compose build server
+[+] Building 33.6s (15/15) FINISHED                              docker:default
+ => [server internal] load build definition from Dockerfile                0.0s
+ => => transferring dockerfile: 491B                                       0.0s
+ => [server internal] load metadata for public.ecr.aws/docker/library/nod  0.3s
+ => [server internal] load .dockerignore                                   0.0s
+ => => transferring context: 2B                                            0.0s
+ => [server  1/10] FROM public.ecr.aws/docker/library/node:21-slim@sha256  0.0s
+ => [server internal] load build context                                   0.2s
+ => => transferring context: 7.24MB                                        0.2s
+ => CACHED [server  2/10] RUN npm install -g npm@latest --loglevel=error   0.0s
+ => CACHED [server  3/10] WORKDIR /usr/src/app                             0.0s
+ => CACHED [server  4/10] COPY package*.json ./                            0.0s
+ => CACHED [server  5/10] RUN npm install --loglevel=error                 0.0s
+ => [server  6/10] COPY . .                                                0.1s
+ => [server  7/10] RUN REACT_APP_API_URL=http://localhost:3001 SKIP_PREF  30.9s
+ => [server  8/10] RUN mv client/build build                               0.9s
+ => [server  9/10] RUN rm  -rf client/*                                    0.4s
+ => [server 10/10] RUN mv build client/                                    0.4s
+ => [server] exporting to image                                            0.3s
+ => => exporting layers                                                    0.3s
+ => => writing image sha256:a692c99186b61e0092cd387e6b3386269a2242c6328bd  0.0s
+ => => naming to docker.io/library/bia-server                              0.0s
+WARN[0000] current commit information was not captured by the build  error="failed to read current commit information with git rev-parse --is-inside-work-tree"
+[ec2-user@ip-10-0-143-47 bia]$ ^C
+[ec2-user@ip-10-0-143-47 bia]$ git rev-parse --is-inside-work-tree
+fatal: detected dubious ownership in repository at '/home/ec2-user/bia'
+To add an exception for this directory, call:
+
+        git config --global --add safe.directory /home/ec2-user/bia
+[ec2-user@ip-10-0-143-47 bia]$  git config --global --add safe.directory /home/ec2-user/bia
+[ec2-user@ip-10-0-143-47 bia]$ git rev-parse --is-inside-work-tree              true
+[ec2-user@ip-10-0-143-47 bia]$ docker compose build server                      [+] Building 0.4s (15/15) FINISHED                               docker:default
+ => [server internal] load build definition from Dockerfile                0.0s
+ => => transferring dockerfile: 491B                                       0.0s
+ => [server internal] load metadata for public.ecr.aws/docker/library/nod  0.2s
+ => [server internal] load .dockerignore                                   0.0s
+ => => transferring context: 2B                                            0.0s
+ => [server  1/10] FROM public.ecr.aws/docker/library/node:21-slim@sha256  0.0s
+ => [server internal] load build context                                   0.0s
+ => => transferring context: 13.71kB                                       0.0s
+ => CACHED [server  2/10] RUN npm install -g npm@latest --loglevel=error   0.0s
+ => CACHED [server  3/10] WORKDIR /usr/src/app                             0.0s
+ => CACHED [server  4/10] COPY package*.json ./                            0.0s
+ => CACHED [server  5/10] RUN npm install --loglevel=error                 0.0s
+ => CACHED [server  6/10] COPY . .                                         0.0s
+ => CACHED [server  7/10] RUN REACT_APP_API_URL=http://localhost:3001 SKI  0.0s
+ => CACHED [server  8/10] RUN mv client/build build                        0.0s
+ => CACHED [server  9/10] RUN rm  -rf client/*                             0.0s
+ => CACHED [server 10/10] RUN mv build client/                             0.0s
+ => [server] exporting to image                                            0.0s
+ => => exporting layers                                                    0.0s
+ => => writing image sha256:a692c99186b61e0092cd387e6b3386269a2242c6328bd  0.0s
+ => => naming to docker.io/library/bia-server                              0.0s
+[ec2-user@ip-10-0-143-47 bia]$
+
+
+[ec2-user@ip-10-0-143-47 bia]$ docker compose up -d
+[+] Running 3/3
+ ✔ Network bia_default  Created                                            0.2s
+ ✔ Container database   Started                                            0.1s
+ ✔ Container bia        Started                                            0.0s
+[ec2-user@ip-10-0-143-47 bia]$
+
+
+[ec2-user@ip-10-0-143-47 bia]$ docker compose exec server bash -c 'npx sequelize db:migrate'
+
+Sequelize CLI [Node: 21.7.3, CLI: 6.6.2, ORM: 6.37.0]
+
+Loaded configuration file "config/database.js".
+No migrations were executed, database schema was already up to date.
+[ec2-user@ip-10-0-143-47 bia]$
+
+
+Vamos criar os seguintes Security Group: bia-web-desafio-set24-04 e o bia-db-teste-desafio-set24-04
+
+
+bia-web-desafio-set24-04
+regra de entrada
+type: http, protcolo tcp, porta 80, source anywhere ipv4, source 0.0.0.0/0
+
+
+bia-db-desafio-set24-04
+regra de entrada
+type: postgresql, protocolo tcp, porta 5432, source type custom,  source: bia-web-test-desafio-set24-04
+type: postgresql, protocolo tcp, porta 5432, source type custom, source: bia-dev-desafio-set24-04
+
+
+
+Uso do RDS
+
+Criar banco de dados no RDS
+
+Standard create
+Postgre
+versao 16.4-r1
+
+para trabalhar com alta disponibilidade (não está na freetier) é preciso esolher  Production em "templates'
+No nosso lab vamos escolher a opção "Freetier"
+
+DB instance identifier: bia-desafio-set24-04
+Credentials management: Auto generate password
+
+instancia do tip db.t3.micro
+
+Storage: 
+Allocated storage: 20G
+
+Storage Autoscalling
+enable storage autoscaling: DEIXAR DESMARCADO
+
+Existing VPC security groups : bia-db-teste
+
+Monitoring:
+Turn on Performance Insights : DEIXAR DESMARCARDO
+
+Backup:
+Enable automated backups - DEIXAR DESMARCARDO 
+
+
+Estimated Monthly costs
+DB instance 13.14 USD
+Storage 2.30 USD
+Total 15.44 USD
+
+Os preços acima indicados não se aplicam no nosso lab pois estamos na freetier.
+
+
+Enquanto está sendo criado o banco, aparece na tela um popup no canto superior direito chamado "View /credentials detais". Clicando nesse pop-up, será exibida a senha Master Password do banco. No nosso banco é:
+Master password: 0knuOyfEKRlmGM7UHS3T
+
+Quando a criação do banco é terminada a seguinte mensagem é exibida:
+Successfully created database bia
+RDS has generated your database master password during the database creation and it will be displayed in the connection details. The only way to view your master password is to choose View connection details during database creation. You can modify your DB instance to create a new password at any time.
+You can use settings from bia to simplify configuration of suggested database add-ons while we finish creating your DB for you.
+
+Connection details to your database bia
+
+This is the only time you can view this password. Copy and save the password for your reference. If you lose the password, you must modify your database to change it. You can use a SQL client application or utility to connect to your database.
+Learn about connecting to your database 
+
+Master username postgres
+Master password VQ4EwPqPlvbw3nvZgArv
+Endpoint bia-desafio-set24-04.cnse26c8g1fu.us-east-1.rds.amazonaws.com
+
+
+IMAGEM da BIA Local
+USO DO ECR
+Subindo nossa imagem para a AWS
+
+ECS - SERVIÇO DE GERENCIAMENTO DE CONTAINER
+Para o ECS FUNCIONAR, É PRECISO QUE SEJA LANÇADO UM CLUSTER.
+Cria-se um cluster, depois cria-se um serviço.
+
+O serviço vai dizer qual a imagem eu quero rodar e quantas tarefas queremos que estejam em execução.
+
+NO arquivo de configuração TASKDefinition fica registrado  qual imagem eu quero rodar. Nesse arquivo vai ser declaradas:
+IMAGEM
+VARIÁVEIS DE AMBIENTE
+DB_USER
+DB-HOST
+DB_PWD
+
+o SERVICE VAI LANÇAR AS TASKS
+
+ecr é onde as imagens ficam armazenadas
+
+ECR - Amazon Elastic Container Registry
+SERVIÇO ECR - onde a imagem da bia-dev fica guardada.
+
+Create repository
+Repository name: bia-desafio-set24-04
+url:  539247489446.dkr.ecr.us-east-1.amazonaws.com/bia-desafio-set24-04
+
+Cópia o repositório criado:
+Os scripts estão na pasta /scripts/ECS/UNIX do projeto
+
+
+Cópia o repositório criado:
+Os scripts estão na pasta /scripts/ECS/UNIX do projeto
+[ec2-user@ip-10-0-143-47 bia]$ pwd
+/home/ec2-user/bia
+[ec2-user@ip-10-0-143-47 bia]$ cp scripts/ecs/unix/build.sh .
+cp: cannot create regular file './build.sh': Permission denied
+[ec2-user@ip-10-0-143-47 bia]$ sudo cp scripts/ecs/unix/build.sh .
+[ec2-user@ip-10-0-143-47 bia]$ sudo cp scripts/ecs/unix/deploy.sh .
+[ec2-user@ip-10-0-143-47 bia]$
+
+Para subir minha imager, vou editar o arquivo build.sh e colocar a url do repositorio criado sem o BIA
+[ec2-user@ip-10-0-143-47 bia]$ grep -i ecr_regis build.sh
+ECR_REGISTRY="539247489446.dkr.ecr.us-east-1.amazonaws.com"
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ECR_REGISTRY
+docker tag bia:latest $ECR_REGISTRY/bia:latest
+docker push $ECR_REGISTRY/bia:latest
+[ec2-user@ip-10-0-143-47 bia]$ sudo chmod +x build.sh  <<<<<----adicionando permissão de escrita
+
+#Gerar imagem da bia (do projeto) e vai subir no ECR
+[ec2-user@ip-10-0-143-47 bia]$  chmod +x build.sh
+chmod: changing permissions of 'build.sh': Operation not permitted
+[ec2-user@ip-10-0-143-47 bia]$ sudo chmod +x build.sh
+[ec2-user@ip-10-0-143-47 bia]$ ./build.sh
+
+Unable to locate credentials. You can configure credentials by running "aws configure".
+Error: Cannot perform an interactive login from a non TTY device
+[+] Building 26.8s (15/15) FINISHED                              docker:default
+ => [internal] load build definition from Dockerfile                       0.0s
+ => => transferring dockerfile: 491B                                       0.0s
+ => [internal] load metadata for public.ecr.aws/docker/library/node:21-sl  0.2s
+ => [internal] load .dockerignore                                          0.0s
+ => => transferring context: 2B                                            0.0s
+ => [ 1/10] FROM public.ecr.aws/docker/library/node:21-slim@sha256:dfc05d  0.0s
+ => [internal] load build context                                          0.0s
+ => => transferring context: 14.28kB                                       0.0s
+ => CACHED [ 2/10] RUN npm install -g npm@latest --loglevel=error          0.0s
+ => CACHED [ 3/10] WORKDIR /usr/src/app                                    0.0s
+ => CACHED [ 4/10] COPY package*.json ./                                   0.0s
+ => CACHED [ 5/10] RUN npm install --loglevel=error                        0.0s
+ => [ 6/10] COPY . .                                                       0.2s
+ => [ 7/10] RUN REACT_APP_API_URL=http://localhost:3001 SKIP_PREFLIGHT_C  24.5s
+ => [ 8/10] RUN mv client/build build                                      0.8s
+ => [ 9/10] RUN rm  -rf client/*                                           0.4s
+ => [10/10] RUN mv build client/                                           0.4s
+ => exporting to image                                                     0.2s
+ => => exporting layers                                                    0.2s
+ => => writing image sha256:897a11fcdad87e4fa64711cd748ac248f36217c6976c4  0.0s
+ => => naming to docker.io/library/bia                                     0.0s
+The push refers to repository [539247489446.dkr.ecr.us-east-1.amazonaws.com/bia]
+5c01e4d5104e: Preparing
+131d71026f24: Preparing
+ef440d771732: Preparing
+027424ef7d27: Preparing
+123e7a2f1323: Preparing
+1c2001cffa6f: Preparing
+6b4cc91e78e4: Preparing
+f50bfedd476f: Preparing
+018501188d19: Preparing
+bbef00473d3a: Preparing
+9bf32ad45c66: Preparing
+3281047762f0: Preparing
+6f611743c2e1: Preparing
+5d4427064ecc: Preparing
+no basic auth credentials
+[ec2-user@ip-10-0-143-47 bia]$
+
+
+[ec2-user@ip-10-0-143-47 bia]$ aws configure
+AWS Access Key ID [None]: ^C
+[ec2-user@ip-10-0-143-47 bia]$ aws configure --profile bia
+AWS Access Key ID [None]: AKIAX3DNHWGTCsasa
+AWS Secret Access Key [None]: BRSD5sCmO60AS27FfT4H+yGw+QdcpexMsas
+Default region name [None]: us-east-1
+Default output format [None]: json
+[ec2-user@ip-10-0-143-47 bia]$ ./build.sh
+
+Unable to locate credentials. You can configure credentials by running "aws configure".
+Error: Cannot perform an interactive login from a non TTY device
+[+] Building 0.4s (15/15) FINISHED                               docker:default
+ => [internal] load build definition from Dockerfile                       0.0s
+ => => transferring dockerfile: 491B                                       0.0s
+ => [internal] load metadata for public.ecr.aws/docker/library/node:21-sl  0.3s
+ => [internal] load .dockerignore                                          0.0s
+ => => transferring context: 2B                                            0.0s
+ => [ 1/10] FROM public.ecr.aws/docker/library/node:21-slim@sha256:dfc05d  0.0s
+ => [internal] load build context                                          0.0s
+ => => transferring context: 13.88kB                                       0.0s
+ => CACHED [ 2/10] RUN npm install -g npm@latest --loglevel=error          0.0s
+ => CACHED [ 3/10] WORKDIR /usr/src/app                                    0.0s
+ => CACHED [ 4/10] COPY package*.json ./                                   0.0s
+ => CACHED [ 5/10] RUN npm install --loglevel=error                        0.0s
+ => CACHED [ 6/10] COPY . .                                                0.0s
+ => CACHED [ 7/10] RUN REACT_APP_API_URL=http://localhost:3001 SKIP_PREFL  0.0s
+ => CACHED [ 8/10] RUN mv client/build build                               0.0s
+ => CACHED [ 9/10] RUN rm  -rf client/*                                    0.0s
+ => CACHED [10/10] RUN mv build client/                                    0.0s
+ => exporting to image                                                     0.0s
+ => => exporting layers                                                    0.0s
+ => => writing image sha256:897a11fcdad87e4fa64711cd748ac248f36217c6976c4  0.0s
+ => => naming to docker.io/library/bia                                     0.0s
+The push refers to repository [539247489446.dkr.ecr.us-east-1.amazonaws.com/bia]
+5c01e4d5104e: Preparing
+131d71026f24: Preparing
+ef440d771732: Preparing
+027424ef7d27: Preparing
+123e7a2f1323: Preparing
+1c2001cffa6f: Waiting
+6b4cc91e78e4: Waiting
+f50bfedd476f: Waiting
+018501188d19: Waiting
+bbef00473d3a: Waiting
+9bf32ad45c66: Waiting
+3281047762f0: Waiting
+6f611743c2e1: Waiting
+5d4427064ecc: Preparing
+no basic auth credentials
+[ec2-user@ip-10-0-143-47 bia]$ aws configure
+AWS Access Key ID [None]: AKIAX3DNHWGSASAASAU
+AWS Secret Access Key [None]: SASA+yGw+SASA/D2
+Default region name [None]: us-east-1
+Default output format [None]: json
+[ec2-user@ip-10-0-143-47 bia]$ ./build.sh
+WARNING! Your password will be stored unencrypted in /home/ec2-user/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+Login Succeeded
+[+] Building 0.3s (15/15) FINISHED                               docker:default
+ => [internal] load build definition from Dockerfile                       0.0s
+ => => transferring dockerfile: 491B                                       0.0s
+ => [internal] load metadata for public.ecr.aws/docker/library/node:21-sl  0.2s
+ => [internal] load .dockerignore                                          0.0s
+ => => transferring context: 2B                                            0.0s
+ => [ 1/10] FROM public.ecr.aws/docker/library/node:21-slim@sha256:dfc05d  0.0s
+ => [internal] load build context                                          0.0s
+ => => transferring context: 13.88kB                                       0.0s
+ => CACHED [ 2/10] RUN npm install -g npm@latest --loglevel=error          0.0s
+ => CACHED [ 3/10] WORKDIR /usr/src/app                                    0.0s
+ => CACHED [ 4/10] COPY package*.json ./                                   0.0s
+ => CACHED [ 5/10] RUN npm install --loglevel=error                        0.0s
+ => CACHED [ 6/10] COPY . .                                                0.0s
+ => CACHED [ 7/10] RUN REACT_APP_API_URL=http://localhost:3001 SKIP_PREFL  0.0s
+ => CACHED [ 8/10] RUN mv client/build build                               0.0s
+ => CACHED [ 9/10] RUN rm  -rf client/*                                    0.0s
+ => CACHED [10/10] RUN mv build client/                                    0.0s
+ => exporting to image                                                     0.0s
+ => => exporting layers                                                    0.0s
+ => => writing image sha256:897a11fcdad87e4fa64711cd748ac248f36217c6976c4  0.0s
+ => => naming to docker.io/library/bia                                     0.0s
+The push refers to repository [539247489446.dkr.ecr.us-east-1.amazonaws.com/bia]
+5c01e4d5104e: Preparing
+131d71026f24: Preparing
+ef440d771732: Preparing
+027424ef7d27: Preparing
+123e7a2f1323: Preparing
+1c2001cffa6f: Waiting
+6b4cc91e78e4: Waiting
+f50bfedd476f: Waiting
+018501188d19: Waiting
+bbef00473d3a: Waiting
+9bf32ad45c66: Waiting
+3281047762f0: Waiting
+6f611743c2e1: Waiting
+5d4427064ecc: Waiting
+name unknown: The repository with name 'bia' does not exist in the registry with id '539247489446'
+[ec2-user@ip-10-0-143-47 bia]$ sudo vi ./build.sh
+[ec2-user@ip-10-0-143-47 bia]$ ./build.sh
+WARNING! Your password will be stored unencrypted in /home/ec2-user/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+Login Succeeded
+[+] Building 26.1s (15/15) FINISHED                              docker:default
+ => [internal] load build definition from Dockerfile                       0.0s
+ => => transferring dockerfile: 491B                                       0.0s
+ => [internal] load metadata for public.ecr.aws/docker/library/node:21-sl  0.2s
+ => [internal] load .dockerignore                                          0.0s
+ => => transferring context: 2B                                            0.0s
+ => [ 1/10] FROM public.ecr.aws/docker/library/node:21-slim@sha256:dfc05d  0.0s
+ => [internal] load build context                                          0.0s
+ => => transferring context: 14.23kB                                       0.0s
+ => CACHED [ 2/10] RUN npm install -g npm@latest --loglevel=error          0.0s
+ => CACHED [ 3/10] WORKDIR /usr/src/app                                    0.0s
+ => CACHED [ 4/10] COPY package*.json ./                                   0.0s
+ => CACHED [ 5/10] RUN npm install --loglevel=error                        0.0s
+ => [ 6/10] COPY . .                                                       0.2s
+ => [ 7/10] RUN REACT_APP_API_URL=http://localhost:3001 SKIP_PREFLIGHT_C  23.5s
+ => [ 8/10] RUN mv client/build build                                      0.9s
+ => [ 9/10] RUN rm  -rf client/*                                           0.5s
+ => [10/10] RUN mv build client/                                           0.4s
+ => exporting to image                                                     0.3s
+ => => exporting layers                                                    0.2s
+ => => writing image sha256:d082d5911b334ca190b84f149d6fdd5d9044c91d0b932  0.0s
+ => => naming to docker.io/library/bia-desafio-set24-04                    0.0s
+The push refers to repository [539247489446.dkr.ecr.us-east-1.amazonaws.com/bia-desafio-set24-04]
+fca574c32227: Pushed
+62c0e1f39d63: Pushed
+0074fc23be5b: Pushed
+eaabde277ab7: Pushed
+51b423bbc0ea: Pushed
+1c2001cffa6f: Pushed
+6b4cc91e78e4: Pushed
+f50bfedd476f: Pushed
+018501188d19: Pushed
+bbef00473d3a: Pushed
+9bf32ad45c66: Pushed
+3281047762f0: Pushed
+6f611743c2e1: Pushed
+5d4427064ecc: Pushed
+latest: digest: sha256:c5f1cc15c912ec83b5c5e4c63d885e4571750fde4c5c0fbde3162cdea491bc90 size: 3257
+[ec2-user@ip-10-0-143-47 bia]$
+
+
+AGORA VER EM ECR SE A IMAGEM SUBIU PARA O REPOSITORIO.
+Ver no repositório bia na coluna Artifact type. Está como "Image" ( a imagem subiu para o repositório)  e possui 241GB
+
+
+
+Criando Cluster no ECS (Amazon Elastic Container Service)
+
+
+Usando ECS 
+
+Criar Cluster
+	Obs para criar uso de EC2(CONTA NOVA)
+Criar task Definition
+Criar Service
+
+O cluster vai prover poder computacional para a infraestrutura
+
+primeiro criar o cluster ECS
+Depos criar a task definition para ter o arquivo declarativo.
+O arquivo declarativo vai ser usado na criação do service
+DEPOIS CRIAR O SERVICE ( LANCA UMA TASK E MANTENHA DISPONÍVEL UMA TASK. Se uma task morrer ele lança uma e deixa uma disponivel
+
+
+
+Criando o cluster
+cluster name:  cluster-bia
+
+Em infraestructure:
+  selecionar Amazon EC2 Instances  (nosso cluster será um cluster de EC2)
+
+O Fargate custa 3 vezes mais caro.
+
+Em Auto Scaling group (ASG):  Create new ASG
+
+Em provisioning model: escolher on-demand
+
+
+Container instance Amazon Machine Image (AMI):  Amazon Linux 2023
+
+
+EC2 instance type: t3.micro
+
+Desired capacity:  minimum: 1  maximum: 2
+
+
+SSH Key pair: none-unable to ssh
+
+
+Network settings for Amazon EC2 instances 
+
+VPC: desafio-set24-04-vpc
+
+Subnets: trabalhar com a e b
+
+subnet pub01 e subnet pub02
+
+
+
+Security group: bia-db-desafio-se24-04  
+
+
+Auto-assign public IP: use subnet setting   - deixar a configuração padrão pois ela já coloca IP público (colocar Turn on para uma instancia de container seja inicializada em Container Instances)
+*****Vamos deixar sem IP porque o database está numa rede isolada********
+
+
+
+
+
+
+
+
+Criar o task definition
+
+Create new task definition
+
+task definition family: task-def-bia
+
+
+Infrastructure requirements
+selecionar:  Amazon EC2 instances
+
+OS, Architecture: Linux/X86_64
+
+network node: bridge
+
+
+Task size:  CPU e Memory pode deixar em branco
+
+
+Container detais
+Name: bia
+Image URL : 539247489446.dkr.ecr.us-east-1.amazonaws.com/bia-desafio-set24-04:latest
+	Para buscar a imagema url: 
+	Ir em ECR
+	Repositorios
+	Seleciona a imagem
+	'Copia a url para colocar no campo Image URL
+
+host port: 80 (visível para o mundo)
+Container port: 8080  (ver abaixo saida do comando cat docker-compose.yml)
+TCP PROTOCOL: TCP
+Port name: porta_80  (colocamos o nome que quisermos)
+App protocol: http
+
+
+Resource Allocation limits (poder computacional)
+CPU: 1
+GPU: sem nada(vazio)
+Memory Hard limit: sem nada(vazio)  (é quanto de memoria eu permito que o container alcance)
+Memory soft limit: 0,4 (defino quanto de memória quero que ele defina para o container)
+
+
+As variáveis de ambientes podem ser vistas abaixo no cat do arquivo docker-compose.yml
+
+[ec2-user@ip-10-0-1-211 bia]$ cat docker-compose.yml
+version: "3"
+services:
+  server:
+    build: .
+    container_name: bia
+    ports:
+      - 3001:8080
+    links:
+      - database
+    environment:
+      DB_USER: postgres
+      DB_PWD: postgres
+      DB_HOST: database
+      DB_PORT: 5432
+      ## NAO PRECISA NO BOOTCAMP DAQUI PRA BAIXO ##
+      # DB_SECRET_NAME: 
+   
+
+Environment variables (COLOCAR OS VALORES ABAIXO na configuração)
+key      value type      value
+DB_USER     value        postgres
+DB_PWD      value	 VQ4EwPqPlvbw3nvZgArv (pegar em Master Password obtida na criação do RDS)
+DB_HOST     value        bia-desafio-set24-04.cnse26c8g1fu.us-east-1.rds.amazonaws.com (pegar em endpoint obtido na criação do RDS)  
+DB_PORT     value        5432
+
+avança até o final e mandar criar a task definition
+
+Vamos criar o service
+
+Na própria tela de retorno da criação da task definition,selecionar deploy -> create service
+
+
+compute options:  Launch Type
+Launch type: EC2
+
+Deployment configuration
+Application type: service
+service name: service-bia
+
+service type:  replica
+
+Deployment options
+deployment type: rolling update
+
+min running task%: 0
+Max running tasks%: 100
+As configurações acima de min running task% e max running task%  estão dessa maneira pois não temos load balance.
+
+
+
+Deployment failure detection
+Use the Amazon ECS deployment circuit breaker: Deixar desabilitado para que caso haja erro de execução ele já pare e nos mostre. Como estamos começando isso pode ser util, no futuro podemos habilitá-lo.
+
+
+task placement
+Como as tarefas serão acomodadas dentro do ambiente  cluster.
+Deixar o padrão -> placement templates : AZ balanced spread
+
+Pula pra create
+
+Subindo projeto no bia-dev apontando para o RDS
+
+Editar o docker.composer para configurar 
+DB_USER: postgres
+DB_PWD: VQ4EwPqPlvbw3nvZgArv (pegar em Master Password obtida na criação do RDS)
+DB_HOST: bia-desafio-set24-04.cnse26c8g1fu.us-east-1.rds.amazonaws.com (pegar em endpoint obtido na criação do RDS) 
+DB_PORT: 5432
+
+[ec2-user@ip-10-0-143-47 bia]$ grep -i db_ docker-compose.yml
+      DB_USER: postgres
+      DB_PWD: VQ4EwPqPlvbw3nvZgArv
+      DB_HOST: bia-desafio-set24-04.cnse26c8g1fu.us-east-1.rds.amazonaws.com
+      DB_PORT: 5432
+      # DB_SECRET_NAME:
+      # DB_REGION:
+
+[ec2-user@ip-10-0-143-47 bia]$ docker ps
+CONTAINER ID   IMAGE           COMMAND                  CREATED        STATUS        PORTS                                       NAMES
+3115e84c4e40   bia-server      "docker-entrypoint.s…"   20 hours ago   Up 20 hours   0.0.0.0:3001->8080/tcp, :::3001->8080/tcp   bia
+8d174c7f96e3   postgres:16.1   "docker-entrypoint.s…"   20 hours ago   Up 20 hours   0.0.0.0:5433->5432/tcp, :::5433->5432/tcp   database
+[ec2-user@ip-10-0-143-47 bia]$ docker compose down
+[+] Running 3/3
+ ✔ Container bia        Removed                                            1.0s
+ ✔ Container database   Removed                                            0.5s
+ ✔ Network bia_default  Removed                                            0.5s
+[ec2-user@ip-10-0-143-47 bia]$ docker compose up -d
+[+] Running 3/3
+ ✔ Network bia_default  Created                                            0.2s
+ ✔ Container database   Started                                            0.0s
+ ✔ Container bia        Started                                            0.0s
+[ec2-user@ip-10-0-143-47 bia]$ docḱer ps
+-bash: docḱer: command not found
+[ec2-user@ip-10-0-143-47 bia]$ docker ps
+CONTAINER ID   IMAGE           COMMAND                  CREATED          STATUS          PORTS                                       NAMES
+369dda55b76e   bia-server      "docker-entrypoint.s…"   53 seconds ago   Up 51 seconds   0.0.0.0:3001->8080/tcp, :::3001->8080/tcp   bia
+4c12d93abe26   postgres:16.1   "docker-entrypoint.s…"   53 seconds ago   Up 51 seconds   0.0.0.0:5433->5432/tcp, :::5433->5432/tcp   database
+[ec2-user@ip-10-0-143-47 bia]$
+
+
+#vamos rodar a migrate
+docker compose exec server bash -c 'npx sequelize db:migrate'
+
+
+#Editar o arquivo deploy.sh para informar o nome do cluster (cluster-bia) e do service (service-bia)
+[ec2-user@ip-10-0-143-47 bia]$ sudo cp deploy.sh deploy_06102024.sh
+[ec2-user@ip-10-0-143-47 bia]$ sudo vi deploy.sh
+[ec2-user@ip-10-0-143-47 bia]$ cat deploy.sh
+./build.sh
+aws ecs update-service --cluster cluster-bia --service service-bia  --force-new-deployment
+[ec2-user@ip-10-0-143-47 bia]$
+
+
+Configurando permissão de execução:
+[ec2-user@ip-10-0-143-47 bia]$ sudo chmod +x deploy.sh
+[ec2-user@ip-10-0-143-47 bia]$
+
+Para fazer o processo de deploy:
+[ec2-user@ip-10-0-143-47 bia]$ ./deploy.sh 
+WARNING! Your password will be stored unencrypted in /home/ec2-user/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+Login Succeeded
+[+] Building 30.8s (15/15) FINISHED                              docker:default
+ => [internal] load build definition from Dockerfile                       0.0s
+ => => transferring dockerfile: 491B                                       0.0s
+ => [internal] load metadata for public.ecr.aws/docker/library/node:21-sl  0.3s
+ => [internal] load .dockerignore                                          0.0s
+ => => transferring context: 2B                                            0.0s
+ => [ 1/10] FROM public.ecr.aws/docker/library/node:21-slim@sha256:dfc05d  0.0s
+ => [internal] load build context                                          0.0s
+ => => transferring context: 14.92kB                                       0.0s
+ => CACHED [ 2/10] RUN npm install -g npm@latest --loglevel=error          0.0s
+ => CACHED [ 3/10] WORKDIR /usr/src/app                                    0.0s
+ => CACHED [ 4/10] COPY package*.json ./                                   0.0s
+ => CACHED [ 5/10] RUN npm install --loglevel=error                        0.0s
+ => [ 6/10] COPY . .                                                       0.2s
+ => [ 7/10] RUN REACT_APP_API_URL=http://localhost:3001 SKIP_PREFLIGHT_C  28.0s
+ => [ 8/10] RUN mv client/build build                                      1.0s
+ => [ 9/10] RUN rm  -rf client/*                                           0.5s
+ => [10/10] RUN mv build client/                                           0.4s
+ => exporting to image                                                     0.3s
+ => => exporting layers                                                    0.3s
+ => => writing image sha256:2c28d4ad2d8d2c051cc67a15ba297f43ba3bee8fe4cb2  0.0s
+ => => naming to docker.io/library/bia-desafio-set24-04                    0.0s
+The push refers to repository [539247489446.dkr.ecr.us-east-1.amazonaws.com/bia-desafio-set24-04]
+51f0ddefa1cf: Pushed
+1d8d35860cbe: Pushed
+55b2c9ddccd7: Pushed
+fc28198220dc: Pushed
+d2393c209aae: Pushed
+1c2001cffa6f: Layer already exists
+6b4cc91e78e4: Layer already exists
+f50bfedd476f: Layer already exists
+018501188d19: Layer already exists
+bbef00473d3a: Layer already exists
+9bf32ad45c66: Layer already exists
+3281047762f0: Layer already exists
+6f611743c2e1: Layer already exists
+5d4427064ecc: Layer already exists
+latest: digest: sha256:4f2b8819338cf91cdfe8f20ec8fdd3315173852856d4381dfda451e3e07bdaa6 size: 3257
+
+An error occurred (ClusterNotFoundException) when calling the UpdateService operation: Cluster not found.
+[ec2-user@ip-10-0-143-47 bia]$ sudo vi deploy.sh
+[ec2-user@ip-10-0-143-47 bia]$ ./deploy.sh
+WARNING! Your password will be stored unencrypted in /home/ec2-user/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+Login Succeeded
+[+] Building 25.8s (15/15) FINISHED                              docker:default
+ => [internal] load build definition from Dockerfile                       0.0s
+ => => transferring dockerfile: 491B                                       0.0s
+ => [internal] load metadata for public.ecr.aws/docker/library/node:21-sl  0.2s
+ => [internal] load .dockerignore                                          0.0s
+ => => transferring context: 2B                                            0.0s
+ => [ 1/10] FROM public.ecr.aws/docker/library/node:21-slim@sha256:dfc05d  0.0s
+ => [internal] load build context                                          0.0s
+ => => transferring context: 14.80kB                                       0.0s
+ => CACHED [ 2/10] RUN npm install -g npm@latest --loglevel=error          0.0s
+ => CACHED [ 3/10] WORKDIR /usr/src/app                                    0.0s
+ => CACHED [ 4/10] COPY package*.json ./                                   0.0s
+ => CACHED [ 5/10] RUN npm install --loglevel=error                        0.0s
+ => [ 6/10] COPY . .                                                       0.2s
+ => [ 7/10] RUN REACT_APP_API_URL=http://localhost:3001 SKIP_PREFLIGHT_C  23.2s
+ => [ 8/10] RUN mv client/build build                                      0.9s
+ => [ 9/10] RUN rm  -rf client/*                                           0.4s
+ => [10/10] RUN mv build client/                                           0.5s
+ => exporting to image                                                     0.3s
+ => => exporting layers                                                    0.2s
+ => => writing image sha256:5d0a2ee8e98a45b9c029e046d49933e2d309d40bacd82  0.0s
+ => => naming to docker.io/library/bia-desafio-set24-04                    0.0s
+The push refers to repository [539247489446.dkr.ecr.us-east-1.amazonaws.com/bia-desafio-set24-04]
+e8bd0d0d901f: Pushed
+add3a67b9d10: Pushed
+f919ddb3a0f1: Pushed
+d6fe3cd8ecac: Pushed
+02624a7f8fd6: Pushed
+1c2001cffa6f: Layer already exists
+6b4cc91e78e4: Layer already exists
+f50bfedd476f: Layer already exists
+018501188d19: Layer already exists
+bbef00473d3a: Layer already exists
+9bf32ad45c66: Layer already exists
+3281047762f0: Layer already exists
+6f611743c2e1: Layer already exists
+5d4427064ecc: Layer already exists
+latest: digest: sha256:1d87e7bbb411bce13ada60edfcec2570db940420fce6b45354ee4bc37247dbbd size: 3257
+{
+    "service": {
+        "serviceArn": "arn:aws:ecs:us-east-1:539247489446:service/cluster-bia/service-bia",
+        "serviceName": "service-bia",
+        "clusterArn": "arn:aws:ecs:us-east-1:539247489446:cluster/cluster-bia",
+        "loadBalancers": [],
+        "serviceRegistries": [],
+        "status": "ACTIVE",
+        "desiredCount": 1,
+        "runningCount": 0,
+        "pendingCount": 0,
+        "launchType": "EC2",
+        "taskDefinition": "arn:aws:ecs:us-east-1:539247489446:task-definition/task-def-bia:4",
+        "deploymentConfiguration": {
+            "deploymentCircuitBreaker": {
+                "enable": false,
+                "rollback": false
+            },
+            "maximumPercent": 100,
+            "minimumHealthyPercent": 0,
+            "alarms": {
+                "alarmNames": [],
+                "enable": false,
+                "rollback": false
+            }
+        },
+        "deployments": [
+            {
+                "id": "ecs-svc/4019844483222807651",
+                "status": "PRIMARY",
+                "taskDefinition": "arn:aws:ecs:us-east-1:539247489446:task-definition/task-def-bia:4",
+                "desiredCount": 0,
+                "pendingCount": 0,
+                "runningCount": 0,
+                "failedTasks": 0,
+                "createdAt": "2024-10-06T16:16:19.756000+00:00",
+                "updatedAt": "2024-10-06T16:16:19.756000+00:00",
+                "launchType": "EC2",
+                "rolloutState": "IN_PROGRESS",
+                "rolloutStateReason": "ECS deployment ecs-svc/4019844483222807651 in progress."
+            },
+            {
+                "id": "ecs-svc/6850294948815112904",
+                "status": "ACTIVE",
+                "taskDefinition": "arn:aws:ecs:us-east-1:539247489446:task-definition/task-def-bia:4",
+                "desiredCount": 1,
+                "pendingCount": 0,
+                "runningCount": 0,
+                "failedTasks": 34,
+                "createdAt": "2024-10-06T14:15:03.097000+00:00",
+                "updatedAt": "2024-10-06T14:16:26.019000+00:00",
+                "launchType": "EC2",
+                "rolloutState": "IN_PROGRESS",
+                "rolloutStateReason": "ECS deployment ecs-svc/6850294948815112904 in progress."
+            }
+        ],
+        "events": [
+            {
+                "id": "cd750dc7-fa72-4f7f-b44c-ed6ee36cee3e",
+                "createdAt": "2024-10-06T14:15:16.960000+00:00",
+                "message": "(service service-bia) was unable to place a task because no container instance met all of its requirements. The closest matching (container-instance b296cd5e38e44cb4a8ef40ac3e36a462) has insufficient memory available. For more information, see the Troubleshooting section of the Amazon ECS Developer Guide."
+            }
+        ],
+        "createdAt": "2024-10-06T14:15:03.097000+00:00",
+        "placementConstraints": [],
+        "placementStrategy": [
+            {
+                "type": "spread",
+                "field": "attribute:ecs.availability-zone"
+            },
+            {
+                "type": "spread",
+                "field": "instanceId"
+            }
+        ],
+        "schedulingStrategy": "REPLICA",
+        "deploymentController": {
+            "type": "ECS"
+        },
+        "createdBy": "arn:aws:iam::539247489446:root",
+        "enableECSManagedTags": true,
+        "propagateTags": "NONE",
+        "enableExecuteCommand": false
+    }
+}
+[ec2-user@ip-10-0-143-47 bia]$
+
+
+
+
+Route 53 - serviço de gerenciamento de DNS da AWS
+
+Create Hosted zone
+
+Hosted zone configuration
+
+Domain name: caetanodeandrade.com.br  ( já foi criado no registrobr)
+
+Type: public hosted zone
+
+A entrada type: NS é a que vai ser usada para configurar no registroBR
+
+Ir no registro Br e cadastrar os DNS que estão na entrada type NS:
+ns-290.awsdns-36.com.
+ns-712.awsdns-25.net.
+ns-1075.awsdns-06.org.
+ns-2032.awsdns-62.co.uk.
+
+###################################################################     
+
+Cadastron no registrobr
+Seu cadastro pessoal no Registro.br foi efetivado. Seu código de usuário é CAENA115.
+
+Confira a seguir os seus dados :
+
+CAENA115 - carloseduardo96@hotmail.com /!Ob..r  lembreta: pe...55
+ Carlos Eduardo do Nascimento
+ Rua Felisberto Caldeira, 84,
+ 08191-030 - São Paulo - SP
+ (11) 99644-5102 []
+
+###################################################################  
+
+
+
+  ACM - AWS Certificate Manager
+
+JÁ TENHO O Fully qualified domain name: bia.caetanodeandrade.com.br 
+
+
+
+
+Trabalhando com ALB e Target Group no ECS
+
+Security groups
+
+security group name: bia-alb-desafio-set24-04
+description: sg do alb da bia
+vpc - desafio-set24-04
+
+regras de entrada:
+type: http, protcolo tcp, porta 80, source anywhere ipv4, source 0.0.0.0/0, description: libera para o mundo
+type: https, protocolo tcp, porta 443, source anywhere ipv4, source 0.0.0.0/0, description: libera para o mundo
+
+
+security group name: bia-ec2-desafio-set24-04
+description: sg da ec2 com alb
+
+regras de entrada:
+type: ALL TCP, protcolo tcp, porta 0-65535, source: Custom, source bia-alb-desafio-set24-04, description: Acesso do ALB
+vpc - desafio-set24-04
+
+Adicionar regra no sg já existente bia-db-desafio-set24-04
+regras de entrada:
+type: postgresql, protcolo tcp, porta 5432, source: Custom, source bia-ec2-desafio-set24-04, description: bia-ec2-desafio-set24-04
+
+
+
+Trabalhando  com o ALB
+
+Create Load Balancer
+
+Application Load Balancer -> Create
+
+
+Basic configuration
+Load balancer name: bia-alb-desafio-set24-04
+
+Network mapping : 
+Marcar as zonas a, b
+VPC: desafio-set24-04 
+
+
+Security group: bia-alb-desafio-set24-04
+
+Criar um target group para conectar nele
+
+Specify group details
+
+Choose a target type: Instances
+Target group name: tg-bia-desafio-set24-04
+protocol:http    port:80
+
+
+Voltando para a configuração do load balancer
+Listeners and rouging
+listener http:80
+protocol: http
+port: 80
+default acton: Forward to
+info: tg-bia
+
+
+Criar load balancer:  bia-alb-desafio-set24-04-1446259186.us-east-1.elb.amazonaws.com
+
+
+No ECS, deletar o service service-bia
+deletar o cluster cluster-bia
+
+
+criar novo cluster
+
+Create cluster
+cluster name:  cluster-bia-alb-desafio-set24-04
+
+Em infraestructure:
+  selecionar Amazon EC2 Instances  (nosso cluster será um cluster de EC2)
+
+
+Em Auto Scaling group (ASG):  Create new ASG
+
+Em provisioning model: escolher on-demand
+
+
+Container instance Amazon Machine Image (AMI):  Amazon Linux 2023
+
+EC2 instance type: t3.micro
+
+Desired capacity:  minimum: 2  maximum: 2 (duas instâncias pois desejamos trabalhar com alta disponibilidade)
+
+
+SSH Key pair: none-unable to ssh
+
+
+Network settings for Amazon EC2 instances 
+
+VPC: desafio-set24-04 
+
+
+Subnets: trabalhar com (a,b)
+
+Security group: bia-ec2-desfio-set24-04
+
+
+
+Task definition ( a configuração vai mudar um pouco pois agora temos portas aleatórias)
+
+Criar o task definition
+
+Create new task definition
+
+task definition family: task-def-bia-alb-desafio-set24-04
+
+
+Infrastructure requirements
+selecionar:  Amazon EC2 instances
+
+OS, Architecture: Linux/X86_64
+
+network node: bridge
+
+
+Task size:  CPU e Memory pode deixar em branco
+
+
+Container details
+Name: bia
+Image URL :539247489446.dkr.ecr.us-east-1.amazonaws.com/bia-desafio-set24-04:latest
+        Para buscar a imagema url: 
+	Ir em ECR
+	Repositorios
+	Seleciona a imagem
+	'Copia a url para colocar no campo Image URL
+
+host port: 0 (quando colocamos zero, ele sabe que pegar portas aleatórias)
+Container port: 8080  
+TCP PROTOCOL: TCP
+Port name: porta_aleatoria  (colocamos o nome que quisermos)
+App protocol: http
+
+Resource Allocation limits (poder computacional)
+CPU: 1
+GPU: sem nada(vazio)
+Memory Hard limit: sem nada(vazio)  (é quanto de memoria eu permito que o container alcance)
+Memory soft limit: 0,4 (defino quanto de memória quero que ele defina para o container)
+
+Environment variables
+key      value type      value
+DB_USER     value        postgres
+DB_PWD      value	 VQ4EwPqPlvbw3nvZgArv
+DB_HOST     value        bia-desafio-set24-04.cnse26c8g1fu.us-east-1.rds.amazonaws.com  
+DB_PORT     value        5432
+
+As variáveis de ambientes podem ser vistas abaixo no cat do arquivo docker-compose.yml
+environment:
+      DB_USER: postgres
+      DB_PWD: postgres   ( é a Master password que foi criada na criação do banco RDS)
+      DB_HOST: database  ( é o Endpoint  que foi criadona na criação do banco RDS
+      DB_PORT: 5432
+
+
+
+
+
+Criando o Service
+
+Seleciona a task definition task-def-bia-alb-desafio-set24-04 na tela de task definitions
+Seleciona deploy -> create a service
+
+
+Existing Cluster: cluster-bia-alb-desafio-set24-04
+compute options:  Launch Type
+Launch type: EC2
+
+Deployment configuration
+Application type: service
+service name: service-bia-alb-set24-04
+
+service type:  replica
+
+Desired taks 2
+
+Deployment options
+deployment type: rolling update
+
+min running task%: 50
+Max running tasks%: 100
+
+
+
+
+Deployment failure detection
+Use the Amazon ECS deployment circuit breaker: Deixar desabilitado para que caso haja erro de execução ele já pare e nos mostre (para termos visibilidade). Como estamos começando isso pode ser util, no futuro podemos habilitá-lo.
+
+
+
+
+Load balancer type: application Load Balancer
+choose container to load balance :  bia 8080:8080
+Load Balancer: bia-alb-desafio-set24-04
+Health check grace period:0
+
+
+
+Listener: use an existing listenter  -->> 80:http
+target group: use an existing target group -->> tg-bia-desafio-set24-04
+
+
+task placement
+Como as tarefas serão acomodadas dentro do ambientes.
+Deixar o padrão -> placement templates : AZ balanced spread (a prioridade é distribuir minhas tarefas primeiro nas AZs, distribuir entre as instâncias)
+
+CREATE
+
+
+O acesso http://localhost:3006/ funciona.
+O acesso http://bia-alb-desafio-set24-04-1446259186.us-east-1.elb.amazonaws.com/ retorna
+bia-alb-desafio-set24-04-1446259186.us-east-1.elb.amazonaws.com demorou muito para responder.
+
